@@ -26,6 +26,26 @@ enum NotificationType {
   ASSIGNMENT_DUE
   GRADE_RELEASED
   ACCOUNT_APPROVED
+  // Phase 5
+  EXAM_PUBLISHED
+  EXAM_SUBMITTED
+}
+
+/// Phase 5: an assessment is either a timed, locked-down exam or an
+/// untimed assignment. The distinction only changes how the student
+/// portal presents it — grading is identical.
+enum AssessmentType {
+  EXAM
+  ASSIGNMENT
+}
+
+/// Phase 5: a submission's lifecycle. Auto-grading runs on submit, so a
+/// paper with no essay questions goes straight from SUBMITTED to GRADED
+/// once the teacher releases it.
+enum SubmissionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
 }
 
 model User {
@@ -49,6 +69,9 @@ model User {
   taughtCourses Course[]       @relation("CourseTeacher")
   enrolledIn    Course[]       @relation("CourseEnrollment")
   assignments   Assignment[]
+
+  // Phase 5: exams and assignments this teacher authored
+  authoredExams Exam[]         @relation("ExamAuthor")
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -175,29 +198,82 @@ model Assignment {
 }
 
 model Exam {
-  id           String       @id @default(uuid())
+  id           String         @id @default(uuid())
   title        String
   durationMins Int
+  /// `ExamQuestion[]` — see `lib/exams.ts`. Holds the answer key, so this
+  /// column is never sent to a student unsanitised.
   questions    Json
 
   // Phase 4: due dates so exams appear on the student calendar
   dueAt        DateTime?
   courseId     String?
-  course       Course?      @relation(fields: [courseId], references: [id])
+  course       Course?        @relation(fields: [courseId], references: [id])
+
+  // --- Phase 5: authoring ---
+  description  String?
+  type         AssessmentType @default(EXAM)
+  /// Sum of every question's points, denormalised so the gradebook can
+  /// show "18 / 25" without re-reading the question JSON.
+  totalPoints  Float          @default(0)
+  passingPct   Int            @default(50)
+  isPublished  Boolean        @default(false)
+  teacherId    String?
+  teacher      User?          @relation("ExamAuthor", fields: [teacherId], references: [id])
+
+  // --- Phase 5: anti-cheat configuration ---
+  forceFullscreen  Boolean @default(true)
+  trackTabSwitches Boolean @default(true)
+  /// Switches allowed before the submission is flagged for the teacher.
+  maxTabSwitches   Int     @default(3)
+  blockCopyPaste   Boolean @default(true)
+  randomizeOrder   Boolean @default(true)
 
   submissions  Submission[]
 
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt @default(now())
+
   @@index([courseId, dueAt])
+  @@index([teacherId, createdAt])
 }
 
 model Submission {
-  id          String  @id @default(uuid())
+  id          String           @id @default(uuid())
   examId      String
   studentId   String
+  /// Released score = auto-graded points + teacher-awarded essay points.
+  /// Null until the teacher releases the grade.
   score       Float?
   feedback    String?
-  tabSwitches Int     @default(0)
+  tabSwitches Int              @default(0)
 
-  exam        Exam    @relation(fields: [examId], references: [id])
-  student     User    @relation(fields: [studentId], references: [id])
+  // --- Phase 5 ---
+  /// `StudentAnswer[]` — one entry per question, carrying the student's
+  /// response and the points it earned.
+  answers     Json             @default("[]")
+  /// Points the engine awarded without human review (MCQ + True/False).
+  autoScore   Float            @default(0)
+  /// Snapshot of the paper's total at submit time, so later edits to the
+  /// exam don't retroactively change an already-graded score.
+  maxScore    Float            @default(0)
+  status      SubmissionStatus @default(IN_PROGRESS)
+  /// Server-authoritative clock start — the timer the student sees is a
+  /// convenience, this is what the deadline is checked against.
+  startedAt   DateTime         @default(now())
+  submittedAt DateTime?
+  gradedAt    DateTime?
+  /// True when tabSwitches exceeded the exam's limit, or the paper landed
+  /// after the server-side deadline.
+  isFlagged   Boolean          @default(false)
+  /// `ViolationEvent[]` — timestamped anti-cheat log for the teacher.
+  violations  Json             @default("[]")
+
+  exam        Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student     User             @relation(fields: [studentId], references: [id])
+
+  // One attempt per student per exam; starting an exam upserts against this.
+  @@unique([examId, studentId])
+  @@index([examId, status])
+  @@index([studentId])
 }
