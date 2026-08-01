@@ -1,5 +1,8 @@
+"use client"
+
 import { type ReactNode } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Search, LayoutDashboard, UserCheck, Users, CreditCard } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 
@@ -7,10 +10,17 @@ const NAV_ITEMS = [
   { id: 'analytics', label: 'Platform Analytics', icon: LayoutDashboard, href: '/dashboard/admin' },
   { id: 'approvals', label: 'Pending Approvals', icon: UserCheck, href: '/dashboard/admin/approvals' },
   { id: 'users', label: 'User Management', icon: Users, href: '/dashboard/admin/users' },
-  { id: 'billing', label: 'Billing', icon: CreditCard, href: '/dashboard/admin/billing' },
+  { id: 'monetization', label: 'Monetization', icon: CreditCard, href: '/dashboard/admin/monetization' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+
+  // The overview lives at the section root, so it only matches exactly —
+  // a prefix test would light it up on every child route.
+  const isActive = (href: string) =>
+    href === '/dashboard/admin' ? pathname === href : pathname.startsWith(href)
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
       {/* Sidebar Navigator */}
@@ -31,11 +41,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 flex flex-col gap-1 px-3 mt-2">
           {NAV_ITEMS.map(item => {
-            const active = item.id === 'analytics'
+            const active = isActive(item.href)
             return (
               <Link
                 key={item.id}
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all relative group ${
                   active 
                     ? 'bg-slate-700/50 text-white font-semibold' 

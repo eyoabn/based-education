@@ -2,6 +2,7 @@ import { type ReactNode } from "react"
 import Link from "next/link"
 import { Search, LayoutDashboard, Rss, Video, Calendar, FileText, GraduationCap } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
+import MaintenanceGate from "@/components/admin/MaintenanceGate"
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/student' },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 
 export default function StudentLayout({ children }: { children: ReactNode }) {
   return (
+    <MaintenanceGate>
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
       {/* Sidebar Navigator */}
       <aside className="w-[240px] shrink-0 bg-slate-900 flex flex-col py-6 relative z-10 text-slate-300">
@@ -86,5 +88,6 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
     </div>
+    </MaintenanceGate>
   )
 }
