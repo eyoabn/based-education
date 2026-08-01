@@ -1,4 +1,5 @@
 import { type ReactNode } from "react"
+import ToastProvider from "@/components/ui/ToastProvider"
 import "./globals.css"
 
 export const metadata = {
@@ -11,6 +12,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="antialiased">
         {children}
+        {/* Phase 7: single feedback surface for every module. */}
+        <ToastProvider />
       </body>
     </html>
   )
