@@ -10,6 +10,13 @@ export interface SessionPayload {
   email?: string;
   role: 'STUDENT' | 'TEACHER' | 'ADMIN';
   teacherStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  /**
+   * Phase 6: the value of `User.sessionEpoch` when this token was minted.
+   * `requireSession()` rejects a token whose epoch trails the database, which
+   * is how a ban or a role change revokes sessions that are already live.
+   * Tokens issued before Phase 6 omit it and are read as epoch 0.
+   */
+  epoch?: number;
 }
 
 export async function signToken(payload: SessionPayload): Promise<string> {
