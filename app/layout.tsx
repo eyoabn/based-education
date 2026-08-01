@@ -1,5 +1,5 @@
 import { type ReactNode } from "react"
-import "../src/index.css" // Import the existing tailwind styles if any
+import "./globals.css"
 
 export const metadata = {
   title: "Educonnect",

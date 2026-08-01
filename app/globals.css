@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+:root {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #1E293B;
+  --primary: #4F46E5;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EEF2FF;
+  --secondary-foreground: #3730A3;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #10B981;
+  --accent-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --ring: #4F46E5;
+  --radius: 12px;
+
+  --indigo-deep: #1E1B4B;
+  --indigo-brand: #4F46E5;
+  --indigo-light: #818CF8;
+  --emerald: #10B981;
+  --coral: #EF4444;
+  --amber: #F59E0B;
+  --surface-glass: rgba(255, 255, 255, 0.7);
+  --surface-glass-dark: rgba(15, 23, 42, 0.8);
+}
+
+.dark {
+  --background: #0F172A;
+  --foreground: #F1F5F9;
+  --card: #1E293B;
+  --card-foreground: #F1F5F9;
+  --primary: #6366F1;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1E1B4B;
+  --secondary-foreground: #A5B4FC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #10B981;
+  --accent-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: #6366F1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide scrollbars by default, show on hover */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*:hover {
+  scrollbar-color: rgba(79, 70, 229, 0.3) transparent;
+}
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.3);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Phase 4: pulsating ring for "class starting soon" calendar cards */
+@keyframes pulse-live-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45);
+    border-color: rgba(16, 185, 129, 0.9);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    border-color: rgba(16, 185, 129, 0.5);
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-live-border {
+  animation: pulse-live-border 2s ease-in-out infinite;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card-elevated {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: #4338CA;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10B981;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Phase 4: print styles for the attendance report PDF export */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  body {
+    background: #ffffff;
+  }
+  .print-container {
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    overflow: visible !important;
+    background: #ffffff;
+    padding: 0;
+  }
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+}
+
+.print-only {
+  display: none;
+}

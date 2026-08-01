@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
+    "target": "ES2022",
     "lib": [
-      "ES2020",
+      "ES2022",
       "DOM",
       "DOM.Iterable"
     ],
@@ -13,14 +12,13 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./*"
       ]
     },
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "types": [
       "node"
     ],
@@ -36,12 +34,13 @@
     ]
   },
   "include": [
-    "src",
-    "vite.config.ts",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "_legacy-vite"
   ]
 }
