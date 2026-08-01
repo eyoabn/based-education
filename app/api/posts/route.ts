@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { notifyUser } from '@/app/api/notifications/stream/route';
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,21 +51,50 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Mock sending notification to all students
-    // In a real app, this would queue a job or fetch targeted students
-    const students = await prisma.user.findMany({ where: { role: 'STUDENT' } });
-    const notifications = students.map(student => ({
-      userId: student.id,
-      type: 'NEW_POST' as const,
-      title: 'New Announcement',
-      message: `${newPost.author.name} posted a new announcement.`
-    }));
-    
-    if (notifications.length > 0) {
-      await prisma.notification.createMany({ data: notifications });
+    // Phase 7 — close the loop: persist an alert for every student, then push
+    // it down the SSE stream so anyone currently online sees the toast without
+    // waiting for their next page load. Persistence comes first, so a student
+    // who is offline right now still finds the alert in their drawer later.
+    const students = await prisma.user.findMany({
+      where: { role: 'STUDENT', isBanned: false },
+      select: { id: true },
+    });
+
+    const title = 'New Announcement';
+    const message = `${newPost.author.name} posted a new announcement.`;
+
+    if (students.length > 0) {
+      await prisma.notification.createMany({
+        data: students.map(student => ({
+          userId: student.id,
+          type: 'NEW_POST' as const,
+          title,
+          message,
+        })),
+      });
+
+      const payload = {
+        type: 'NEW_POST' as const,
+        title,
+        message,
+        createdAt: newPost.createdAt.toISOString(),
+        postId: newPost.id,
+      };
+
+      // Best-effort: a dropped socket must never fail the write that succeeded.
+      for (const student of students) {
+        try {
+          notifyUser(student.id, payload);
+        } catch {
+          // Stale controller — the client will reconnect and refetch.
+        }
+      }
     }
 
-    return NextResponse.json(newPost, { status: 201 });
+    return NextResponse.json(
+      { post: newPost, notifiedCount: students.length },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
   }
