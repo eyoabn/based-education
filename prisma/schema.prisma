@@ -29,6 +29,12 @@ enum NotificationType {
   // Phase 5
   EXAM_PUBLISHED
   EXAM_SUBMITTED
+  // Phase 6 — governance notices raised by the admin portal
+  ACCOUNT_REJECTED
+  ACCOUNT_SUSPENDED
+  ACCOUNT_REINSTATED
+  ROLE_CHANGED
+  PLATFORM_BROADCAST
 }
 
 /// Phase 5: an assessment is either a timed, locked-down exam or an
@@ -48,6 +54,33 @@ enum SubmissionStatus {
   GRADED
 }
 
+/// Phase 6: every privileged mutation an admin performs lands in `AuditLog`
+/// under one of these verbs, so the monetization page can render an
+/// accountable history of who did what to whom.
+enum AuditAction {
+  TEACHER_APPROVED
+  TEACHER_REJECTED
+  USER_BANNED
+  USER_REINSTATED
+  USER_ROLE_CHANGED
+  PASSWORD_RESET_ISSUED
+  BROADCAST_SENT
+  MAINTENANCE_TOGGLED
+  PLAN_UPDATED
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
 model User {
   id            String         @id @default(uuid())
   name          String
@@ -58,6 +91,31 @@ model User {
   avatarUrl     String?
   bio           String?
 
+  // --- Phase 6: teacher verification dossier ---
+  /// Free-text subject the applicant teaches — shown on the approval card.
+  specialty       String?
+  /// `CredentialDoc[]` — see `lib/admin.ts`. Résumés and certificates the
+  /// applicant uploaded, previewed in the credential viewer.
+  credentials     Json      @default("[]")
+  /// Why the application was rejected. Sent to the teacher verbatim.
+  rejectionReason String?
+  reviewedAt      DateTime?
+  reviewedById    String?
+
+  // --- Phase 6: governance ---
+  isBanned             Boolean   @default(false)
+  banReason            String?
+  bannedAt             DateTime?
+  /// Bumped on ban, role change or forced logout. A JWT carries the epoch it
+  /// was minted with, so a stale token fails `requireSession()` on its very
+  /// next request — that is how a ban revokes live sessions without the
+  /// server holding session state.
+  sessionEpoch         Int       @default(0)
+  lastLoginAt          DateTime?
+  /// Single-use link the admin generates for a locked-out user.
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
   posts         Post[]
   comments      Comment[]
   notifications Notification[]
@@ -66,15 +124,29 @@ model User {
   submissions   Submission[]
 
   // Phase 4: course membership drives "enrolled vs attended" and schedule fan-out
-  taughtCourses Course[]       @relation("CourseTeacher")
-  enrolledIn    Course[]       @relation("CourseEnrollment")
+  taughtCourses Course[]     @relation("CourseTeacher")
+  enrolledIn    Course[]     @relation("CourseEnrollment")
   assignments   Assignment[]
 
   // Phase 5: exams and assignments this teacher authored
-  authoredExams Exam[]         @relation("ExamAuthor")
+  authoredExams Exam[] @relation("ExamAuthor")
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  // Phase 6: admin trail — actions this admin took, and actions taken on them
+  actionsTaken     AuditLog[] @relation("AuditActor")
+  actionsReceived  AuditLog[] @relation("AuditTarget")
+  payments         Payment[]
+  /// The admin who last ruled on this teacher's application.
+  reviewedBy       User?      @relation("TeacherReview", fields: [reviewedById], references: [id])
+  reviewedTeachers User[]     @relation("TeacherReview")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The approval queue reads by role + status; the governance table filters
+  // on the same pair plus the ban flag.
+  @@index([role, teacherStatus])
+  @@index([isBanned])
+  @@index([createdAt])
 }
 
 model Post {
@@ -84,8 +156,8 @@ model Post {
   mediaUrls String[]
   createdAt DateTime @default(now())
 
-  author    User      @relation(fields: [authorId], references: [id])
-  comments  Comment[]
+  author   User      @relation(fields: [authorId], references: [id])
+  comments Comment[]
 }
 
 model Comment {
@@ -95,8 +167,8 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
 
-  post      Post     @relation(fields: [postId], references: [id])
-  author    User     @relation(fields: [authorId], references: [id])
+  post   Post @relation(fields: [postId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
 }
 
 model Notification {
@@ -108,7 +180,7 @@ model Notification {
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
 
-  user      User             @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@index([userId, isRead])
 }
@@ -116,9 +188,9 @@ model Notification {
 /// Phase 4: a Course groups enrolled students so scheduled classes,
 /// assignments and exams can be targeted at a cohort.
 model Course {
-  id          String       @id @default(uuid())
+  id          String  @id @default(uuid())
   title       String
-  code        String       @unique
+  code        String  @unique
   description String?
   teacherId   String
 
@@ -128,15 +200,15 @@ model Course {
   assignments Assignment[]
   exams       Exam[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model LiveRoom {
-  id          String       @id @default(uuid())
+  id          String   @id @default(uuid())
   title       String
   teacherId   String
-  isLive      Boolean      @default(false)
+  isLive      Boolean  @default(false)
   scheduledAt DateTime
 
   // Phase 4: scheduling metadata
@@ -150,8 +222,8 @@ model LiveRoom {
   course      Course?      @relation(fields: [courseId], references: [id])
   attendances Attendance[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([teacherId, scheduledAt])
   @@index([courseId, scheduledAt])
@@ -168,12 +240,12 @@ model Attendance {
   // Phase 4: heartbeat presence tracking.
   // activeSec counts only the seconds where the tab was visible/focused,
   // so activeSec / durationSec yields an "attention %".
-  activeSec   Int       @default(0)
-  lastPingAt  DateTime?
-  isActive    Boolean   @default(true)
+  activeSec  Int       @default(0)
+  lastPingAt DateTime?
+  isActive   Boolean   @default(true)
 
-  room        LiveRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  student     User      @relation(fields: [studentId], references: [id])
+  room    LiveRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  student User     @relation(fields: [studentId], references: [id])
 
   // One attendance row per student per room; pings upsert against this.
   @@unique([roomId, studentId])
@@ -189,16 +261,16 @@ model Assignment {
   teacherId   String
   dueAt       DateTime
 
-  course      Course?  @relation(fields: [courseId], references: [id])
-  teacher     User     @relation(fields: [teacherId], references: [id])
+  course  Course? @relation(fields: [courseId], references: [id])
+  teacher User    @relation(fields: [teacherId], references: [id])
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([courseId, dueAt])
 }
 
 model Exam {
-  id           String         @id @default(uuid())
+  id           String @id @default(uuid())
   title        String
   durationMins Int
   /// `ExamQuestion[]` — see `lib/exams.ts`. Holds the answer key, so this
@@ -206,20 +278,20 @@ model Exam {
   questions    Json
 
   // Phase 4: due dates so exams appear on the student calendar
-  dueAt        DateTime?
-  courseId     String?
-  course       Course?        @relation(fields: [courseId], references: [id])
+  dueAt    DateTime?
+  courseId String?
+  course   Course?   @relation(fields: [courseId], references: [id])
 
   // --- Phase 5: authoring ---
-  description  String?
-  type         AssessmentType @default(EXAM)
+  description String?
+  type        AssessmentType @default(EXAM)
   /// Sum of every question's points, denormalised so the gradebook can
   /// show "18 / 25" without re-reading the question JSON.
-  totalPoints  Float          @default(0)
-  passingPct   Int            @default(50)
-  isPublished  Boolean        @default(false)
-  teacherId    String?
-  teacher      User?          @relation("ExamAuthor", fields: [teacherId], references: [id])
+  totalPoints Float          @default(0)
+  passingPct  Int            @default(50)
+  isPublished Boolean        @default(false)
+  teacherId   String?
+  teacher     User?          @relation("ExamAuthor", fields: [teacherId], references: [id])
 
   // --- Phase 5: anti-cheat configuration ---
   forceFullscreen  Boolean @default(true)
@@ -229,24 +301,24 @@ model Exam {
   blockCopyPaste   Boolean @default(true)
   randomizeOrder   Boolean @default(true)
 
-  submissions  Submission[]
+  submissions Submission[]
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([courseId, dueAt])
   @@index([teacherId, createdAt])
 }
 
 model Submission {
-  id          String           @id @default(uuid())
+  id          String  @id @default(uuid())
   examId      String
   studentId   String
   /// Released score = auto-graded points + teacher-awarded essay points.
   /// Null until the teacher releases the grade.
   score       Float?
   feedback    String?
-  tabSwitches Int              @default(0)
+  tabSwitches Int     @default(0)
 
   // --- Phase 5 ---
   /// `StudentAnswer[]` — one entry per question, carrying the student's
@@ -269,11 +341,94 @@ model Submission {
   /// `ViolationEvent[]` — timestamped anti-cheat log for the teacher.
   violations  Json             @default("[]")
 
-  exam        Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
-  student     User             @relation(fields: [studentId], references: [id])
+  exam    Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student User @relation(fields: [studentId], references: [id])
 
   // One attempt per student per exam; starting an exam upserts against this.
   @@unique([examId, studentId])
   @@index([examId, status])
   @@index([studentId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6 — platform operations
+// ---------------------------------------------------------------------------
+
+/// An append-only record of every privileged action. Nothing here is ever
+/// updated or deleted: the value of the log is that it cannot be tidied up.
+model AuditLog {
+  id           String      @id @default(uuid())
+  action       AuditAction
+  adminId      String
+  targetUserId String?
+  /// Human-readable one-liner, rendered straight into the audit table.
+  summary      String
+  /// Free-form context — rejection reason, previous role, recipient count.
+  metadata     Json        @default("{}")
+  createdAt    DateTime    @default(now())
+
+  admin  User  @relation("AuditActor", fields: [adminId], references: [id])
+  target User? @relation("AuditTarget", fields: [targetUserId], references: [id])
+
+  @@index([createdAt])
+  @@index([adminId, createdAt])
+  @@index([targetUserId, createdAt])
+}
+
+/// Single-row platform configuration, always read through
+/// `getPlatformSettings()` in `lib/adminAuth.ts`, which upserts the row on
+/// first read so a fresh database still boots.
+model PlatformSetting {
+  id               String   @id @default("platform")
+  maintenanceMode  Boolean  @default(false)
+  /// Shown to non-admins while maintenance mode is on.
+  maintenanceNote  String?
+  /// Percentage of each teacher charge the platform keeps.
+  commissionPct    Int      @default(15)
+  registrationOpen Boolean  @default(true)
+  updatedById      String?
+  updatedAt        DateTime @updatedAt
+}
+
+/// A purchasable tier. Prices are held in minor units (cents) so no float
+/// ever touches money.
+model SubscriptionPlan {
+  id         String          @id @default(uuid())
+  name       String
+  slug       String          @unique
+  /// Who the plan is sold to — teacher tiers vs. student access fees.
+  audience   Role            @default(TEACHER)
+  priceCents Int
+  interval   BillingInterval @default(MONTHLY)
+  /// `string[]` — the bullet list shown on the plan card.
+  features   Json            @default("[]")
+  isActive   Boolean         @default(true)
+  sortOrder  Int             @default(0)
+
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([audience, sortOrder])
+}
+
+/// One charge. `commissionCents` is snapshotted at charge time so a later
+/// change to `PlatformSetting.commissionPct` never rewrites history.
+model Payment {
+  id              String        @id @default(uuid())
+  userId          String
+  planId          String?
+  amountCents     Int
+  commissionCents Int           @default(0)
+  status          PaymentStatus @default(PAID)
+  description     String?
+  createdAt       DateTime      @default(now())
+
+  user User              @relation(fields: [userId], references: [id])
+  plan SubscriptionPlan? @relation(fields: [planId], references: [id])
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
 }
