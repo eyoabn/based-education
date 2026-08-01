@@ -4,9 +4,18 @@ import { useState } from "react"
 import { MoreHorizontal, Pin, Heart, MessageSquare, Bookmark, FileText } from "lucide-react"
 import CommentSection from "./CommentSection"
 
-export default function PostCard({ post, isTeacher = false }: { post: any, isTeacher?: boolean }) {
+export default function PostCard({
+  post,
+  isTeacher = false,
+  onCommentPosted,
+}: {
+  post: any
+  isTeacher?: boolean
+  onCommentPosted?: () => void
+}) {
   const [showComments, setShowComments] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
+
   
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
@@ -92,7 +101,7 @@ export default function PostCard({ post, isTeacher = false }: { post: any, isTea
       </div>
 
       {/* Comments Section */}
-      {showComments && <CommentSection postId={post.id} />}
+      {showComments && <CommentSection postId={post.id} onCommentPosted={onCommentPosted} />}
     </div>
   )
 }

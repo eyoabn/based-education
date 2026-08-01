@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react"
 import { Send } from "lucide-react"
 
-export default function CommentSection({ postId }: { postId: string }) {
+export default function CommentSection({
+  postId,
+  onCommentPosted,
+}: {
+  postId: string
+  onCommentPosted?: () => void
+}) {
   const [comments, setComments] = useState<any[]>([])
   const [newComment, setNewComment] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -41,6 +47,7 @@ export default function CommentSection({ postId }: { postId: string }) {
       }])
       setNewComment("")
       setIsLoading(false)
+      onCommentPosted?.()
     }, 500)
   }
 

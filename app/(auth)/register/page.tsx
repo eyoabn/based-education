@@ -1,19 +1,29 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
+import { triggers } from "@/lib/e2e-triggers"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [role, setRole] = useState<"STUDENT" | "TEACHER">("STUDENT")
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock submission
+    setIsLoading(true)
+
+    await new Promise(r => setTimeout(r, 700))
+    const name = nameRef.current?.value || "User"
+
     if (role === "STUDENT") {
+      triggers.auth.studentRegistered(name)
       router.push("/dashboard/student")
     } else {
+      triggers.auth.teacherApplicationSubmitted()
       router.push("/pending-approval")
     }
   }
@@ -59,6 +69,7 @@ export default function RegisterPage() {
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
             <input 
+              ref={nameRef}
               type="text" 
               required
               className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -101,9 +112,11 @@ export default function RegisterPage() {
 
           <button 
             type="submit"
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-lg shadow-indigo-500/25 transition-all mt-6"
+            disabled={isLoading}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white font-semibold rounded-lg shadow-lg shadow-indigo-500/25 transition-all mt-6 flex items-center justify-center gap-2"
           >
-            Create Account
+            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
