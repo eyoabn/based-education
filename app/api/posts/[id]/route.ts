@@ -3,8 +3,9 @@ import type { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const token = request.cookies.get('token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
@@ -13,7 +14,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const post = await prisma.post.findUnique({ where: { id: params.id } });
+    const post = await prisma.post.findUnique({ where: { id } });
     if (!post || post.authorId !== session.userId) {
       return NextResponse.json({ error: 'Not Found or Forbidden' }, { status: 404 });
     }
@@ -21,7 +22,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { content, mediaUrls } = await request.json();
     
     const updatedPost = await prisma.post.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         content,
         mediaUrls: mediaUrls || []
@@ -34,8 +35,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const token = request.cookies.get('token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
@@ -44,12 +46,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const post = await prisma.post.findUnique({ where: { id: params.id } });
+    const post = await prisma.post.findUnique({ where: { id } });
     if (!post || post.authorId !== session.userId) {
       return NextResponse.json({ error: 'Not Found or Forbidden' }, { status: 404 });
     }
 
-    await prisma.post.delete({ where: { id: params.id } });
+    await prisma.post.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });

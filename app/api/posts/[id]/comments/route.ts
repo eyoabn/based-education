@@ -3,10 +3,11 @@ import type { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const comments = await prisma.comment.findMany({
-      where: { postId: params.id },
+      where: { postId: id },
       orderBy: { createdAt: 'asc' },
       include: {
         author: {
@@ -20,8 +21,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const token = request.cookies.get('token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const newComment = await prisma.comment.create({
       data: {
         content,
-        postId: params.id,
+        postId: id,
         authorId: session.userId,
       },
       include: {
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     });
 
     // Notify the post author
-    const post = await prisma.post.findUnique({ where: { id: params.id }, select: { authorId: true } });
+    const post = await prisma.post.findUnique({ where: { id }, select: { authorId: true } });
     if (post && post.authorId !== session.userId) {
       await prisma.notification.create({
         data: {

@@ -8,10 +8,6 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'api.dicebear.com' },
     ],
   },
-  eslint: {
-    // Lint is run separately; don't block production builds on it.
-    ignoreDuringBuilds: true,
-  },
 }
 
 export default nextConfig
