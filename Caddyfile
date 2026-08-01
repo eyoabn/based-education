@@ -1,0 +1,71 @@
+# =============================================================================
+# EDUCONNECT — CADDY REVERSE PROXY + AUTO-HTTPS
+# =============================================================================
+# Reference: https://caddyserver.com/docs/caddyfile
+#
+# Replace "live.educonnect.com" with your actual domain everywhere below.
+# Caddy will automatically obtain and renew a Let's Encrypt certificate.
+#
+# DNS requirement: live.educonnect.com must point at your VPS public IP
+# BEFORE you start Caddy for the first time.
+# =============================================================================
+
+# ── LiveKit WebSocket / HTTP API ─────────────────────────────────────────────
+# All client SDK connections hit this domain. Caddy terminates TLS and
+# forwards plain HTTP to the LiveKit server listening on :7880.
+live.educonnect.com {
+    # Enable HTTP/3 (QUIC) — reduces WebRTC setup latency.
+    protocols h1 h2 h3
+
+    # Forward all WebSocket and HTTP traffic to LiveKit.
+    reverse_proxy localhost:7880 {
+        # Preserve the original Host header so LiveKit can generate
+        # correct ICE candidate URLs.
+        header_up Host {host}
+
+        # Long timeout for persistent WebSocket connections.
+        transport http {
+            dial_timeout        5s
+            response_header_timeout 30s
+            read_buffer_size    16kb
+            write_buffer_size   16kb
+        }
+    }
+
+    # Security headers — harden the admin API surface.
+    header {
+        # Prevent this LiveKit endpoint from being iframed.
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        -Server
+    }
+
+    # Rate-limit the token endpoint to slow credential brute-forcing.
+    # Requires the caddy-ratelimit plugin — remove if using plain Caddy image.
+    # @tokenRoute path /rtc/validate
+    # rate_limit @tokenRoute 20r/m
+}
+
+# ── Next.js App (optional — if you also self-host the frontend) ──────────────
+# Remove this block if you deploy the Next.js app on Vercel / Railway.
+educonnect.com, www.educonnect.com {
+    encode gzip zstd
+
+    reverse_proxy localhost:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    header {
+        # HSTS — tells browsers to always use HTTPS for this domain.
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        -Server
+    }
+}

@@ -1,0 +1,106 @@
+# =============================================================================
+# EDUCONNECT — LIVEKIT WEBRTC SERVER  (Self-hosted on VPS)
+# =============================================================================
+#
+# REQUIREMENTS
+# ─────────────────────────────────────────────────────────────────────────────
+#   • A VPS with ≥ 2 vCPU / 2 GB RAM (DigitalOcean Droplet, Hetzner CX21, etc.)
+#   • Docker + Docker Compose v2 installed.
+#   • A domain pointing at the VPS IP, e.g.  live.educonnect.com → 1.2.3.4
+#   • Ports 80, 443, 7880, 7881, 7882, 50000-60000/udp open in the firewall.
+#
+# QUICK START
+# ─────────────────────────────────────────────────────────────────────────────
+#   1. cp livekit.yaml.example livekit.yaml   (fill in API key/secret)
+#   2. cp Caddyfile.example Caddyfile         (fill in your domain)
+#   3. docker compose -f docker-compose.livekit.yml up -d
+#
+# =============================================================================
+
+version: "3.9"
+
+services:
+  # ---------------------------------------------------------------------------
+  # Redis — LiveKit uses it for distributed room state and subscriber tracking.
+  # A single-instance Valkey (Redis-compatible OSS fork) is fine for ≤ 500
+  # concurrent participants; add Redis Sentinel for HA.
+  # ---------------------------------------------------------------------------
+  redis:
+    image: valkey/valkey:7-alpine
+    container_name: educonnect_redis
+    restart: unless-stopped
+    command: valkey-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - livekit_net
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # LiveKit SFU — the WebRTC media server.
+  # Runs in host-network mode so ICE/STUN/TURN UDP packets reach the container
+  # without NAT hairpins — critical for sub-100ms latency.
+  # ---------------------------------------------------------------------------
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: educonnect_livekit
+    restart: unless-stopped
+    # host network is required for WebRTC UDP ports to bind correctly.
+    network_mode: host
+    command: --config /etc/livekit/livekit.yaml
+    volumes:
+      - ./livekit.yaml:/etc/livekit/livekit.yaml:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      # Allows the container to report the correct external IP for ICE
+      # candidates. Replace with your VPS public IP or leave blank to
+      # auto-detect (auto-detect can fail on some cloud providers).
+      LIVEKIT_NODE_IP: "${VPS_PUBLIC_IP:-}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7880/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Caddy — automatic TLS termination + reverse proxy.
+  # Caddy obtains a Let's Encrypt certificate for your domain on first start
+  # and renews it automatically — zero manual cert management.
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    container_name: educonnect_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 (QUIC)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - livekit_net
+    # Caddy needs to reach livekit on the host network; use host.docker.internal
+    # or the VPS private IP.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      livekit:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  livekit_net:
+    driver: bridge

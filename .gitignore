@@ -15,3 +15,18 @@ logs/
 .next/
 dist/
 node_modules/
+
+# Environment secrets — never commit real values
+.env
+.env.local
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+
+# LiveKit server config with real keys
+livekit.yaml
+
+# Caddy TLS certificates (auto-managed)
+caddy_data/
+
