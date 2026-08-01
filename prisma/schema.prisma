@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum TeacherStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  NEW_POST
+  LIVE_CLASS_STARTING
+  ASSIGNMENT_DUE
+  GRADE_RELEASED
+  ACCOUNT_APPROVED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(STUDENT)
+  teacherStatus TeacherStatus?
+  avatarUrl     String?
+  bio           String?
+
+  posts         Post[]
+  comments      Comment[]
+  notifications Notification[]
+  liveRooms     LiveRoom[]
+  attendances   Attendance[]
+  submissions   Submission[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  authorId  String
+  content   String
+  mediaUrls String[]
+  createdAt DateTime @default(now())
+
+  author    User      @relation(fields: [authorId], references: [id])
+  comments  Comment[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id])
+}
+
+model LiveRoom {
+  id          String       @id @default(uuid())
+  title       String
+  teacherId   String
+  isLive      Boolean      @default(false)
+  scheduledAt DateTime
+
+  teacher     User         @relation(fields: [teacherId], references: [id])
+  attendances Attendance[]
+}
+
+model Attendance {
+  id          String    @id @default(uuid())
+  roomId      String
+  studentId   String
+  joinedAt    DateTime  @default(now())
+  leftAt      DateTime?
+  durationSec Int       @default(0)
+
+  room        LiveRoom  @relation(fields: [roomId], references: [id])
+  student     User      @relation(fields: [studentId], references: [id])
+}
+
+model Exam {
+  id           String       @id @default(uuid())
+  title        String
+  durationMins Int
+  questions    Json
+
+  submissions  Submission[]
+}
+
+model Submission {
+  id          String  @id @default(uuid())
+  examId      String
+  studentId   String
+  score       Float?
+  feedback    String?
+  tabSwitches Int     @default(0)
+
+  exam        Exam    @relation(fields: [examId], references: [id])
+  student     User    @relation(fields: [studentId], references: [id])
+}
