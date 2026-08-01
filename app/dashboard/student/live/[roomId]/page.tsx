@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import { LiveKitRoom, RoomAudioRenderer, useConnectionState } from "@livekit/components-react"
 import { ConnectionState } from "livekit-client"
@@ -8,12 +8,13 @@ import "@livekit/components-styles"
 import LiveGrid from "@/components/live/LiveGrid"
 import LiveChat from "@/components/live/LiveChat"
 import ParticipantList from "@/components/live/ParticipantList"
+import AttendanceHeartbeat from "@/components/live/AttendanceHeartbeat"
 import {
   Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi
 } from "lucide-react"
 
 interface StudentLivePageProps {
-  params: { roomId: string }
+  params: Promise<{ roomId: string }>
 }
 
 function DisconnectedModal({ reason }: { reason: "kicked" | "ended" }) {
@@ -78,6 +79,9 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
   return (
     <>
+      {/* Phase 4: invisible presence tracker — pings every 30s and flags tab-outs */}
+      <AttendanceHeartbeat roomId={roomId} enabled={!disconnectReason} />
+
       {disconnectReason && <DisconnectedModal reason={disconnectReason} />}
 
       <div className="flex h-screen bg-[#090D16] overflow-hidden">
@@ -198,19 +202,20 @@ function StudentRoom({ roomId }: { roomId: string }) {
 }
 
 export default function StudentLivePage({ params }: StudentLivePageProps) {
+  const { roomId } = use(params)
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud"
 
   useEffect(() => {
-    fetch(`/api/live/token?room=${encodeURIComponent(params.roomId)}`)
+    fetch(`/api/live/token?room=${encodeURIComponent(roomId)}`)
       .then(r => r.json())
       .then(data => {
         if (data.error) setError(data.error)
         else setToken(data.token)
       })
       .catch(() => setError("Failed to connect to the live session."))
-  }, [params.roomId])
+  }, [roomId])
 
   if (error) {
     return (
@@ -242,7 +247,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
       video={true}
       audio={true}
     >
-      <StudentRoom roomId={params.roomId} />
+      <StudentRoom roomId={roomId} />
     </LiveKitRoom>
   )
 }

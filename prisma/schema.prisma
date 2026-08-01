@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -22,6 +23,7 @@ enum TeacherStatus {
 enum NotificationType {
   NEW_POST
   LIVE_CLASS_STARTING
+  CLASS_SCHEDULED
   ASSIGNMENT_DUE
   GRADE_RELEASED
   ACCOUNT_APPROVED
@@ -43,6 +45,11 @@ model User {
   liveRooms     LiveRoom[]
   attendances   Attendance[]
   submissions   Submission[]
+
+  // Phase 4: course membership drives "enrolled vs attended" and schedule fan-out
+  taughtCourses Course[]       @relation("CourseTeacher")
+  enrolledIn    Course[]       @relation("CourseEnrollment")
+  assignments   Assignment[]
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -80,6 +87,27 @@ model Notification {
   createdAt DateTime         @default(now())
 
   user      User             @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+}
+
+/// Phase 4: a Course groups enrolled students so scheduled classes,
+/// assignments and exams can be targeted at a cohort.
+model Course {
+  id          String       @id @default(uuid())
+  title       String
+  code        String       @unique
+  description String?
+  teacherId   String
+
+  teacher     User         @relation("CourseTeacher", fields: [teacherId], references: [id])
+  students    User[]       @relation("CourseEnrollment")
+  liveRooms   LiveRoom[]
+  assignments Assignment[]
+  exams       Exam[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model LiveRoom {
@@ -89,8 +117,22 @@ model LiveRoom {
   isLive      Boolean      @default(false)
   scheduledAt DateTime
 
+  // Phase 4: scheduling metadata
+  description String?
+  endsAt      DateTime?
+  courseId    String?
+  startedAt   DateTime?
+  endedAt     DateTime?
+
   teacher     User         @relation(fields: [teacherId], references: [id])
+  course      Course?      @relation(fields: [courseId], references: [id])
   attendances Attendance[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([teacherId, scheduledAt])
+  @@index([courseId, scheduledAt])
 }
 
 model Attendance {
@@ -101,8 +143,36 @@ model Attendance {
   leftAt      DateTime?
   durationSec Int       @default(0)
 
-  room        LiveRoom  @relation(fields: [roomId], references: [id])
+  // Phase 4: heartbeat presence tracking.
+  // activeSec counts only the seconds where the tab was visible/focused,
+  // so activeSec / durationSec yields an "attention %".
+  activeSec   Int       @default(0)
+  lastPingAt  DateTime?
+  isActive    Boolean   @default(true)
+
+  room        LiveRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
   student     User      @relation(fields: [studentId], references: [id])
+
+  // One attendance row per student per room; pings upsert against this.
+  @@unique([roomId, studentId])
+  @@index([roomId])
+}
+
+/// Phase 4: assignment deadlines surface on the student calendar.
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  courseId    String?
+  teacherId   String
+  dueAt       DateTime
+
+  course      Course?  @relation(fields: [courseId], references: [id])
+  teacher     User     @relation(fields: [teacherId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@index([courseId, dueAt])
 }
 
 model Exam {
@@ -111,7 +181,14 @@ model Exam {
   durationMins Int
   questions    Json
 
+  // Phase 4: due dates so exams appear on the student calendar
+  dueAt        DateTime?
+  courseId     String?
+  course       Course?      @relation(fields: [courseId], references: [id])
+
   submissions  Submission[]
+
+  @@index([courseId, dueAt])
 }
 
 model Submission {

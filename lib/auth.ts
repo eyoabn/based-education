@@ -6,6 +6,8 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export interface SessionPayload {
   userId: string;
+  name: string;
+  email?: string;
   role: 'STUDENT' | 'TEACHER' | 'ADMIN';
   teacherStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
