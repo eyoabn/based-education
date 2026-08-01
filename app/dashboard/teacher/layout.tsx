@@ -1,6 +1,6 @@
 import { type ReactNode } from "react"
 import Link from "next/link"
-import { Search, LayoutDashboard, Rss, Video, Calendar, Users, GraduationCap, Radio } from "lucide-react"
+import { Search, LayoutDashboard, Rss, Video, Calendar, Users, FileText, GraduationCap, Radio } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 
 const NAV_ITEMS = [
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { id: 'studio', label: 'Go Live Studio', icon: Video, href: '/dashboard/teacher/studio' },
   { id: 'schedules', label: 'Schedules', icon: Calendar, href: '/dashboard/teacher/schedules' },
   { id: 'attendance', label: 'Student Attendance', icon: Users, href: '/dashboard/teacher/attendance' },
+  { id: 'exams', label: 'Exams & Tasks', icon: FileText, href: '/dashboard/teacher/exams' },
   { id: 'grading', label: 'Grading', icon: GraduationCap, href: '/dashboard/teacher/grading' },
 ]
 

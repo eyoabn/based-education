@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { id: 'classes', label: 'Live Classes', icon: Video, href: '/dashboard/student/classes' },
   { id: 'calendar', label: 'Calendar', icon: Calendar, href: '/dashboard/student/calendar' },
   { id: 'exams', label: 'Exams', icon: FileText, href: '/dashboard/student/exams' },
-  { id: 'gradebook', label: 'Gradebook', icon: GraduationCap, href: '/dashboard/student/grades' },
+  { id: 'gradebook', label: 'Gradebook', icon: GraduationCap, href: '/dashboard/student/gradebook' },
 ]
 
 export default function StudentLayout({ children }: { children: ReactNode }) {
