@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Search, LayoutDashboard, Rss, Video, Calendar, Users, FileText, GraduationCap, Radio } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import MaintenanceGate from "@/components/admin/MaintenanceGate"
+import LogoutButton from "@/components/auth/LogoutButton"
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/teacher' },
@@ -73,6 +74,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           
           <div className="flex items-center gap-6 ml-4">
             <NotificationBell />
+            <LogoutButton />
             <button className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-semibold text-sm rounded-lg hover:bg-red-100 transition-colors">
               <Radio className="w-4 h-4 animate-pulse" />
               Go Live

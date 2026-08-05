@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Search, LayoutDashboard, UserCheck, Users, CreditCard } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
+import LogoutButton from "@/components/auth/LogoutButton"
 
 const NAV_ITEMS = [
   { id: 'analytics', label: 'Platform Analytics', icon: LayoutDashboard, href: '/dashboard/admin' },
@@ -79,6 +80,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           
           <div className="flex items-center gap-6 ml-4">
             <NotificationBell />
+            <LogoutButton />
             <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
               <div className="text-right">
                 <div className="text-sm font-semibold text-slate-700">System Admin</div>

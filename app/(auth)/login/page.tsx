@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -8,24 +8,40 @@ import { triggers } from "@/lib/e2e-triggers"
 
 export default function LoginPage() {
   const router = useRouter()
-  const emailRef = useRef<HTMLInputElement>(null)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     setIsLoading(true)
     setError(null)
 
-    // Mock auth — in production this calls POST /api/auth/login and reads the
-    // role from the JWT response. We default to STUDENT for demo purposes.
-    await new Promise(r => setTimeout(r, 700))
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await response.json()
 
-    const mockName = emailRef.current?.value.split("@")[0] ?? "Student"
-    const mockRole = "STUDENT" as const
+      if (!response.ok) {
+        throw new Error(data.error ?? "Check your email and password, then try again.")
+      }
 
-    triggers.auth.loggedIn(mockName, mockRole)
-    router.push("/dashboard/student")
+      triggers.auth.loggedIn(data.user.name, data.user.role)
+      router.push(data.redirect)
+    } catch (submitError) {
+      const message =
+        submitError instanceof Error
+          ? submitError.message
+          : "Check your email and password, then try again."
+      setError(message)
+      triggers.auth.failed(message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -33,19 +49,25 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-slate-800/50 border border-slate-700/50 rounded-2xl shadow-2xl p-8 backdrop-blur-sm">
         <div className="flex justify-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="text-xl font-bold text-white">⚡</span>
+            <span className="text-xl font-bold text-white">EC</span>
           </div>
         </div>
         <h2 className="text-2xl font-bold text-white text-center mb-2">Welcome back</h2>
-        <p className="text-slate-400 text-center mb-8 text-sm">Sign in to your Educonnect account.</p>
+        <p className="text-slate-400 text-center mb-8 text-sm">
+          Sign in to your Educonnect account.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
-            <input 
-              ref={emailRef}
-              type="email" 
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Email Address
+            </label>
+            <input
+              type="email"
               required
+              autoComplete="email"
+              value={email}
+              onChange={event => setEmail(event.target.value)}
               className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               placeholder="john@example.com"
             />
@@ -53,17 +75,28 @@ export default function LoginPage() {
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1 flex justify-between">
               Password
-              <Link href="#" className="text-indigo-400 hover:text-indigo-300 text-xs">Forgot password?</Link>
+              <Link href="#" className="text-indigo-400 hover:text-indigo-300 text-xs">
+                Forgot password?
+              </Link>
             </label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               required
+              autoComplete="current-password"
+              value={password}
+              onChange={event => setPassword(event.target.value)}
               className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              placeholder="••••••••"
+              placeholder="Enter your password"
             />
           </div>
 
-          <button 
+          {error && (
+            <p role="alert" className="text-sm text-rose-400">
+              {error}
+            </p>
+          )}
+
+          <button
             type="submit"
             disabled={isLoading}
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white font-semibold rounded-lg shadow-lg shadow-indigo-500/25 transition-all mt-6 flex items-center justify-center gap-2"
@@ -74,7 +107,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-slate-400 mt-6">
-          Don't have an account?{' '}
+          Don't have an account?{" "}
           <Link href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium">
             Sign up
           </Link>

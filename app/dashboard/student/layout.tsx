@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Search, LayoutDashboard, Rss, Video, Calendar, FileText, GraduationCap } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import MaintenanceGate from "@/components/admin/MaintenanceGate"
+import LogoutButton from "@/components/auth/LogoutButton"
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/student' },
@@ -71,6 +72,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
           
           <div className="flex items-center gap-6 ml-4">
             <NotificationBell />
+            <LogoutButton />
             <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
               <div className="text-right">
                 <div className="text-sm font-semibold text-slate-700">Jane Student</div>

@@ -52,7 +52,7 @@ NODE_VER=$(node --version | cut -d. -f1 | tr -d 'v')
 ok "Node.js $(node --version) / npm $(npm --version)"
 
 # Required env vars — fail fast before we touch the database.
-REQUIRED_VARS=(DATABASE_URL JWT_SECRET)
+REQUIRED_VARS=(DATABASE_URL DIRECT_URL JWT_SECRET ADMIN_NAME ADMIN_EMAIL ADMIN_PASSWORD)
 MISSING=()
 for var in "${REQUIRED_VARS[@]}"; do
   [[ -z "${!var:-}" ]] && MISSING+=("$var")
