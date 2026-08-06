@@ -12,26 +12,28 @@ Vercel cannot run that LiveKit server.
 
 ## 0. Rotate the exposed database password
 
-The local `.env` currently contains a malformed database URL and a
-real-looking database credential. Reset that database password in Supabase
-before using the project in production. Replace the local and hosted values
-after the reset. Do not commit `.env`.
+The local `.env` currently contains a database credential that failed
+authentication. Reset that database password in Supabase before using the
+project in production. Replace the local and hosted values after the reset.
+Do not commit `.env`.
 
 ## 1. Create the database
 
 1. Create a Supabase project.
 2. Open the project `Connect` dialog.
-3. Set `DATABASE_URL` to the transaction pooler URL. Use the `6543` endpoint
-   and include `pgbouncer=true`.
-4. Set `DIRECT_URL` to the direct database URL. Use the `5432` endpoint.
+3. Set `DATABASE_URL` to the transaction pooler URL. Use the `6543` endpoint,
+   include `pgbouncer=true`, and limit Prisma's pool to one connection.
+4. Set `DIRECT_URL` to the session pooler URL. Use the `5432` pooler endpoint,
+   not `db.[PROJECT_REF].supabase.co:5432`, when local Windows networking
+   cannot reach Supabase's direct IPv6 endpoint.
 5. URL-encode special characters in the database password. For example, an
    `@` in a password must become `%40`.
 
 Example shape only:
 
 ```env
-DATABASE_URL="postgresql://USER:PASSWORD@POOLER_HOST:6543/postgres?pgbouncer=true&connection_limit=1"
-DIRECT_URL="postgresql://USER:PASSWORD@db.PROJECT_REF.supabase.co:5432/postgres?sslmode=require"
+DATABASE_URL="postgresql://postgres.PROJECT_REF:PASSWORD@POOLER_HOST:6543/postgres?pgbouncer=true&connection_limit=1&sslmode=require"
+DIRECT_URL="postgresql://postgres.PROJECT_REF:PASSWORD@POOLER_HOST:5432/postgres?sslmode=require"
 ```
 
 Do not copy the example values literally.
