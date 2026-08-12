@@ -21,6 +21,17 @@ enum TeacherStatus {
   REJECTED
 }
 
+enum CourseAccessMode {
+  PUBLIC
+  PERMISSION_REQUIRED
+}
+
+enum EnrollmentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum NotificationType {
   NEW_POST
   LIVE_CLASS_STARTING
@@ -28,6 +39,9 @@ enum NotificationType {
   ASSIGNMENT_DUE
   GRADE_RELEASED
   ACCOUNT_APPROVED
+  COURSE_JOIN_REQUESTED
+  COURSE_JOIN_APPROVED
+  COURSE_JOIN_REJECTED
   // Phase 5
   EXAM_PUBLISHED
   EXAM_SUBMITTED
@@ -128,6 +142,7 @@ model User {
   // Phase 4: course membership drives "enrolled vs attended" and schedule fan-out
   taughtCourses Course[]     @relation("CourseTeacher")
   enrolledIn    Course[]     @relation("CourseEnrollment")
+  courseRequests CourseEnrollmentRequest[]
   assignments   Assignment[]
 
   // Phase 5: exams and assignments this teacher authored
@@ -190,20 +205,39 @@ model Notification {
 /// Phase 4: a Course groups enrolled students so scheduled classes,
 /// assignments and exams can be targeted at a cohort.
 model Course {
-  id          String  @id @default(uuid())
+  id          String           @id @default(uuid())
   title       String
-  code        String  @unique
+  code        String           @unique
   description String?
+  logoUrl     String?
+  accessMode  CourseAccessMode @default(PUBLIC)
   teacherId   String
 
-  teacher     User         @relation("CourseTeacher", fields: [teacherId], references: [id])
-  students    User[]       @relation("CourseEnrollment")
+  teacher     User                      @relation("CourseTeacher", fields: [teacherId], references: [id])
+  students    User[]                    @relation("CourseEnrollment")
+  requests    CourseEnrollmentRequest[]
   liveRooms   LiveRoom[]
   assignments Assignment[]
   exams       Exam[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model CourseEnrollmentRequest {
+  id        String                  @id @default(uuid())
+  courseId  String
+  studentId String
+  status    EnrollmentRequestStatus @default(PENDING)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, studentId])
+  @@index([courseId, status])
+  @@index([studentId])
 }
 
 model LiveRoom {
