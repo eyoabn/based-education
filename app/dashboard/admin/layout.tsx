@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Search, LayoutDashboard, UserCheck, Users, CreditCard } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import LogoutButton from "@/components/auth/LogoutButton"
+import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
 
 const NAV_ITEMS = [
   { id: 'analytics', label: 'Platform Analytics', icon: LayoutDashboard, href: '/dashboard/admin' },
@@ -81,15 +82,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-6 ml-4">
             <NotificationBell />
             <LogoutButton />
-            <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
-              <div className="text-right">
-                <div className="text-sm font-semibold text-slate-700">System Admin</div>
-                <div className="text-xs text-slate-500">Root Access</div>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-slate-200 border-2 border-slate-300 overflow-hidden">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Avatar" className="w-full h-full object-cover" />
-              </div>
-            </div>
+            <UserHeaderBadge />
           </div>
         </header>
         

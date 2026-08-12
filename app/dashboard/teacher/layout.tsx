@@ -4,6 +4,7 @@ import { Search, LayoutDashboard, Rss, Video, Calendar, Users, FileText, Graduat
 import NotificationBell from "@/components/notifications/NotificationBell"
 import MaintenanceGate from "@/components/admin/MaintenanceGate"
 import LogoutButton from "@/components/auth/LogoutButton"
+import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/teacher' },
@@ -79,15 +80,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
               <Radio className="w-4 h-4 animate-pulse" />
               Go Live
             </button>
-            <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
-              <div className="text-right">
-                <div className="text-sm font-semibold text-slate-700">Dr. Alex Morgan</div>
-                <div className="text-xs text-slate-500">Pro Tier</div>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-emerald-100 border-2 border-emerald-200 overflow-hidden">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Avatar" className="w-full h-full object-cover" />
-              </div>
-            </div>
+            <UserHeaderBadge />
           </div>
         </header>
         

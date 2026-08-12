@@ -97,7 +97,8 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { userId, status, reason } = body ?? {};
+    const { status, reason } = body ?? {};
+    const userId = body?.userId ?? body?.teacherId;
 
     if (!userId || typeof userId !== 'string') {
       return NextResponse.json({ error: 'A user id is required.' }, { status: 400 });

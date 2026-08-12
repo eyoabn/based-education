@@ -73,7 +73,7 @@ export default function AdminApprovalsPage() {
     const res = await fetch("/api/admin/approvals", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teacherId: application.id, status, reason }),
+      body: JSON.stringify({ userId: application.id, status, reason }),
     })
     const payload = await res.json()
 
