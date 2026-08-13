@@ -146,7 +146,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ 
       token: await at.toJwt(),
-      roomId: liveRoom?.id || roomTitle
+      roomId: liveRoom?.id || roomTitle,
+      livekitUrl: process.env.LIVEKIT_URL
     });
   } catch (error) {
     console.error("[GET /api/live/token]", error);

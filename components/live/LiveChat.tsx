@@ -40,17 +40,7 @@ export default function LiveChat({ isTeacher = false }: LiveChatProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {/* Mock initial messages for demo */}
-        {chatMessages.length === 0 && (
-          <>
-            {[
-              { from: { name: "Dr. Morgan", identity: "teacher" }, message: "Welcome to the live class! Feel free to ask questions anytime.", timestamp: Date.now() - 60000 },
-              { from: { name: "Sarah K.", identity: "student1" }, message: "Thank you! Ready to learn 🎉", timestamp: Date.now() - 30000 },
-            ].map((msg, i) => (
-              <ChatBubble key={i} msg={msg} isTeacher={isTeacher} onPin={setPinnedMessage} showPinAction={isTeacher} />
-            ))}
-          </>
-        )}
+
         {chatMessages.map((msg, i) => (
           <ChatBubble key={i} msg={msg} isTeacher={isTeacher} onPin={setPinnedMessage} showPinAction={isTeacher} />
         ))}

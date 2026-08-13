@@ -208,14 +208,17 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
   const { roomId } = use(params)
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud"
+  const [livekitUrl, setLivekitUrl] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/live/token?room=${encodeURIComponent(roomId)}`)
       .then(r => r.json())
       .then(data => {
         if (data.error) setError(data.error)
-        else setToken(data.token)
+        else {
+          setToken(data.token)
+          setLivekitUrl(data.livekitUrl || process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud")
+        }
       })
       .catch(() => setError("Failed to connect to the live session."))
   }, [roomId])
@@ -231,7 +234,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
     )
   }
 
-  if (!token) {
+  if (!token || !livekitUrl) {
     return (
       <div className="h-screen bg-[#090D16] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
