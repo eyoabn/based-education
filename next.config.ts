@@ -49,7 +49,8 @@ const SECURITY_HEADERS = [
       // WebSocket to LiveKit + Next.js HMR in dev.
       [
         "connect-src 'self'",
-        process.env.NEXT_PUBLIC_LIVEKIT_URL ?? 'wss://live.educonnect.com',
+        process.env.LIVEKIT_URL ?? 'wss://live.educonnect.com',
+        (process.env.LIVEKIT_URL ?? 'wss://live.educonnect.com').replace('wss://', 'https://'),
         process.env.NEXT_PUBLIC_APP_URL ?? '',
         // Allow HMR websocket in development.
         process.env.NODE_ENV === 'development' ? 'ws://localhost:*' : '',
