@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BookOpen, Users, Lock, Unlock, CheckCircle, Clock, ChevronRight, Sparkles, Building2 } from "lucide-react"
+import { BookOpen, Users, Lock, Unlock, CheckCircle, Clock, ChevronRight, Sparkles, Building2, Radio, Video } from "lucide-react"
 import Link from "next/link"
 
 interface Course {
@@ -26,9 +26,19 @@ interface Course {
   hasPendingRequest: boolean
 }
 
+interface ActiveLiveRoom {
+  id: string
+  title: string
+  isLive: boolean
+  courseTitle: string | null
+  teacherName: string | null
+  startsAt: string
+}
+
 export default function StudentDashboardPage() {
   const [userName, setUserName] = useState("Student")
   const [courses, setCourses] = useState<Course[]>([])
+  const [liveEvents, setLiveEvents] = useState<ActiveLiveRoom[]>([])
   const [loading, setLoading] = useState(true)
   const [joiningId, setJoiningId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null)
@@ -36,9 +46,10 @@ export default function StudentDashboardPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [userRes, courseRes] = await Promise.all([
+        const [userRes, courseRes, scheduleRes] = await Promise.all([
           fetch("/api/auth/me", { cache: "no-store" }),
           fetch("/api/courses", { cache: "no-store" }),
+          fetch("/api/schedules", { cache: "no-store" }),
         ])
 
         if (userRes.ok) {
@@ -50,6 +61,14 @@ export default function StudentDashboardPage() {
           const courseData = await courseRes.json()
           if (Array.isArray(courseData?.courses)) {
             setCourses(courseData.courses)
+          }
+        }
+
+        if (scheduleRes.ok) {
+          const scheduleData = await scheduleRes.json()
+          if (Array.isArray(scheduleData?.events)) {
+            const activeLive = scheduleData.events.filter((e: any) => e.type === "LIVE_CLASS" && e.isLive)
+            setLiveEvents(activeLive)
           }
         }
       } catch (err) {
@@ -99,6 +118,37 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Active Live Class Alert Banner */}
+      {liveEvents.length > 0 && (
+        <div className="bg-gradient-to-r from-red-600 via-red-500 to-amber-600 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Radio className="w-6 h-6 text-white animate-ping" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-white text-red-600 text-xs font-black uppercase tracking-wider">
+                  LIVE NOW
+                </span>
+                <span className="text-xs font-semibold text-red-100">
+                  {liveEvents[0].courseTitle || "Course Class"}
+                </span>
+              </div>
+              <h2 className="text-xl font-extrabold text-white mt-1">{liveEvents[0].title}</h2>
+              {liveEvents[0].teacherName && (
+                <p className="text-xs text-red-100">Instructor: {liveEvents[0].teacherName}</p>
+              )}
+            </div>
+          </div>
+          <Link
+            href={`/dashboard/student/live/${encodeURIComponent(liveEvents[0].id)}`}
+            className="px-6 py-3 bg-white hover:bg-slate-100 text-red-600 font-extrabold text-sm rounded-xl shadow-lg transition-transform hover:scale-105 inline-flex items-center gap-2 shrink-0"
+          >
+            <Video className="w-4 h-4" /> Join Live Stream Now
+          </Link>
+        </div>
+      )}
+
       {/* Welcome Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-xl">
         <div>
@@ -112,10 +162,10 @@ export default function StudentDashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/student/feed"
+            href="/dashboard/student/calendar"
             className="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-sm rounded-xl shadow-lg transition-colors inline-flex items-center gap-2"
           >
-            <BookOpen className="w-4 h-4" /> Class Feed
+            <Clock className="w-4 h-4" /> Schedule & Live
           </Link>
         </div>
       </div>
@@ -261,12 +311,20 @@ export default function StudentDashboardPage() {
                 {/* Footer Action Button */}
                 <div className="p-5 pt-0">
                   {course.isEnrolled ? (
-                    <button
-                      disabled
-                      className="w-full py-2.5 px-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-                    >
-                      <CheckCircle className="w-4 h-4 text-emerald-600" /> Enrolled (Access Granted)
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        disabled
+                        className="w-full py-2.5 px-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+                      >
+                        <CheckCircle className="w-4 h-4 text-emerald-600" /> Enrolled (Access Granted)
+                      </button>
+                      <Link
+                        href={`/dashboard/student/live/${encodeURIComponent(course.title)}`}
+                        className="w-full py-2 px-4 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <Radio className="w-3.5 h-3.5 animate-pulse" /> Live Studio Channel
+                      </Link>
+                    </div>
                   ) : course.hasPendingRequest ? (
                     <button
                       disabled

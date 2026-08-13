@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
+import prisma from '@/lib/prisma';
 import { RoomServiceClient } from 'livekit-server-sdk';
 
 export async function POST(request: NextRequest) {
@@ -9,13 +10,31 @@ export async function POST(request: NextRequest) {
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     const session = await verifyToken(token);
-    if (!session || session.role !== 'TEACHER') {
+    if (!session || (session.role !== 'TEACHER' && session.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Forbidden. Only teachers can perform moderation.' }, { status: 403 });
     }
 
     const { room, action, identity } = await request.json();
     if (!room || !action) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+    }
+
+    const decodedRoom = decodeURIComponent(room);
+
+    if (action === 'SHUTDOWN_ROOM') {
+      // Mark database LiveRoom as no longer live
+      await prisma.liveRoom.updateMany({
+        where: {
+          OR: [
+            { id: decodedRoom },
+            { title: decodedRoom }
+          ]
+        },
+        data: {
+          isLive: false,
+          endedAt: new Date(),
+        }
+      }).catch(() => {});
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL;
@@ -32,34 +51,32 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'KICK_PARTICIPANT':
         if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
-        await roomService.removeParticipant(room, identity);
+        await roomService.removeParticipant(decodedRoom, identity);
         break;
       
       case 'MUTE_PARTICIPANT':
         if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
-        // Mute the audio track. To do this precisely, we'd need the trackSid.
-        // For simplicity, we just trigger mute on all audio tracks of the participant.
-        const participant = await roomService.getParticipant(room, identity);
+        const participant = await roomService.getParticipant(decodedRoom, identity);
         const audioTracks = participant.tracks.filter(t => t.type === 0); // 0 = AUDIO
         for (const track of audioTracks) {
-          await roomService.mutePublishedTrack(room, identity, track.sid, true);
+          await roomService.mutePublishedTrack(decodedRoom, identity, track.sid, true);
         }
         break;
 
       case 'MUTE_ALL':
-        const participants = await roomService.listParticipants(room);
+        const participants = await roomService.listParticipants(decodedRoom);
         for (const p of participants) {
           if (p.identity !== session.userId) {
             const aTracks = p.tracks.filter(t => t.type === 0);
             for (const track of aTracks) {
-              await roomService.mutePublishedTrack(room, p.identity, track.sid, true);
+              await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true);
             }
           }
         }
         break;
 
       case 'SHUTDOWN_ROOM':
-        await roomService.deleteRoom(room);
+        await roomService.deleteRoom(decodedRoom).catch(() => {});
         break;
 
       default:
