@@ -41,8 +41,8 @@ export default function HostControlBar({
   return (
     <>
       {/* Floating Control Bar */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
-        <div className="flex items-center gap-2 bg-[#0e1525]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl shadow-black/60">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-max max-w-[95vw]">
+        <div className="flex items-center gap-1 sm:gap-2 bg-[#0e1525]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-2 sm:px-4 py-2 sm:py-3 shadow-2xl shadow-black/60 overflow-x-auto no-scrollbar">
           
           {/* Mic */}
           <button

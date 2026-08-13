@@ -78,7 +78,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   }
 
   return (
-    <div className="flex h-screen bg-[#090D16] overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-[100dvh] bg-[#090D16] overflow-hidden">
       {/* Main Stage */}
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Top Header Bar */}
@@ -140,7 +140,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
       </div>
 
       {/* Right Side Panel */}
-      <div className="w-80 border-l border-white/5 flex flex-col bg-[#0a0f1e]">
+      <div className="h-[40dvh] lg:h-auto lg:w-80 border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#0a0f1e] shrink-0">
         {/* Panel Tabs */}
         <div className="flex border-b border-white/5">
           {[

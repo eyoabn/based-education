@@ -87,7 +87,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
       {disconnectReason && <DisconnectedModal reason={disconnectReason} />}
 
-      <div className="flex h-screen bg-[#090D16] overflow-hidden">
+      <div className="flex flex-col lg:flex-row h-[100dvh] bg-[#090D16] overflow-hidden">
         {/* Main Stage */}
         <div className="flex-1 flex flex-col min-w-0 relative">
           {/* Top Header */}
@@ -126,8 +126,8 @@ function StudentRoom({ roomId }: { roomId: string }) {
             <LiveGrid isTeacher={false} />
 
             {/* Student Floating Controls */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
-              <div className="flex items-center gap-2 bg-[#0e1525]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl shadow-black/60">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-max max-w-[95vw]">
+              <div className="flex items-center gap-1 sm:gap-2 bg-[#0e1525]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-2 sm:px-4 py-2 sm:py-3 shadow-2xl shadow-black/60 overflow-x-auto no-scrollbar">
                 {/* Mic */}
                 <button
                   onClick={() => setIsMicEnabled(!isMicEnabled)}
@@ -170,7 +170,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
         </div>
 
         {/* Right Side Panel */}
-        <div className="w-80 border-l border-white/5 flex flex-col bg-[#0a0f1e]">
+        <div className="h-[40dvh] lg:h-auto lg:w-80 border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#0a0f1e] shrink-0">
           <div className="flex border-b border-white/5">
             {[
               { id: "chat", label: "Chat", icon: MessageSquare },
