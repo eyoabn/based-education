@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, use } from "react"
 import { useRouter } from "next/navigation"
 import { LiveKitRoom, useLocalParticipant, RoomAudioRenderer } from "@livekit/components-react"
 import "@livekit/components-styles"
@@ -11,7 +11,7 @@ import LiveChat from "@/components/live/LiveChat"
 import { Wifi, Users, MessageSquare, Clock } from "lucide-react"
 
 interface TeacherLivePageProps {
-  params: { roomId: string }
+  params: Promise<{ roomId: string }>
 }
 
 function LiveDuration() {
@@ -40,17 +40,23 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const [isScreenSharing, setIsScreenSharing] = useState(false)
 
   const handleMicToggle = useCallback(async () => {
-    await localParticipant.setMicrophoneEnabled(!isMicEnabled)
+    try {
+      await localParticipant?.setMicrophoneEnabled(!isMicEnabled)
+    } catch {}
     setIsMicEnabled(!isMicEnabled)
   }, [isMicEnabled, localParticipant])
 
   const handleCamToggle = useCallback(async () => {
-    await localParticipant.setCameraEnabled(!isCamEnabled)
+    try {
+      await localParticipant?.setCameraEnabled(!isCamEnabled)
+    } catch {}
     setIsCamEnabled(!isCamEnabled)
   }, [isCamEnabled, localParticipant])
 
   const handleScreenShare = useCallback(async () => {
-    await localParticipant.setScreenShareEnabled(!isScreenSharing)
+    try {
+      await localParticipant?.setScreenShareEnabled(!isScreenSharing)
+    } catch {}
     setIsScreenSharing(!isScreenSharing)
   }, [isScreenSharing, localParticipant])
 
@@ -175,19 +181,20 @@ function TeacherRoom({ roomId }: { roomId: string }) {
 }
 
 export default function TeacherLivePage({ params }: TeacherLivePageProps) {
+  const { roomId } = use(params)
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud"
 
   useEffect(() => {
-    fetch(`/api/live/token?room=${encodeURIComponent(params.roomId)}`)
+    fetch(`/api/live/token?room=${encodeURIComponent(roomId)}`)
       .then(r => r.json())
       .then(data => {
         if (data.error) setError(data.error)
         else setToken(data.token)
       })
       .catch(() => setError("Failed to connect to the live session."))
-  }, [params.roomId])
+  }, [roomId])
 
   if (error) {
     return (
@@ -219,7 +226,7 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
       video={true}
       audio={true}
     >
-      <TeacherRoom roomId={params.roomId} />
+      <TeacherRoom roomId={roomId} />
     </LiveKitRoom>
   )
 }

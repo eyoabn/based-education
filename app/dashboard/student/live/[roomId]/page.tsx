@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect, useRef, use } from "react"
 import { useRouter } from "next/navigation"
 import { LiveKitRoom, RoomAudioRenderer, useConnectionState } from "@livekit/components-react"
 import { ConnectionState } from "livekit-client"
@@ -62,6 +62,8 @@ function LiveDuration() {
 function StudentRoom({ roomId }: { roomId: string }) {
   const router = useRouter()
   const connectionState = useConnectionState()
+  const hasConnectedRef = useRef(false)
+
   const [isMicEnabled, setIsMicEnabled] = useState(true)
   const [isCamEnabled, setIsCamEnabled] = useState(true)
   const [handRaised, setHandRaised] = useState(false)
@@ -70,7 +72,9 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const [disconnectReason, setDisconnectReason] = useState<"kicked" | "ended" | null>(null)
 
   useEffect(() => {
-    if (connectionState === ConnectionState.Disconnected && !disconnectReason) {
+    if (connectionState === ConnectionState.Connected) {
+      hasConnectedRef.current = true
+    } else if (connectionState === ConnectionState.Disconnected && hasConnectedRef.current && !disconnectReason) {
       setDisconnectReason("ended")
     }
   }, [connectionState, disconnectReason])
@@ -79,7 +83,6 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
   return (
     <>
-      {/* Phase 4: invisible presence tracker — pings every 30s and flags tab-outs */}
       <AttendanceHeartbeat roomId={roomId} enabled={!disconnectReason} />
 
       {disconnectReason && <DisconnectedModal reason={disconnectReason} />}
