@@ -9,8 +9,9 @@ import LiveGrid from "@/components/live/LiveGrid"
 import LiveChat from "@/components/live/LiveChat"
 import ParticipantList from "@/components/live/ParticipantList"
 import AttendanceHeartbeat from "@/components/live/AttendanceHeartbeat"
+import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
 import {
-  Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi
+  Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown
 } from "lucide-react"
 
 interface StudentLivePageProps {
@@ -68,16 +69,23 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const [isCamEnabled, setIsCamEnabled] = useState(true)
   const [handRaised, setHandRaised] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
-  const [raisedHands] = useState<Set<string>>(new Set())
+  const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
+  const [disconnectReason, setDisconnectReason] = useState<"kicked" | "ended" | null>(null)
   const room = useRoomContext()
   const { metadata } = useRoomInfo()
   const [isChatDisabled, setIsChatDisabled] = useState(false)
+  const [representatives, setRepresentatives] = useState<string[]>([])
+  const [mediaState, setMediaState] = useState<MediaState | null>(null)
+
+  const isRepresentative = room.localParticipant ? representatives.includes(room.localParticipant.identity) : false
 
   useEffect(() => {
     if (metadata) {
       try {
         const parsed = JSON.parse(metadata)
         setIsChatDisabled(!!parsed.chatDisabled)
+        setRepresentatives(parsed.representatives || [])
+        setMediaState(parsed.mediaState || null)
       } catch (e) {}
     }
   }, [metadata])
@@ -141,6 +149,22 @@ function StudentRoom({ roomId }: { roomId: string }) {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {isRepresentative && (
+                <span className="flex items-center gap-1 text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-full">
+                  <Crown className="w-3.5 h-3.5" /> Co-Host
+                </span>
+              )}
+              <SharedMediaPlayer
+                mediaState={mediaState}
+                isHostOrRep={isRepresentative}
+                onUpdateMediaState={async (newState) => {
+                  await fetch("/api/live/control", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ room: roomId, action: "UPDATE_MEDIA", mediaState: newState }),
+                  })
+                }}
+              />
               <div className="flex items-center gap-1.5 text-xs text-emerald-400">
                 <Wifi className="w-3.5 h-3.5" />
                 <span className="font-semibold">HD</span>
@@ -230,7 +254,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
             {activeTab === "chat" ? (
               <LiveChat isTeacher={false} isDisabled={isChatDisabled} />
             ) : (
-              <ParticipantList roomId={roomId} isTeacher={false} raisedHands={raisedHands} />
+              <ParticipantList roomId={roomId} isTeacher={false} raisedHands={raisedHands} representatives={representatives} />
             )}
           </div>
         </div>

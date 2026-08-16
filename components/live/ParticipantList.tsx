@@ -8,10 +8,12 @@ interface ParticipantListProps {
   roomId: string
   isTeacher?: boolean
   raisedHands: Set<string>
+  representatives?: string[]
   onLowerHand?: (identity: string) => void
+  onToggleRepresentative?: (identity: string) => void
 }
 
-export default function ParticipantList({ roomId, isTeacher, raisedHands, onLowerHand }: ParticipantListProps) {
+export default function ParticipantList({ roomId, isTeacher, raisedHands, representatives = [], onLowerHand, onToggleRepresentative }: ParticipantListProps) {
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
   const [search, setSearch] = useState("")
@@ -34,6 +36,18 @@ export default function ParticipantList({ roomId, isTeacher, raisedHands, onLowe
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ room: roomId, action: "MUTE_PARTICIPANT", identity }),
     })
+  }
+
+  const handleToggleRep = async (identity: string) => {
+    if (onToggleRepresentative) {
+      onToggleRepresentative(identity);
+    } else {
+      await fetch("/api/live/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room: roomId, action: "TOGGLE_REPRESENTATIVE", identity }),
+      })
+    }
   }
 
   const raisedHandParticipants = filtered.filter(p => raisedHands.has(p.identity))
@@ -70,8 +84,10 @@ export default function ParticipantList({ roomId, isTeacher, raisedHands, onLowe
                 isTeacher={isTeacher}
                 isLocal={p.identity === localParticipant.identity}
                 isRaisedHand
+                isRepresentative={representatives.includes(p.identity)}
                 onKick={handleKick}
                 onMute={handleMuteOne}
+                onToggleRep={handleToggleRep}
                 onLowerHand={onLowerHand}
               />
             ))}
@@ -89,8 +105,10 @@ export default function ParticipantList({ roomId, isTeacher, raisedHands, onLowe
               p={p}
               isTeacher={isTeacher}
               isLocal={p.identity === localParticipant.identity}
+              isRepresentative={representatives.includes(p.identity)}
               onKick={handleKick}
               onMute={handleMuteOne}
+              onToggleRep={handleToggleRep}
             />
           ))}
         </div>
@@ -99,7 +117,7 @@ export default function ParticipantList({ roomId, isTeacher, raisedHands, onLowe
   )
 }
 
-function ParticipantRow({ p, isTeacher, isLocal, isRaisedHand, onKick, onMute, onLowerHand }: any) {
+function ParticipantRow({ p, isTeacher, isLocal, isRaisedHand, isRepresentative, onKick, onMute, onToggleRep, onLowerHand }: any) {
   return (
     <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors group">
       <div className="relative">
@@ -115,7 +133,11 @@ function ParticipantRow({ p, isTeacher, isLocal, isRaisedHand, onKick, onMute, o
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-medium text-slate-200 truncate">{p.name || p.identity}</span>
           {isLocal && <span className="text-[9px] text-slate-500">(You)</span>}
-          {/* Detect teacher by metadata/role in real app */}
+          {isRepresentative && (
+            <span className="flex items-center gap-0.5 text-[9px] bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded font-bold">
+              <Crown className="w-2.5 h-2.5" /> REP
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
           <div className={`w-1.5 h-1.5 rounded-full ${p.connectionQuality === 1 ? "bg-emerald-400" : "bg-amber-400"}`} />
@@ -135,6 +157,17 @@ function ParticipantRow({ p, isTeacher, isLocal, isRaisedHand, onKick, onMute, o
       {/* Teacher Quick Actions */}
       {isTeacher && !isLocal && (
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onToggleRep(p.identity)}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isRepresentative
+                ? "text-amber-400 bg-amber-400/20 hover:bg-amber-400/30"
+                : "text-slate-400 hover:text-amber-400 hover:bg-amber-400/10"
+            }`}
+            title={isRepresentative ? "Remove Representative" : "Make Representative"}
+          >
+            <Crown className="w-3.5 h-3.5" />
+          </button>
           <button
             onClick={() => onMute(p.identity)}
             className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-400/10 transition-colors"

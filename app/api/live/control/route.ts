@@ -89,7 +89,29 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'TOGGLE_CHAT':
-        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ chatDisabled }));
+        const roomInfo = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
+        let metaObj = {};
+        try { metaObj = JSON.parse(roomInfo?.metadata || '{}'); } catch {}
+        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...metaObj, chatDisabled }));
+        break;
+
+      case 'TOGGLE_REPRESENTATIVE':
+        if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
+        const roomObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
+        let currentMeta: any = {};
+        try { currentMeta = JSON.parse(roomObj?.metadata || '{}'); } catch {}
+        const reps: string[] = currentMeta.representatives || [];
+        const isRep = reps.includes(identity);
+        const updatedReps = isRep ? reps.filter(id => id !== identity) : [...reps, identity];
+        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...currentMeta, representatives: updatedReps }));
+        break;
+
+      case 'UPDATE_MEDIA':
+        const { mediaState } = body;
+        const rObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
+        let rMeta: any = {};
+        try { rMeta = JSON.parse(rObj?.metadata || '{}'); } catch {}
+        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...rMeta, mediaState }));
         break;
 
       case 'SHUTDOWN_ROOM':

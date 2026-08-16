@@ -21,7 +21,7 @@ export async function POST(
       where: {
         postId_userId: {
           postId,
-          userId: session.user.id,
+          userId: session.userId,
         },
       },
     })
@@ -37,7 +37,7 @@ export async function POST(
       await prisma.postLike.create({
         data: {
           postId,
-          userId: session.user.id,
+          userId: session.userId,
         },
       })
       return NextResponse.json({ liked: true })

@@ -9,6 +9,7 @@ import LiveGrid from "@/components/live/LiveGrid"
 import HostControlBar from "@/components/live/HostControlBar"
 import ParticipantList from "@/components/live/ParticipantList"
 import LiveChat from "@/components/live/LiveChat"
+import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
 import { Wifi, Users, MessageSquare, Clock } from "lucide-react"
 
 interface TeacherLivePageProps {
@@ -42,12 +43,16 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const room = useRoomContext()
   const { metadata } = useRoomInfo()
   const [isChatDisabled, setIsChatDisabled] = useState(false)
+  const [representatives, setRepresentatives] = useState<string[]>([])
+  const [mediaState, setMediaState] = useState<MediaState | null>(null)
 
   useEffect(() => {
     if (metadata) {
       try {
         const parsed = JSON.parse(metadata)
         setIsChatDisabled(!!parsed.chatDisabled)
+        setRepresentatives(parsed.representatives || [])
+        setMediaState(parsed.mediaState || null)
       } catch (e) {}
     }
   }, [metadata])
@@ -113,6 +118,14 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     })
   }
 
+  const handleUpdateMediaState = async (newMediaState: MediaState | null) => {
+    await fetch("/api/live/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ room: roomId, action: "UPDATE_MEDIA", mediaState: newMediaState }),
+    })
+  }
+
   const handleShutdown = async () => {
     await fetch("/api/live/control", {
       method: "POST",
@@ -145,6 +158,11 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           </div>
 
           <div className="flex items-center gap-4">
+            <SharedMediaPlayer
+              mediaState={mediaState}
+              isHostOrRep={true}
+              onUpdateMediaState={handleUpdateMediaState}
+            />
             <div className="flex items-center gap-1.5 text-xs text-emerald-400">
               <Wifi className="w-3.5 h-3.5" />
               <span className="font-semibold">HD</span>
@@ -218,9 +236,9 @@ function TeacherRoom({ roomId }: { roomId: string }) {
               roomId={roomId}
               isTeacher
               raisedHands={raisedHands}
+              representatives={representatives}
               onLowerHand={(identity) => {
                 setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
-                // Could also notify the student to lower their hand UI
               }}
             />
           )}
