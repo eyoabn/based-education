@@ -9,7 +9,7 @@ import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/teacher' },
   { id: 'feed', label: 'Post Stream', icon: Rss, href: '/dashboard/teacher/feed' },
-  { id: 'studio', label: 'Go Live Studio', icon: Video, href: '/dashboard/teacher/studio' },
+  { id: 'studio', label: 'Go Live Studio', icon: Video, href: '/dashboard/teacher/live/MainStudio' },
   { id: 'schedules', label: 'Schedules', icon: Calendar, href: '/dashboard/teacher/schedules' },
   { id: 'attendance', label: 'Student Attendance', icon: Users, href: '/dashboard/teacher/attendance' },
   { id: 'exams', label: 'Exams & Tasks', icon: FileText, href: '/dashboard/teacher/exams' },

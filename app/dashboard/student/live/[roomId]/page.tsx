@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, use } from "react"
 import { useRouter } from "next/navigation"
-import { LiveKitRoom, RoomAudioRenderer, useConnectionState } from "@livekit/components-react"
-import { ConnectionState } from "livekit-client"
+import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRoomContext, useRoomInfo } from "@livekit/components-react"
+import { ConnectionState, DataPacket_Kind } from "livekit-client"
 import "@livekit/components-styles"
 import LiveGrid from "@/components/live/LiveGrid"
 import LiveChat from "@/components/live/LiveChat"
@@ -69,15 +69,50 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const [handRaised, setHandRaised] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
   const [raisedHands] = useState<Set<string>>(new Set())
-  const [disconnectReason, setDisconnectReason] = useState<"kicked" | "ended" | null>(null)
+  const room = useRoomContext()
+  const { metadata } = useRoomInfo()
+  const [isChatDisabled, setIsChatDisabled] = useState(false)
+
+  useEffect(() => {
+    if (metadata) {
+      try {
+        const parsed = JSON.parse(metadata)
+        setIsChatDisabled(!!parsed.chatDisabled)
+      } catch (e) {}
+    }
+  }, [metadata])
 
   useEffect(() => {
     if (connectionState === ConnectionState.Connected) {
       hasConnectedRef.current = true
+      
+      const handleData = (payload: Uint8Array, participant?: any, kind?: any, topic?: string) => {
+        if (topic === "raise-hand" && participant) {
+          const isRaised = new TextDecoder().decode(payload) === "true"
+          setRaisedHands(prev => {
+            const next = new Set(prev)
+            if (isRaised) next.add(participant.identity)
+            else next.delete(participant.identity)
+            return next
+          })
+        }
+      }
+      
+      room.on("dataReceived", handleData)
+      return () => { room.off("dataReceived", handleData) }
     } else if (connectionState === ConnectionState.Disconnected && hasConnectedRef.current && !disconnectReason) {
       setDisconnectReason("ended")
     }
-  }, [connectionState, disconnectReason])
+  }, [connectionState, disconnectReason, room])
+
+  const toggleHand = async () => {
+    const newState = !handRaised
+    setHandRaised(newState)
+    if (room.localParticipant) {
+      const payload = new TextEncoder().encode(newState ? "true" : "false")
+      await room.localParticipant.publishData(payload, { reliable: true, topic: "raise-hand" })
+    }
+  }
 
   const handleLeave = () => router.push("/dashboard/student")
 
@@ -154,7 +189,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
                 {/* Raise Hand */}
                 <button
-                  onClick={() => setHandRaised(!handRaised)}
+                  onClick={toggleHand}
                   className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
                     handRaised
                       ? "bg-amber-400/30 text-amber-300 ring-1 ring-amber-400/50"
@@ -193,7 +228,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
           <div className="flex-1 overflow-hidden">
             {activeTab === "chat" ? (
-              <LiveChat isTeacher={false} />
+              <LiveChat isTeacher={false} isDisabled={isChatDisabled} />
             ) : (
               <ParticipantList roomId={roomId} isTeacher={false} raisedHands={raisedHands} />
             )}
@@ -252,6 +287,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
       connect={!token.includes("mock")}
       video={true}
       audio={true}
+      options={{ adaptiveStream: true, dynacast: true }}
     >
       <StudentRoom roomId={roomId} />
     </LiveKitRoom>

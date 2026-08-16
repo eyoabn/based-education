@@ -134,6 +134,7 @@ model User {
 
   posts         Post[]
   comments      Comment[]
+  postLikes     PostLike[]
   notifications Notification[]
   liveRooms     LiveRoom[]
   attendances   Attendance[]
@@ -173,8 +174,21 @@ model Post {
   mediaUrls String[]
   createdAt DateTime @default(now())
 
-  author   User      @relation(fields: [authorId], references: [id])
+  author   User       @relation(fields: [authorId], references: [id])
   comments Comment[]
+  likes    PostLike[]
+}
+
+model PostLike {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
 }
 
 model Comment {

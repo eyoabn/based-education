@@ -9,7 +9,7 @@ import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/student' },
   { id: 'feed', label: 'My Feed', icon: Rss, href: '/dashboard/student/feed' },
-  { id: 'classes', label: 'Live Classes', icon: Video, href: '/dashboard/student/classes' },
+  { id: 'classes', label: 'Live Classes', icon: Video, href: '/dashboard/student' },
   { id: 'calendar', label: 'Calendar', icon: Calendar, href: '/dashboard/student/calendar' },
   { id: 'exams', label: 'Exams', icon: FileText, href: '/dashboard/student/exams' },
   { id: 'gradebook', label: 'Gradebook', icon: GraduationCap, href: '/dashboard/student/gradebook' },

@@ -6,9 +6,10 @@ import { Send, Pin } from "lucide-react"
 
 interface LiveChatProps {
   isTeacher?: boolean
+  isDisabled?: boolean
 }
 
-export default function LiveChat({ isTeacher = false }: LiveChatProps) {
+export default function LiveChat({ isTeacher = false, isDisabled = false }: LiveChatProps) {
   const { chatMessages, send } = useChat()
   const [input, setInput] = useState("")
   const [pinnedMessage, setPinnedMessage] = useState<string | null>(null)
@@ -54,12 +55,13 @@ export default function LiveChat({ isTeacher = false }: LiveChatProps) {
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Message the class..."
-            className="flex-1 bg-transparent text-sm text-slate-200 placeholder-slate-500 focus:outline-none"
+            placeholder={isDisabled ? "Chat is disabled by the host" : "Message the class..."}
+            disabled={isDisabled}
+            className="flex-1 bg-transparent text-sm text-slate-200 placeholder-slate-500 focus:outline-none disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isDisabled}
             className="p-1.5 rounded-lg text-indigo-400 hover:bg-indigo-500/20 disabled:opacity-30 transition-colors"
           >
             <Send className="w-4 h-4" />

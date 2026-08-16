@@ -3,7 +3,7 @@
 import { useState } from "react"
 import {
   Mic, MicOff, Video, VideoOff, MonitorUp, MonitorOff,
-  ChevronUp, Shield, AlertTriangle, Users
+  ChevronUp, Shield, AlertTriangle, Users, MessageSquareOff
 } from "lucide-react"
 import ShutdownModal from "./ShutdownModal"
 
@@ -16,6 +16,9 @@ interface HostControlBarProps {
   onCamToggle: () => void
   onScreenShareToggle: () => void
   onMuteAll: () => void
+  onDisableCameras: () => void
+  onDisableChat: () => void
+  isChatDisabled: boolean
   onShutdown: () => void
 }
 
@@ -28,6 +31,9 @@ export default function HostControlBar({
   onCamToggle,
   onScreenShareToggle,
   onMuteAll,
+  onDisableCameras,
+  onDisableChat,
+  isChatDisabled,
   onShutdown,
 }: HostControlBarProps) {
   const [showHostMenu, setShowHostMenu] = useState(false)
@@ -35,6 +41,16 @@ export default function HostControlBar({
 
   const handleMuteAll = () => {
     onMuteAll()
+    setShowHostMenu(false)
+  }
+
+  const handleDisableCameras = () => {
+    onDisableCameras()
+    setShowHostMenu(false)
+  }
+
+  const handleDisableChat = () => {
+    onDisableChat()
     setShowHostMenu(false)
   }
 
@@ -110,11 +126,18 @@ export default function HostControlBar({
                     Mute All Students
                   </button>
                   <button
-                    onClick={() => setShowHostMenu(false)}
+                    onClick={handleDisableCameras}
                     className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-200 hover:bg-white/5 rounded-lg transition-colors"
                   >
-                    <Users className="w-4 h-4 text-slate-400" />
+                    <VideoOff className="w-4 h-4 text-slate-400" />
                     Disable All Cameras
+                  </button>
+                  <button
+                    onClick={handleDisableChat}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-200 hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    <MessageSquareOff className={`w-4 h-4 ${isChatDisabled ? 'text-red-400' : 'text-slate-400'}`} />
+                    {isChatDisabled ? 'Enable Chat' : 'Disable Chat'}
                   </button>
                   <div className="my-1 h-px bg-white/10" />
                   <button

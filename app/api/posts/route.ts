@@ -6,6 +6,9 @@ import { notifyUser } from '@/app/api/notifications/stream/route';
 
 export async function GET(request: NextRequest) {
   try {
+    const token = request.cookies.get('token')?.value;
+    const session = token ? await verifyToken(token) : null;
+
     const posts = await prisma.post.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -13,11 +16,24 @@ export async function GET(request: NextRequest) {
           select: { name: true, avatarUrl: true, role: true }
         },
         _count: {
-          select: { comments: true }
-        }
+          select: { comments: true, likes: true }
+        },
+        ...(session?.userId && {
+          likes: {
+            where: { userId: session.userId },
+            select: { id: true }
+          }
+        })
       }
     });
-    return NextResponse.json(posts);
+
+    const formattedPosts = posts.map(post => ({
+      ...post,
+      isLiked: post.likes ? post.likes.length > 0 : false,
+      likes: undefined
+    }));
+
+    return NextResponse.json(formattedPosts);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
   }

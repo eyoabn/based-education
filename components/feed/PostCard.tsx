@@ -14,9 +14,24 @@ export default function PostCard({
   onCommentPosted?: () => void
 }) {
   const [showComments, setShowComments] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
+  const [isLiked, setIsLiked] = useState(post.isLiked || false)
+  const [likeCount, setLikeCount] = useState(post._count?.likes || 0)
 
-  
+  const toggleLike = async () => {
+    // Optimistic update
+    setIsLiked(!isLiked)
+    setLikeCount(isLiked ? Math.max(0, likeCount - 1) : likeCount + 1)
+    
+    try {
+      const res = await fetch(`/api/posts/${post.id}/like`, { method: "POST" })
+      if (!res.ok) throw new Error("Failed to toggle like")
+    } catch (err) {
+      // Revert on error
+      setIsLiked(isLiked)
+      setLikeCount(likeCount)
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
       {/* Header */}
@@ -77,13 +92,13 @@ export default function PostCard({
       <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/30">
         <div className="flex items-center gap-6">
           <button 
-            onClick={() => setIsLiked(!isLiked)}
+            onClick={toggleLike}
             className={`flex items-center gap-2 text-sm font-medium transition-colors ${
               isLiked ? 'text-red-500' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-            <span>24</span>
+            <span>{likeCount}</span>
           </button>
           
           <button 

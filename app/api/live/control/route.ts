@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden. Only teachers can perform moderation.' }, { status: 403 });
     }
 
-    const { room, action, identity } = await request.json();
+    const body = await request.json();
+    const { room, action, identity, chatDisabled } = body;
     if (!room || !action) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
@@ -73,6 +74,22 @@ export async function POST(request: NextRequest) {
             }
           }
         }
+        break;
+
+      case 'DISABLE_CAMERAS_ALL':
+        const allParticipants = await roomService.listParticipants(decodedRoom);
+        for (const p of allParticipants) {
+          if (p.identity !== session.userId) {
+            const vTracks = p.tracks.filter(t => t.type === 1); // 1 = VIDEO
+            for (const track of vTracks) {
+              await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true);
+            }
+          }
+        }
+        break;
+
+      case 'TOGGLE_CHAT':
+        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ chatDisabled }));
         break;
 
       case 'SHUTDOWN_ROOM':

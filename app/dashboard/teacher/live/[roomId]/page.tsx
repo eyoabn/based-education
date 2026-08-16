@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, use } from "react"
 import { useRouter } from "next/navigation"
-import { LiveKitRoom, useLocalParticipant, RoomAudioRenderer } from "@livekit/components-react"
+import { LiveKitRoom, useLocalParticipant, RoomAudioRenderer, useRoomInfo, useRoomContext } from "@livekit/components-react"
+import { ConnectionState, DataPacket_Kind } from "livekit-client"
 import "@livekit/components-styles"
 import LiveGrid from "@/components/live/LiveGrid"
 import HostControlBar from "@/components/live/HostControlBar"
@@ -38,6 +39,34 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const [isMicEnabled, setIsMicEnabled] = useState(true)
   const [isCamEnabled, setIsCamEnabled] = useState(true)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
+  const room = useRoomContext()
+  const { metadata } = useRoomInfo()
+  const [isChatDisabled, setIsChatDisabled] = useState(false)
+
+  useEffect(() => {
+    if (metadata) {
+      try {
+        const parsed = JSON.parse(metadata)
+        setIsChatDisabled(!!parsed.chatDisabled)
+      } catch (e) {}
+    }
+  }, [metadata])
+
+  useEffect(() => {
+    const handleData = (payload: Uint8Array, participant?: any, kind?: any, topic?: string) => {
+      if (topic === "raise-hand" && participant) {
+        const isRaised = new TextDecoder().decode(payload) === "true"
+        setRaisedHands(prev => {
+          const next = new Set(prev)
+          if (isRaised) next.add(participant.identity)
+          else next.delete(participant.identity)
+          return next
+        })
+      }
+    }
+    room.on("dataReceived", handleData)
+    return () => { room.off("dataReceived", handleData) }
+  }, [room])
 
   const handleMicToggle = useCallback(async () => {
     try {
@@ -65,6 +94,22 @@ function TeacherRoom({ roomId }: { roomId: string }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ room: roomId, action: "MUTE_ALL" }),
+    })
+  }
+
+  const handleDisableCameras = async () => {
+    await fetch("/api/live/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ room: roomId, action: "DISABLE_CAMERAS_ALL" }),
+    })
+  }
+
+  const handleDisableChat = async () => {
+    await fetch("/api/live/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ room: roomId, action: "TOGGLE_CHAT", chatDisabled: !isChatDisabled }),
     })
   }
 
@@ -134,6 +179,9 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             onCamToggle={handleCamToggle}
             onScreenShareToggle={handleScreenShare}
             onMuteAll={handleMuteAll}
+            onDisableCameras={handleDisableCameras}
+            onDisableChat={handleDisableChat}
+            isChatDisabled={isChatDisabled}
             onShutdown={handleShutdown}
           />
         </div>
@@ -162,16 +210,18 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           ))}
         </div>
 
-        {/* Panel Content */}
         <div className="flex-1 overflow-hidden">
           {activeTab === "chat" ? (
-            <LiveChat isTeacher />
+            <LiveChat isTeacher isDisabled={isChatDisabled} />
           ) : (
             <ParticipantList
               roomId={roomId}
               isTeacher
               raisedHands={raisedHands}
-              onLowerHand={(identity) => setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })}
+              onLowerHand={(identity) => {
+                setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
+                // Could also notify the student to lower their hand UI
+              }}
             />
           )}
         </div>
@@ -228,6 +278,7 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
       connect={!token.includes("mock")}
       video={true}
       audio={true}
+      options={{ adaptiveStream: true, dynacast: true }}
     >
       <TeacherRoom roomId={roomId} />
     </LiveKitRoom>
