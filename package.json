@@ -9,6 +9,8 @@
     "start": "next start -H 0.0.0.0",
     "postinstall": "prisma generate",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:stress": "node scripts/stress-test.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -41,6 +43,7 @@
     "@types/react-dom": "^19.0.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }
