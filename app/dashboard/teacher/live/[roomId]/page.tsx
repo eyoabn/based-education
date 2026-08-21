@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from "react"
 import { useRouter } from "next/navigation"
-import { LiveKitRoom, useLocalParticipant, RoomAudioRenderer, useRoomInfo, useRoomContext } from "@livekit/components-react"
+import { LiveKitRoom, useLocalParticipant, RoomAudioRenderer, useRoomInfo, useRoomContext, useConnectionState } from "@livekit/components-react"
 import { ConnectionState, DataPacket_Kind } from "livekit-client"
 import "@livekit/components-styles"
 import LiveGrid from "@/components/live/LiveGrid"
@@ -34,6 +34,7 @@ function LiveDuration() {
 
 function TeacherRoom({ roomId }: { roomId: string }) {
   const router = useRouter()
+  const connectionState = useConnectionState()
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
   const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
   const { localParticipant } = useLocalParticipant()
@@ -136,7 +137,17 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-[100dvh] bg-[#090D16] overflow-hidden">
+    <>
+      {connectionState === ConnectionState.Reconnecting && (
+        <div className="fixed inset-0 z-[60] bg-[#090D16]/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#12182b] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col items-center max-w-xs mx-4 text-center">
+             <div className="w-12 h-12 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin mb-4" />
+             <h3 className="text-white font-bold mb-1">Reconnecting...</h3>
+             <p className="text-slate-400 text-xs">Please wait while we restore your connection.</p>
+          </div>
+        </div>
+      )}
+      <div className="flex flex-col lg:flex-row h-[100dvh] bg-[#090D16] overflow-hidden">
       {/* Main Stage */}
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Top Header Bar */}
@@ -245,6 +256,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
         </div>
       </div>
     </div>
+    </>
   )
 }
 
@@ -296,7 +308,15 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
       connect={!token.includes("mock")}
       video={true}
       audio={true}
-      options={{ adaptiveStream: true, dynacast: true }}
+      options={{ 
+        adaptiveStream: true, 
+        dynacast: true,
+        audioCaptureDefaults: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+      }}
     >
       <TeacherRoom roomId={roomId} />
     </LiveKitRoom>

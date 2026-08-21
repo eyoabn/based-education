@@ -1,18 +1,18 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { Participant, Track } from "livekit-client"
 import { ParticipantTile, useTracks } from "@livekit/components-react"
-import { Mic, MicOff, Video, VideoOff } from "lucide-react"
+import { Mic, MicOff, VideoOff, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface LiveGridProps {
   isTeacher?: boolean
 }
 
+const PAGE_SIZE = 9;
+
 export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const [hasLocalStream, setHasLocalStream] = useState(false)
-  const [localCamOn, setLocalCamOn] = useState(true)
+  const [currentPage, setCurrentPage] = useState(0)
 
   const tracks = useTracks(
     [
@@ -22,51 +22,89 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
     { onlySubscribed: false }
   )
 
-
+  const totalPages = Math.ceil(tracks.length / PAGE_SIZE)
+  
+  // Ensure currentPage is valid if tracks are removed
+  useEffect(() => {
+    if (currentPage >= totalPages && totalPages > 0) {
+      setCurrentPage(totalPages - 1)
+    } else if (totalPages === 0) {
+      setCurrentPage(0)
+    }
+  }, [tracks.length, currentPage, totalPages])
 
   if (tracks.length > 0) {
-    const gridClass =
-      tracks.length === 1
-        ? "grid-cols-1"
-        : tracks.length <= 4
-          ? "grid-cols-2"
-          : "grid-cols-3"
+    const visibleTracks = tracks.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+    
+    let gridClass = "grid-cols-1"
+    if (visibleTracks.length >= 2 && visibleTracks.length <= 4) gridClass = "grid-cols-2"
+    else if (visibleTracks.length > 4) gridClass = "grid-cols-3"
+    
+    // Calculate rows to make tiles nicely proportioned instead of squished
+    let rowsClass = "grid-rows-1"
+    if (visibleTracks.length > 2 && visibleTracks.length <= 6) rowsClass = "grid-rows-2"
+    else if (visibleTracks.length > 6) rowsClass = "grid-rows-3"
 
     return (
-      <div className={`grid ${gridClass} gap-3 h-full p-3 auto-rows-fr`}>
-        {tracks.map((trackRef) => {
-          const participant = trackRef.participant as Participant
-          const isSpeaking = participant.isSpeaking
+      <div className="flex flex-col h-full relative">
+        <div className={`grid ${gridClass} ${rowsClass} gap-3 p-3 flex-1 min-h-0`}>
+          {visibleTracks.map((trackRef) => {
+            const participant = trackRef.participant as Participant
+            const isSpeaking = participant.isSpeaking
 
-          return (
-            <div
-              key={participant.identity}
-              className={`relative rounded-2xl overflow-hidden bg-[#12182b] transition-all duration-300 ${
-                isSpeaking
-                  ? "ring-4 ring-indigo-500 shadow-[0_0_30px_rgba(79,70,229,0.4)]"
-                  : "ring-1 ring-white/10"
-              }`}
-            >
-              <ParticipantTile trackRef={trackRef} className="!h-full !w-full" />
-              
-              <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5">
-                  {participant.isMicrophoneEnabled ? (
-                    <Mic className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <MicOff className="w-3.5 h-3.5 text-red-400" />
-                  )}
-                  <span className="text-xs font-semibold text-white">
-                    {participant.name || participant.identity}
-                  </span>
-                  {isTeacher && (
-                    <span className="text-[9px] font-bold bg-indigo-600 px-1.5 py-0.5 rounded text-white ml-0.5">HOST</span>
-                  )}
+            return (
+              <div
+                key={`${participant.identity}-${trackRef.source}`}
+                className={`relative rounded-2xl overflow-hidden bg-[#12182b] transition-all duration-300 ${
+                  isSpeaking
+                    ? "ring-4 ring-indigo-500 shadow-[0_0_30px_rgba(79,70,229,0.4)] z-10"
+                    : "ring-1 ring-white/10"
+                }`}
+              >
+                <ParticipantTile trackRef={trackRef} className="!h-full !w-full" />
+                
+                <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5">
+                    {participant.isMicrophoneEnabled ? (
+                      <Mic className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <MicOff className="w-3.5 h-3.5 text-red-400" />
+                    )}
+                    <span className="text-xs font-semibold text-white max-w-[100px] truncate">
+                      {participant.name || participant.identity}
+                    </span>
+                    {isTeacher && participant.isLocal && (
+                      <span className="text-[9px] font-bold bg-indigo-600 px-1.5 py-0.5 rounded text-white ml-0.5">HOST</span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 bg-[#0e1525]/90 backdrop-blur-md rounded-xl p-1 border border-white/10 z-20">
+            <button 
+              onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+              disabled={currentPage === 0}
+              className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-white"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-semibold text-slate-300 px-2 tabular-nums">
+              {currentPage + 1} / {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-white"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     )
   }
