@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
               type: 'LIVE_CLASS_STARTING',
               title: '🔴 Live Class Started!',
               message: `Your instructor has started the live session for "${liveRoom?.title}". Click to join now!`,
+              link: `/dashboard/student/live/${liveRoom?.id}`
             }))
           });
         }

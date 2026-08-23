@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { X, CheckCheck, Video, FileText, BellRing, Award, UserPlus, CheckCircle, AlertCircle } from "lucide-react"
 
 interface DbNotification {
@@ -8,6 +9,7 @@ interface DbNotification {
   type: string
   title: string
   message: string
+  link?: string | null
   isRead: boolean
   createdAt: string
 }
@@ -16,6 +18,7 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
   const [activeTab, setActiveTab] = useState("all")
   const [notifications, setNotifications] = useState<DbNotification[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -47,6 +50,30 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
       })
     } catch {
       // Graceful fallback
+    }
+  }
+
+  const handleNotificationClick = async (notification: DbNotification) => {
+    // Optimistically update UI
+    if (!notification.isRead) {
+      setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n))
+      
+      // Update backend
+      try {
+        await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: notification.id }),
+        })
+      } catch (e) {
+        console.error("Failed to mark notification as read", e)
+      }
+    }
+
+    // Redirect if there's a link
+    if (notification.link) {
+      router.push(notification.link)
+      onClose()
     }
   }
 
@@ -161,6 +188,7 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
             filteredNotifications.map(notification => (
               <div 
                 key={notification.id} 
+                onClick={() => handleNotificationClick(notification)}
                 className={`p-4 border-b border-slate-50 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer ${!notification.isRead ? 'bg-indigo-50/30' : ''}`}
               >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${getIconBg(notification.type)}`}>
