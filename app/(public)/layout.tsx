@@ -22,12 +22,12 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-yellow-900/40 via-yellow-700/40 to-yellow-900/40 border-b border-primary/20 py-2 px-4 text-center text-xs font-medium text-primary flex items-center justify-center gap-2">
         <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
-        <span>Join us every Sunday for Live Spiritual Teachings in the Sanctuary</span>
+        <span>Welcome to the Private Learning Sanctuary for Live Spiritual Teachings</span>
         <Link
           href="/register"
           className="ml-2 font-semibold text-white underline hover:text-primary transition-colors flex items-center gap-1"
         >
-          <span>Become a Member</span>
+          <span>Request Access</span>
           <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
@@ -73,7 +73,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               href="/register" 
               className="px-5 py-2.5 text-sm font-bold text-black bg-primary hover:bg-[#FCE69B] active:bg-[#A68222] rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:-translate-y-0.5"
             >
-              Join the Community
+              Join the Sanctuary
             </Link>
           </div>
         </div>

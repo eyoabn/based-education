@@ -176,7 +176,7 @@ export default function LandingPage() {
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-3 text-primary">
                       <Sparkles className="w-8 h-8" />
                     </div>
-                    <h4 className="text-primary font-bold text-base">Sunday Morning Meditation & Guidance</h4>
+                    <h4 className="text-primary font-bold text-base">Live Meditation & Guidance Session</h4>
                     <p className="text-slate-400 text-xs mt-1">High-Definition Broadcast Active</p>
                   </div>
 
@@ -252,7 +252,7 @@ export default function LandingPage() {
                   <div className="bg-[#111] border border-white/10 rounded-2xl p-6 mb-4">
                     <div className="text-xs text-primary font-semibold mb-2">Prompt 1</div>
                     <h4 className="text-white text-base font-semibold mb-4">
-                      How did the morning meditation impact your state of mind today?
+                      How did the meditation session impact your state of mind today?
                     </h4>
                     <textarea 
                       className="w-full h-32 bg-black border border-white/10 rounded-xl p-4 text-slate-300 focus:outline-none focus:border-primary text-sm"
@@ -280,7 +280,7 @@ export default function LandingPage() {
                     </div>
 
                     <p className="text-slate-300 text-xs leading-relaxed">
-                      Blessings to you all. I have uploaded the study materials for this week's focus. Please review them before our Sunday gathering.
+                      Blessings to you all. I have uploaded the study materials for this week's focus. Please review them before our next gathering.
                     </p>
 
                     {/* Attachment preview */}

@@ -8,11 +8,11 @@ import { triggers } from "@/lib/e2e-triggers"
 
 export default function RegisterPage() {
   const router = useRouter()
-  // Hardcode role to STUDENT (Member) for the single-teacher platform
-  const role = "STUDENT"
+  const [role, setRole] = useState<"STUDENT" | "TEACHER">("STUDENT")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [specialty, setSpecialty] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,8 +25,7 @@ export default function RegisterPage() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Always pass role as STUDENT and specialty as empty
-        body: JSON.stringify({ name, email, password, role, specialty: "" }),
+        body: JSON.stringify({ name, email, password, role, specialty }),
       })
       const data = await response.json()
 
@@ -34,7 +33,11 @@ export default function RegisterPage() {
         throw new Error(data.error ?? "Unable to create the account.")
       }
 
-      triggers.auth.studentRegistered(data.user.name)
+      if (role === "STUDENT") {
+        triggers.auth.studentRegistered(data.user.name)
+      } else {
+        triggers.auth.teacherApplicationSubmitted()
+      }
       router.push(data.redirect)
     } catch (submitError) {
       const message =
@@ -63,6 +66,31 @@ export default function RegisterPage() {
         <p className="text-primary text-center mb-8 text-sm font-medium">
           Create an account to access live teachings.
         </p>
+
+        <div className="flex p-1 bg-[#111] rounded-lg mb-6 border border-white/10">
+          <button
+            type="button"
+            className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+              role === "STUDENT"
+                ? "bg-primary text-black shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+            onClick={() => setRole("STUDENT")}
+          >
+            I am a Seeker
+          </button>
+          <button
+            type="button"
+            className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+              role === "TEACHER"
+                ? "bg-primary text-black shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+            onClick={() => setRole("TEACHER")}
+          >
+            I am a Guide
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -108,6 +136,25 @@ export default function RegisterPage() {
               placeholder="At least 8 characters"
             />
           </div>
+
+          {role === "TEACHER" && (
+            <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Teaching Calling / Focus
+              </label>
+              <input
+                type="text"
+                required
+                value={specialty}
+                onChange={event => setSpecialty(event.target.value)}
+                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                placeholder="e.g. Meditation, Scripture, Philosophy"
+              />
+              <p className="text-xs text-slate-500 mt-2">
+                Your account will require admin approval before you can host live sanctuary sessions.
+              </p>
+            </div>
+          )}
 
           {error && (
             <p role="alert" className="text-sm text-rose-400 font-medium">
