@@ -2,12 +2,10 @@
 
 import { type ReactNode, useState } from "react";
 import Link from "next/link";
-import { Sparkles, ArrowRight, Check, Globe, Shield, Video, BookOpen, Send } from "lucide-react";
+import { ArrowRight, Check, Send } from "lucide-react";
 import { toast } from "sonner";
-import DemoContactModal from "@/components/ui/DemoContactModal";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -15,78 +13,67 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     e.preventDefault();
     if (!newsletterEmail.trim()) return;
     setSubscribed(true);
-    toast.success("Subscribed! You will receive our monthly EdTech updates.");
+    toast.success("Subscribed! You will receive our monthly spiritual updates.");
     setNewsletterEmail("");
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-50 font-sans relative selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-black text-slate-50 font-sans relative selection:bg-primary selection:text-black">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-indigo-900/60 via-purple-900/60 to-indigo-900/60 border-b border-indigo-500/20 py-2 px-4 text-center text-xs font-medium text-indigo-200 flex items-center justify-center gap-2">
-        <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>EduConnect 2.0 Released: Next-Gen Low-Latency SFU Live Classrooms & Proctored Exams</span>
-        <button
-          onClick={() => setIsDemoModalOpen(true)}
-          className="ml-2 font-semibold text-white underline hover:text-indigo-300 transition-colors flex items-center gap-1 cursor-pointer"
+      <div className="bg-gradient-to-r from-yellow-900/40 via-yellow-700/40 to-yellow-900/40 border-b border-primary/20 py-2 px-4 text-center text-xs font-medium text-primary flex items-center justify-center gap-2">
+        <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <span>Join us every Sunday for Live Spiritual Teachings in the Sanctuary</span>
+        <Link
+          href="/register"
+          className="ml-2 font-semibold text-white underline hover:text-primary transition-colors flex items-center gap-1"
         >
-          <span>Book Institutional Demo</span>
+          <span>Become a Member</span>
           <ArrowRight className="w-3 h-3" />
-        </button>
+        </Link>
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5 text-white" />
+      <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-black/80 backdrop-blur-xl supports-[backdrop-filter]:bg-black/60">
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between max-w-7xl">
+          <Link href="/" className="flex items-center gap-4 group">
+            <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
+              {/* This img expects the user's provided logo saved as logo.png in the public folder */}
+              <img src="/logo.png" alt="Sanctuary Logo" className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.4)] group-hover:scale-105 transition-transform" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-indigo-200">
-                EduConnect
+              <span className="font-bold text-xl tracking-wide text-primary">
+                Spiritual Sanctuary
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-indigo-400 font-semibold -mt-1">
-                Global Learning OS
+              <span className="text-[10px] uppercase tracking-widest text-primary/70 font-semibold mt-0.5">
+                Live Teachings & Community
               </span>
             </div>
           </Link>
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <Link href="#simulator" className="hover:text-white hover:text-indigo-400 transition-colors">
-              Platform Preview
+            <Link href="#simulator" className="hover:text-white hover:text-primary transition-colors">
+              The Sanctuary
             </Link>
-            <Link href="#features" className="hover:text-white hover:text-indigo-400 transition-colors">
+            <Link href="#features" className="hover:text-white hover:text-primary transition-colors">
               Features
             </Link>
-            <Link href="#calculator" className="hover:text-white hover:text-indigo-400 transition-colors">
-              Impact Calculator
-            </Link>
-            <Link href="#pricing" className="hover:text-white hover:text-indigo-400 transition-colors">
-              Pricing
-            </Link>
-            <Link href="#faq" className="hover:text-white hover:text-indigo-400 transition-colors">
+            <Link href="#faq" className="hover:text-white hover:text-primary transition-colors">
               FAQ
             </Link>
           </nav>
           
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsDemoModalOpen(true)}
-              className="hidden lg:inline-flex px-3.5 py-1.5 text-xs font-semibold text-indigo-300 bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-500/30 rounded-lg transition-all"
-            >
-              Enterprise Demo
-            </button>
             <Link 
               href="/login" 
-              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-primary transition-colors"
             >
               Sign In
             </Link>
             <Link 
               href="/register" 
-              className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 hover:-translate-y-0.5"
+              className="px-5 py-2.5 text-sm font-bold text-black bg-primary hover:bg-[#FCE69B] active:bg-[#A68222] rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:-translate-y-0.5"
             >
-              Get Started Free
+              Join the Community
             </Link>
           </div>
         </div>
@@ -98,61 +85,59 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 pt-16 pb-12 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
+      <footer className="border-t border-white/5 bg-black pt-16 pb-12 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
             {/* Brand Col */}
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
-                  <Sparkles className="w-4 h-4" />
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <img src="/logo.png" alt="Sanctuary Logo" className="w-full h-full object-contain" />
                 </div>
-                <span className="font-bold text-xl text-white">EduConnect</span>
+                <span className="font-bold text-xl text-primary">Spiritual Sanctuary</span>
               </div>
               <p className="text-slate-400 text-sm max-w-sm leading-relaxed">
-                The world's leading real-time virtual classroom and anti-cheat examination platform. Empowering educators and institutions in 120+ countries.
+                A dedicated space for deep spiritual learning, live broadcast teachings, and a community of faithful seekers.
               </p>
               
               {/* Operational Status Pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-4" />
-                <span>All Systems Operational (99.99% Uptime)</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#111] border border-white/10 text-xs text-slate-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-primary -ml-4" />
+                <span>Sanctuary is Online</span>
               </div>
             </div>
 
             {/* Links Col 1 */}
             <div>
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-4">Platform</h4>
+              <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-4">Platform</h4>
               <ul className="space-y-2.5 text-sm text-slate-400">
-                <li><Link href="#features" className="hover:text-white transition-colors">SFU Live Video</Link></li>
-                <li><Link href="#features" className="hover:text-white transition-colors">Proctored Exams</Link></li>
-                <li><Link href="#features" className="hover:text-white transition-colors">Social Stream & Feed</Link></li>
-                <li><Link href="#calculator" className="hover:text-white transition-colors">Analytics & Grading</Link></li>
+                <li><Link href="#features" className="hover:text-primary transition-colors">Live Broadcasts</Link></li>
+                <li><Link href="#features" className="hover:text-primary transition-colors">Spiritual Reflections</Link></li>
+                <li><Link href="#features" className="hover:text-primary transition-colors">Community Feed</Link></li>
               </ul>
             </div>
 
             {/* Links Col 2 */}
             <div>
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-4">Solutions</h4>
+              <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-4">Community</h4>
               <ul className="space-y-2.5 text-sm text-slate-400">
-                <li><Link href="/register?role=teacher" className="hover:text-white transition-colors">For Educators</Link></li>
-                <li><button onClick={() => setIsDemoModalOpen(true)} className="hover:text-white transition-colors text-left">For Universities</button></li>
-                <li><button onClick={() => setIsDemoModalOpen(true)} className="hover:text-white transition-colors text-left">Enterprise Training</button></li>
-                <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing Plans</Link></li>
+                <li><Link href="/register" className="hover:text-primary transition-colors">Become a Member</Link></li>
+                <li><Link href="/login" className="hover:text-primary transition-colors">Member Sign In</Link></li>
+                <li><Link href="#faq" className="hover:text-primary transition-colors">Help & FAQ</Link></li>
               </ul>
             </div>
 
             {/* Newsletter Col */}
             <div>
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-4">Stay Informed</h4>
+              <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-4">Stay Informed</h4>
               <p className="text-slate-400 text-xs mb-3">
-                Subscribe for monthly EdTech insights, product updates, and teaching guides.
+                Subscribe for monthly spiritual insights and schedule updates.
               </p>
               {subscribed ? (
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs flex items-center gap-2">
                   <Check className="w-4 h-4" />
                   <span>Subscribed successfully!</span>
                 </div>
@@ -163,12 +148,12 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                     required
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
-                    placeholder="name@university.edu"
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
+                    placeholder="email@example.com"
+                    className="w-full px-3 py-2 bg-[#111] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary transition-all"
                   />
                   <button
                     type="submit"
-                    className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                    className="w-full py-2 px-3 bg-primary hover:bg-[#FCE69B] text-black rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
                   >
                     <Send className="w-3 h-3" />
                     <span>Subscribe</span>
@@ -178,23 +163,15 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between text-slate-500 text-xs gap-4">
-            <p>© {new Date().getFullYear()} EduConnect Inc. All international rights reserved.</p>
+          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between text-slate-500 text-xs gap-4">
+            <p>© {new Date().getFullYear()} Spiritual Sanctuary. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <span className="hover:text-slate-400 transition-colors cursor-pointer">Privacy Policy</span>
-              <span className="hover:text-slate-400 transition-colors cursor-pointer">Terms of Service</span>
-              <span className="hover:text-slate-400 transition-colors cursor-pointer">Security & Compliance</span>
-              <span className="hover:text-slate-400 transition-colors cursor-pointer">FERPA / GDPR</span>
+              <span className="hover:text-primary transition-colors cursor-pointer">Privacy Policy</span>
+              <span className="hover:text-primary transition-colors cursor-pointer">Terms of Service</span>
             </div>
           </div>
         </div>
       </footer>
-
-      {/* Demo Contact Modal */}
-      <DemoContactModal
-        isOpen={isDemoModalOpen}
-        onClose={() => setIsDemoModalOpen(false)}
-      />
     </div>
   );
 }

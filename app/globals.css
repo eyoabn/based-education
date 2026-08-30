@@ -26,47 +26,47 @@
 }
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
-  --card: #FFFFFF;
-  --card-foreground: #1E293B;
-  --primary: #4F46E5;
-  --primary-foreground: #FFFFFF;
-  --secondary: #EEF2FF;
-  --secondary-foreground: #3730A3;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --accent: #10B981;
-  --accent-foreground: #FFFFFF;
-  --border: #E2E8F0;
-  --ring: #4F46E5;
+  --background: #000000;
+  --foreground: #F1F5F9;
+  --card: #0A0A0A;
+  --card-foreground: #F1F5F9;
+  --primary: #D4AF37;
+  --primary-foreground: #000000;
+  --secondary: #1C1808;
+  --secondary-foreground: #FCE69B;
+  --muted: #111111;
+  --muted-foreground: #94A3B8;
+  --accent: #D4AF37;
+  --accent-foreground: #000000;
+  --border: rgba(212, 175, 55, 0.2);
+  --ring: #D4AF37;
   --radius: 12px;
 
-  --indigo-deep: #1E1B4B;
-  --indigo-brand: #4F46E5;
-  --indigo-light: #818CF8;
-  --emerald: #10B981;
+  --indigo-deep: #1A1500;
+  --indigo-brand: #D4AF37;
+  --indigo-light: #FCE69B;
+  --emerald: #10B981; /* Keeping green for success states */
   --coral: #EF4444;
   --amber: #F59E0B;
-  --surface-glass: rgba(255, 255, 255, 0.7);
-  --surface-glass-dark: rgba(15, 23, 42, 0.8);
+  --surface-glass: rgba(0, 0, 0, 0.7);
+  --surface-glass-dark: rgba(0, 0, 0, 0.8);
 }
 
 .dark {
-  --background: #0F172A;
+  --background: #000000;
   --foreground: #F1F5F9;
-  --card: #1E293B;
+  --card: #0A0A0A;
   --card-foreground: #F1F5F9;
-  --primary: #6366F1;
-  --primary-foreground: #FFFFFF;
-  --secondary: #1E1B4B;
-  --secondary-foreground: #A5B4FC;
-  --muted: #1E293B;
+  --primary: #D4AF37;
+  --primary-foreground: #000000;
+  --secondary: #1C1808;
+  --secondary-foreground: #FCE69B;
+  --muted: #111111;
   --muted-foreground: #94A3B8;
-  --accent: #10B981;
-  --accent-foreground: #FFFFFF;
-  --border: rgba(255, 255, 255, 0.08);
-  --ring: #6366F1;
+  --accent: #D4AF37;
+  --accent-foreground: #000000;
+  --border: rgba(212, 175, 55, 0.2);
+  --ring: #D4AF37;
 }
 
 * {
@@ -264,8 +264,8 @@ body {
 }
 
 .btn-primary:hover {
-  background: #4338CA;
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+  background: #B89626;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.35);
   transform: translateY(-1px);
 }
 
@@ -363,12 +363,12 @@ body {
 .bg-grid-pattern {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(212, 175, 55, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(212, 175, 55, 0.04) 1px, transparent 1px);
 }
 
 .bg-dots-pattern {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(212, 175, 55, 0.1) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -381,19 +381,19 @@ body {
 }
 
 .glass-card-premium:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 12px 40px -10px rgba(79, 70, 229, 0.2);
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 12px 40px -10px rgba(212, 175, 55, 0.2);
   transform: translateY(-2px);
 }
 
 .gradient-text-hero {
-  background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 50%, #818CF8 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #FCE69B 50%, #D4AF37 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-text-accent {
-  background: linear-gradient(135deg, #818CF8 0%, #6366F1 50%, #A855F7 100%);
+  background: linear-gradient(135deg, #FCE69B 0%, #D4AF37 50%, #A68222 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

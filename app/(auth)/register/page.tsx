@@ -8,11 +8,11 @@ import { triggers } from "@/lib/e2e-triggers"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [role, setRole] = useState<"STUDENT" | "TEACHER">("STUDENT")
+  // Hardcode role to STUDENT (Member) for the single-teacher platform
+  const role = "STUDENT"
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [specialty, setSpecialty] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,7 +25,8 @@ export default function RegisterPage() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role, specialty }),
+        // Always pass role as STUDENT and specialty as empty
+        body: JSON.stringify({ name, email, password, role, specialty: "" }),
       })
       const data = await response.json()
 
@@ -33,11 +34,7 @@ export default function RegisterPage() {
         throw new Error(data.error ?? "Unable to create the account.")
       }
 
-      if (role === "STUDENT") {
-        triggers.auth.studentRegistered(data.user.name)
-      } else {
-        triggers.auth.teacherApplicationSubmitted()
-      }
+      triggers.auth.studentRegistered(data.user.name)
       router.push(data.redirect)
     } catch (submitError) {
       const message =
@@ -52,44 +49,20 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-800/50 border border-slate-700/50 rounded-2xl shadow-2xl p-8 backdrop-blur-sm">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 selection:bg-primary selection:text-black">
+      <div className="w-full max-w-md bg-[#0A0A0A] border border-primary/20 rounded-3xl shadow-2xl p-8">
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="text-xl font-bold text-white">EC</span>
+          <div className="w-16 h-16 flex items-center justify-center">
+            {/* Using the logo instead of the EC letters */}
+            <img src="/logo.png" alt="Sanctuary Logo" className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]" />
           </div>
         </div>
         <h2 className="text-2xl font-bold text-white text-center mb-2">
-          Create an account
+          Join the Sanctuary
         </h2>
-        <p className="text-slate-400 text-center mb-8 text-sm">
-          Join Educonnect and start learning today.
+        <p className="text-primary text-center mb-8 text-sm font-medium">
+          Create an account to access live teachings.
         </p>
-
-        <div className="flex p-1 bg-slate-900 rounded-lg mb-6 border border-slate-700">
-          <button
-            type="button"
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-              role === "STUDENT"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-            onClick={() => setRole("STUDENT")}
-          >
-            I am a Student
-          </button>
-          <button
-            type="button"
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-              role === "TEACHER"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-            onClick={() => setRole("TEACHER")}
-          >
-            I am a Teacher
-          </button>
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -102,8 +75,8 @@ export default function RegisterPage() {
               autoComplete="name"
               value={name}
               onChange={event => setName(event.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              placeholder="John Doe"
+              className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+              placeholder="e.g. John Doe"
             />
           </div>
           <div>
@@ -116,8 +89,8 @@ export default function RegisterPage() {
               autoComplete="email"
               value={email}
               onChange={event => setEmail(event.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              placeholder="john@example.com"
+              className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+              placeholder="name@example.com"
             />
           </div>
           <div>
@@ -131,32 +104,13 @@ export default function RegisterPage() {
               autoComplete="new-password"
               value={password}
               onChange={event => setPassword(event.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
               placeholder="At least 8 characters"
             />
           </div>
 
-          {role === "TEACHER" && (
-            <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                Teaching Specialty
-              </label>
-              <input
-                type="text"
-                required
-                value={specialty}
-                onChange={event => setSpecialty(event.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                placeholder="e.g. Advanced Mathematics"
-              />
-              <p className="text-xs text-slate-500 mt-2">
-                Your account will require admin approval before you can host live rooms.
-              </p>
-            </div>
-          )}
-
           {error && (
-            <p role="alert" className="text-sm text-rose-400">
+            <p role="alert" className="text-sm text-rose-400 font-medium">
               {error}
             </p>
           )}
@@ -164,7 +118,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white font-semibold rounded-lg shadow-lg shadow-indigo-500/25 transition-all mt-6 flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-primary hover:bg-[#FCE69B] text-black font-bold rounded-xl shadow-lg shadow-primary/20 transition-all mt-6 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
             {isLoading ? "Creating Account..." : "Create Account"}
@@ -172,8 +126,8 @@ export default function RegisterPage() {
         </form>
 
         <p className="text-center text-sm text-slate-400 mt-6">
-          Already have an account?{" "}
-          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
+          Already a member?{" "}
+          <Link href="/login" className="text-primary hover:text-[#FCE69B] font-bold">
             Sign in
           </Link>
         </p>
