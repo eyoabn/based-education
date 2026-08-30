@@ -23,6 +23,38 @@
   --radius-xl: calc(var(--radius) + 8px);
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  /* Global UI Overrides: Force existing colors to Black & Gold */
+  --color-indigo-50: #fbf9f1;
+  --color-indigo-100: #f5f0db;
+  --color-indigo-200: #eadcb2;
+  --color-indigo-300: #dfc480;
+  --color-indigo-400: #d4af53;
+  --color-indigo-500: #D4AF37;
+  --color-indigo-600: #b9922a;
+  --color-indigo-700: #936e23;
+  --color-indigo-800: #7a5823;
+  --color-indigo-900: #684824;
+  --color-indigo-950: #3c2711;
+
+  --color-slate-50: #fafafa;
+  --color-slate-100: #f4f4f5;
+  --color-slate-200: #e4e4e7;
+  --color-slate-300: #d4d4d8;
+  --color-slate-400: #a1a1aa;
+  --color-slate-500: #71717a;
+  --color-slate-600: #52525b;
+  --color-slate-700: #3f3f46;
+  --color-slate-800: #1a1a1a;
+  --color-slate-900: #0a0a0a;
+  --color-slate-950: #000000;
+
+  --color-emerald-400: #d4af53;
+  --color-emerald-500: #D4AF37;
+  
+  --color-purple-400: #d4af53;
+  --color-purple-500: #D4AF37;
+  --color-purple-900: #684824;
 }
 
 :root {

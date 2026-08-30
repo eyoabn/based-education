@@ -14,7 +14,7 @@ export default function ShutdownModal({ onConfirm, onCancel }: ShutdownModalProp
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
 
       {/* Modal */}
-      <div className="relative bg-[#0e1525] border border-red-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl shadow-black/50">
+      <div className="relative bg-[#0A0A0A] border border-red-500/30 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl shadow-black/80">
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 p-1 rounded-lg hover:bg-white/5 transition-colors"
@@ -27,7 +27,7 @@ export default function ShutdownModal({ onConfirm, onCancel }: ShutdownModalProp
           <AlertTriangle className="w-8 h-8 text-red-400" />
         </div>
 
-        <h2 className="text-xl font-bold text-white text-center mb-2">End Class for Everyone?</h2>
+        <h2 className="text-xl font-bold text-white text-center mb-2">End Session for Everyone?</h2>
         <p className="text-slate-400 text-center text-sm mb-8 leading-relaxed">
           This will immediately disconnect <strong className="text-slate-200">all participants</strong> from the
           live session. This action cannot be undone.

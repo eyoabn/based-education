@@ -55,9 +55,9 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
             return (
               <div
                 key={`${participant.identity}-${trackRef.source}`}
-                className={`relative rounded-2xl overflow-hidden bg-[#12182b] transition-all duration-300 ${
+                className={`relative rounded-3xl overflow-hidden bg-black transition-all duration-300 ${
                   isSpeaking
-                    ? "ring-4 ring-indigo-500 shadow-[0_0_30px_rgba(79,70,229,0.4)] z-10"
+                    ? "ring-4 ring-primary shadow-[0_0_30px_rgba(212,175,55,0.4)] z-10"
                     : "ring-1 ring-white/10"
                 }`}
               >
@@ -74,7 +74,7 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
                       {participant.name || participant.identity}
                     </span>
                     {isTeacher && participant.isLocal && (
-                      <span className="text-[9px] font-bold bg-indigo-600 px-1.5 py-0.5 rounded text-white ml-0.5">HOST</span>
+                      <span className="text-[9px] font-bold bg-primary text-black px-1.5 py-0.5 rounded ml-0.5">HOST</span>
                     )}
                   </div>
                 </div>
@@ -85,7 +85,7 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
         
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 bg-[#0e1525]/90 backdrop-blur-md rounded-xl p-1 border border-white/10 z-20">
+          <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-xl p-1 border border-white/10 z-20">
             <button 
               onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
               disabled={currentPage === 0}
@@ -111,14 +111,14 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
 
   // Empty State
   return (
-    <div className="relative w-full h-full bg-[#0d1322] flex items-center justify-center p-4">
+    <div className="relative w-full h-full bg-black flex items-center justify-center p-4">
       <div className="flex flex-col items-center justify-center text-center p-6 space-y-3">
-        <div className="w-20 h-20 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-3xl font-extrabold shadow-inner">
+        <div className="w-20 h-20 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-3xl font-extrabold shadow-inner">
           <VideoOff className="w-8 h-8" />
         </div>
         <h3 className="text-lg font-bold text-slate-200">Waiting for video streams...</h3>
         <p className="text-sm text-slate-400">
-          {isTeacher ? "Please ensure your camera is enabled." : "Waiting for the host to start the video stream."}
+          {isTeacher ? "Please ensure your camera is enabled." : "Waiting for the guide to start the video stream."}
         </p>
       </div>
     </div>

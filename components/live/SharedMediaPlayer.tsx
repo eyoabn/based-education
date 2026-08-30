@@ -93,9 +93,9 @@ export default function SharedMediaPlayer({ mediaState, isHostOrRep, onUpdateMed
     <>
       {/* Media Control Bar Floating Badge (Active stream) */}
       {mediaState && (
-        <div className="flex items-center gap-3 bg-[#0d1424]/90 backdrop-blur-md border border-indigo-500/30 px-3 py-1.5 rounded-full shadow-lg text-xs text-slate-200">
+        <div className="flex items-center gap-3 bg-black/90 backdrop-blur-md border border-primary/30 px-3 py-1.5 rounded-full shadow-lg text-xs text-slate-200">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <Music className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+          <Music className="w-3.5 h-3.5 text-primary animate-pulse" />
           <span className="font-medium truncate max-w-[150px]">{mediaState.title}</span>
 
           <button
@@ -109,7 +109,7 @@ export default function SharedMediaPlayer({ mediaState, isHostOrRep, onUpdateMed
             <>
               <button
                 onClick={handleTogglePlay}
-                className="p-1 hover:bg-white/10 rounded-full text-indigo-400 transition-colors"
+                className="p-1 hover:bg-white/10 rounded-full text-primary transition-colors"
               >
                 {mediaState.isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               </button>
@@ -140,9 +140,9 @@ export default function SharedMediaPlayer({ mediaState, isHostOrRep, onUpdateMed
       {isHostOrRep && !mediaState && (
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 rounded-xl text-indigo-300 text-xs font-semibold transition-all shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 border border-primary/40 rounded-xl text-primary text-xs font-semibold transition-all shadow-sm"
         >
-          <Music className="w-3.5 h-3.5 text-indigo-400" />
+          <Music className="w-3.5 h-3.5 text-primary" />
           <span>Stream Music/Video</span>
         </button>
       )}
@@ -150,11 +150,11 @@ export default function SharedMediaPlayer({ mediaState, isHostOrRep, onUpdateMed
       {/* Modal Selection */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0e1525] border border-white/10 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-sm font-bold text-white">Broadcast Music / Video to Class</h3>
+                <Sparkles className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-bold text-white">Broadcast Music / Video to Sanctuary</h3>
               </div>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white p-1">
                 <X className="w-4 h-4" />
@@ -169,13 +169,13 @@ export default function SharedMediaPlayer({ mediaState, isHostOrRep, onUpdateMed
                   <button
                     key={i}
                     onClick={() => handleSelectPreset(track)}
-                    className="w-full flex items-center justify-between p-2.5 bg-white/5 hover:bg-indigo-600/20 border border-white/5 hover:border-indigo-500/30 rounded-xl text-xs text-slate-200 font-medium transition-all group"
+                    className="w-full flex items-center justify-between p-2.5 bg-white/5 hover:bg-primary/20 border border-white/5 hover:border-primary/30 rounded-xl text-xs text-slate-200 font-medium transition-all group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Music className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                      <Music className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                       <span>{track.title}</span>
                     </div>
-                    <Play className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400" />
+                    <Play className="w-3.5 h-3.5 text-slate-500 group-hover:text-primary" />
                   </button>
                 ))}
               </div>
@@ -190,12 +190,12 @@ export default function SharedMediaPlayer({ mediaState, isHostOrRep, onUpdateMed
                   value={customUrl}
                   onChange={e => setCustomUrl(e.target.value)}
                   placeholder="https://..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <button
                   type="submit"
                   disabled={!customUrl.trim()}
-                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-semibold rounded-xl transition-colors"
+                  className="px-3 py-2 bg-primary hover:bg-[#FCE69B] disabled:opacity-40 text-black text-xs font-bold rounded-xl transition-colors"
                 >
                   Broadcast
                 </button>

@@ -21,28 +21,28 @@ interface StudentLivePageProps {
 function DisconnectedModal({ reason }: { reason: "kicked" | "ended" }) {
   const router = useRouter()
   return (
-    <div className="fixed inset-0 z-50 bg-[#090D16] flex items-center justify-center">
-      <div className="text-center max-w-sm mx-4">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center">
+      <div className="text-center max-w-sm mx-4 bg-[#0A0A0A] p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
         <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
           {reason === "kicked" ? (
             <LogOut className="w-9 h-9 text-red-400" />
           ) : (
-            <div className="w-9 h-9 text-slate-400 flex items-center justify-center text-3xl">🎓</div>
+            <div className="w-9 h-9 text-primary flex items-center justify-center text-3xl">✦</div>
           )}
         </div>
         <h2 className="text-xl font-bold text-white mb-3">
-          {reason === "kicked" ? "You Were Removed" : "Class Has Ended"}
+          {reason === "kicked" ? "You Were Removed" : "Session Has Ended"}
         </h2>
         <p className="text-slate-400 text-sm mb-8">
           {reason === "kicked"
             ? "The host has removed you from this live session."
-            : "The teacher has ended this live class session. Thanks for attending!"}
+            : "The guide has ended this live session. Peace be with you."}
         </p>
         <button
           onClick={() => router.push("/dashboard/student")}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors"
+          className="px-6 py-3 bg-primary hover:bg-[#FCE69B] text-black font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
         >
-          Back to Dashboard
+          Return Home
         </button>
       </div>
     </div>
@@ -131,20 +131,21 @@ function StudentRoom({ roomId }: { roomId: string }) {
       {disconnectReason && <DisconnectedModal reason={disconnectReason} />}
 
       {connectionState === ConnectionState.Reconnecting && (
-        <div className="fixed inset-0 z-[60] bg-[#090D16]/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#12182b] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col items-center max-w-xs mx-4 text-center">
-             <div className="w-12 h-12 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin mb-4" />
-             <h3 className="text-white font-bold mb-1">Reconnecting...</h3>
-             <p className="text-slate-400 text-xs">Please wait while we restore your connection.</p>
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xl flex items-center justify-center">
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-3xl p-8 shadow-2xl flex flex-col items-center max-w-xs mx-4 text-center relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+             <div className="w-12 h-12 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-4" />
+             <h3 className="text-white font-bold mb-1 text-lg">Reconnecting...</h3>
+             <p className="text-slate-400 text-sm">Restoring your Sanctuary connection.</p>
           </div>
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row h-[100dvh] bg-[#090D16] overflow-hidden">
+      <div className="flex flex-col lg:flex-row h-[100dvh] bg-black overflow-hidden">
         {/* Main Stage */}
         <div className="flex-1 flex flex-col min-w-0 relative">
           {/* Top Header */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-white/5 bg-[#090D16]/80 backdrop-blur-sm z-10">
+          <div className="flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-3xl z-10">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -196,12 +197,12 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
             {/* Student Floating Controls */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-max max-w-[95vw]">
-              <div className="flex items-center gap-1 sm:gap-2 bg-[#0e1525]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-2 sm:px-4 py-2 sm:py-3 shadow-2xl shadow-black/60 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-1 sm:gap-2 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl px-2 sm:px-4 py-2 sm:py-3 shadow-2xl shadow-black/80 overflow-x-auto no-scrollbar">
                 {/* Mic */}
                 <button
                   onClick={() => setIsMicEnabled(!isMicEnabled)}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
-                    isMicEnabled ? "bg-white/10 text-white" : "bg-red-500/20 text-red-400"
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                    isMicEnabled ? "bg-white/5 hover:bg-white/10 text-white" : "bg-red-500/20 text-red-400"
                   }`}
                 >
                   {isMicEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
@@ -211,8 +212,8 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 {/* Camera */}
                 <button
                   onClick={() => setIsCamEnabled(!isCamEnabled)}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
-                    isCamEnabled ? "bg-white/10 text-white" : "bg-red-500/20 text-red-400"
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                    isCamEnabled ? "bg-white/5 hover:bg-white/10 text-white" : "bg-red-500/20 text-red-400"
                   }`}
                 >
                   {isCamEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
@@ -224,10 +225,10 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 {/* Raise Hand */}
                 <button
                   onClick={toggleHand}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
                     handRaised
-                      ? "bg-amber-400/30 text-amber-300 ring-1 ring-amber-400/50"
-                      : "bg-white/10 text-white"
+                      ? "bg-primary/20 text-primary ring-1 ring-primary/40 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                      : "bg-white/5 hover:bg-white/10 text-white"
                   }`}
                 >
                   <Hand className={`w-5 h-5 ${handRaised ? "animate-bounce" : ""}`} />
@@ -239,7 +240,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
         </div>
 
         {/* Right Side Panel */}
-        <div className="h-[40dvh] lg:h-auto lg:w-80 border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#0a0f1e] shrink-0">
+        <div className="h-[40dvh] lg:h-80 lg:min-w-[320px] lg:h-auto border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#050505] shrink-0">
           <div className="flex border-b border-white/5">
             {[
               { id: "chat", label: "Chat", icon: MessageSquare },
@@ -248,10 +249,10 @@ function StudentRoom({ roomId }: { roomId: string }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold transition-colors border-b-2 ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all border-b-2 ${
                   activeTab === tab.id
-                    ? "border-indigo-500 text-indigo-400"
-                    : "border-transparent text-slate-500 hover:text-slate-300"
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
                 }`}
               >
                 <tab.icon className="w-3.5 h-3.5" />
@@ -294,10 +295,13 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
 
   if (error) {
     return (
-      <div className="h-screen bg-[#090D16] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 font-semibold mb-2">Connection Failed</p>
-          <p className="text-slate-500 text-sm">{error}</p>
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="text-center p-8 bg-[#0A0A0A] rounded-3xl border border-red-500/20 max-w-sm">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+            <span className="text-red-500 font-bold text-xl">!</span>
+          </div>
+          <p className="text-red-400 font-bold mb-2 text-lg">Connection Failed</p>
+          <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
         </div>
       </div>
     )
@@ -305,10 +309,14 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
 
   if (!token || !livekitUrl) {
     return (
-      <div className="h-screen bg-[#090D16] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <p className="text-slate-400 text-sm">Joining live class...</p>
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6 p-8 bg-[#0A0A0A] border border-white/5 rounded-3xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+          <div className="w-14 h-14 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
+          <div className="text-center">
+            <h3 className="text-white font-bold text-lg mb-1">Preparing Sanctuary</h3>
+            <p className="text-slate-400 text-sm">Joining live session...</p>
+          </div>
         </div>
       </div>
     )

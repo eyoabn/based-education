@@ -139,19 +139,20 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   return (
     <>
       {connectionState === ConnectionState.Reconnecting && (
-        <div className="fixed inset-0 z-[60] bg-[#090D16]/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#12182b] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col items-center max-w-xs mx-4 text-center">
-             <div className="w-12 h-12 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin mb-4" />
-             <h3 className="text-white font-bold mb-1">Reconnecting...</h3>
-             <p className="text-slate-400 text-xs">Please wait while we restore your connection.</p>
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xl flex items-center justify-center">
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-3xl p-8 shadow-2xl flex flex-col items-center max-w-xs mx-4 text-center relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+             <div className="w-12 h-12 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-4" />
+             <h3 className="text-white font-bold mb-1 text-lg">Reconnecting...</h3>
+             <p className="text-slate-400 text-sm">Restoring your Sanctuary connection.</p>
           </div>
         </div>
       )}
-      <div className="flex flex-col lg:flex-row h-[100dvh] bg-[#090D16] overflow-hidden">
+      <div className="flex flex-col lg:flex-row h-[100dvh] bg-black overflow-hidden">
       {/* Main Stage */}
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Top Header Bar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-white/5 bg-[#090D16]/80 backdrop-blur-sm z-10">
+        <div className="flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-3xl z-10">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full">
@@ -217,7 +218,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
       </div>
 
       {/* Right Side Panel */}
-      <div className="h-[40dvh] lg:h-auto lg:w-80 border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#0a0f1e] shrink-0">
+      <div className="h-[40dvh] lg:h-80 lg:min-w-[320px] lg:h-auto border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#050505] shrink-0">
         {/* Panel Tabs */}
         <div className="flex border-b border-white/5">
           {[
@@ -227,10 +228,10 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold transition-colors border-b-2 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all border-b-2 ${
                 activeTab === tab.id
-                  ? "border-indigo-500 text-indigo-400"
-                  : "border-transparent text-slate-500 hover:text-slate-300"
+                  ? "border-primary text-primary bg-primary/5"
+                  : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
               }`}
             >
               <tab.icon className="w-3.5 h-3.5" />
@@ -281,10 +282,13 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
 
   if (error) {
     return (
-      <div className="h-screen bg-[#090D16] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 font-semibold mb-2">Connection Failed</p>
-          <p className="text-slate-500 text-sm">{error}</p>
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="text-center p-8 bg-[#0A0A0A] rounded-3xl border border-red-500/20 max-w-sm">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+            <span className="text-red-500 font-bold text-xl">!</span>
+          </div>
+          <p className="text-red-400 font-bold mb-2 text-lg">Connection Failed</p>
+          <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
         </div>
       </div>
     )
@@ -292,10 +296,14 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
 
   if (!token || !livekitUrl) {
     return (
-      <div className="h-screen bg-[#090D16] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <p className="text-slate-400 text-sm">Setting up your live studio...</p>
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6 p-8 bg-[#0A0A0A] border border-white/5 rounded-3xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+          <div className="w-14 h-14 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
+          <div className="text-center">
+            <h3 className="text-white font-bold text-lg mb-1">Preparing Sanctuary</h3>
+            <p className="text-slate-400 text-sm">Setting up your live studio...</p>
+          </div>
         </div>
       </div>
     )
