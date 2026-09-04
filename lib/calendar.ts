@@ -93,18 +93,11 @@ export function relativeTime(iso: string, now: Date = new Date()): string {
 }
 
 /**
- * Joinable when the room is flagged live, or it starts within the join window
- * and hasn't ended yet. `endsAt` defaults to start + 1h when unset so a class
- * doesn't stay "joinable" forever.
+ * Joinable strictly when the instructor has started the stream (isLive is true).
  */
-export function isJoinable(event: CalendarEvent, now: Date = new Date()): boolean {
+export function isJoinable(event: CalendarEvent, _now: Date = new Date()): boolean {
   if (event.type !== 'LIVE_CLASS' || !event.roomId) return false
-  if (event.isLive) return true
-
-  const start = new Date(event.startsAt).getTime()
-  const end = event.endsAt ? new Date(event.endsAt).getTime() : start + 60 * 60 * 1000
-
-  return now.getTime() >= start - JOIN_WINDOW_MIN * 60 * 1000 && now.getTime() <= end
+  return Boolean(event.isLive)
 }
 
 // --- Month grid ------------------------------------------------------------

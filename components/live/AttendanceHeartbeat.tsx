@@ -9,6 +9,8 @@ interface AttendanceHeartbeatProps {
   enabled?: boolean
   /** Optional hook so the room UI can surface "attention 92%" if it wants to. */
   onPing?: (result: { durationSec: number; activeSec: number }) => void
+  /** Callback fired when the server confirms the live session has ended */
+  onSessionEnded?: () => void
 }
 
 /**
@@ -25,16 +27,22 @@ export default function AttendanceHeartbeat({
   roomId,
   enabled = true,
   onPing,
+  onSessionEnded,
 }: AttendanceHeartbeatProps) {
   // Kept in refs so the interval closure always reads current values without
   // needing to be torn down and rebuilt on every visibility change.
   const isActiveRef = useRef(true)
   const onPingRef = useRef(onPing)
+  const onSessionEndedRef = useRef(onSessionEnded)
   const inFlightRef = useRef(false)
 
   useEffect(() => {
     onPingRef.current = onPing
   }, [onPing])
+
+  useEffect(() => {
+    onSessionEndedRef.current = onSessionEnded
+  }, [onSessionEnded])
 
   useEffect(() => {
     if (!enabled || !roomId) return
@@ -55,8 +63,13 @@ export default function AttendanceHeartbeat({
           keepalive: true,
         })
 
-        if (res.ok && !cancelled) {
-          const data = await res.json()
+        const data = await res.json().catch(() => null)
+        if (data?.sessionEnded) {
+          onSessionEndedRef.current?.()
+          return
+        }
+
+        if (res.ok && !cancelled && data) {
           onPingRef.current?.({
             durationSec: data.durationSec ?? 0,
             activeSec: data.activeSec ?? 0,

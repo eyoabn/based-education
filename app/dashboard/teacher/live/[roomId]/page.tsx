@@ -10,7 +10,7 @@ import HostControlBar from "@/components/live/HostControlBar"
 import ParticipantList from "@/components/live/ParticipantList"
 import LiveChat from "@/components/live/LiveChat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
-import { Wifi, Users, MessageSquare, Clock } from "lucide-react"
+import { Wifi, Users, MessageSquare, Clock, LogOut } from "lucide-react"
 
 interface TeacherLivePageProps {
   params: Promise<{ roomId: string }>
@@ -46,6 +46,24 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const [isChatDisabled, setIsChatDisabled] = useState(false)
   const [representatives, setRepresentatives] = useState<string[]>([])
   const [mediaState, setMediaState] = useState<MediaState | null>(null)
+
+  // Unload / pagehide safeguard: if teacher closes tab or navigates away, shut down the live room
+  useEffect(() => {
+    const handleUnload = () => {
+      navigator.sendBeacon?.(
+        "/api/live/control",
+        new Blob([JSON.stringify({ room: roomId, action: "SHUTDOWN_ROOM" })], {
+          type: "application/json",
+        })
+      )
+    }
+    window.addEventListener("pagehide", handleUnload)
+    window.addEventListener("beforeunload", handleUnload)
+    return () => {
+      window.removeEventListener("pagehide", handleUnload)
+      window.removeEventListener("beforeunload", handleUnload)
+    }
+  }, [roomId])
 
   useEffect(() => {
     if (metadata) {
@@ -132,7 +150,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ room: roomId, action: "SHUTDOWN_ROOM" }),
-    })
+    }).catch(() => {})
     router.push("/dashboard/teacher")
   }
 
@@ -169,7 +187,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <SharedMediaPlayer
               mediaState={mediaState}
               isHostOrRep={true}
@@ -192,6 +210,14 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Chat
+            </button>
+            <button
+              onClick={handleShutdown}
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg text-red-400 text-xs font-semibold transition-colors"
+              title="Leave and End Stream for all students"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              End Stream
             </button>
           </div>
         </div>

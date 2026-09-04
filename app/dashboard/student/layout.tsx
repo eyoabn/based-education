@@ -1,6 +1,9 @@
+"use client"
+
 import { type ReactNode } from "react"
 import Link from "next/link"
-import { Search, LayoutDashboard, Rss, Video, Calendar, FileText, GraduationCap } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { Search, LayoutDashboard, Rss, Calendar, FileText, GraduationCap, MessageSquare } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import MaintenanceGate from "@/components/admin/MaintenanceGate"
 import LogoutButton from "@/components/auth/LogoutButton"
@@ -8,14 +11,19 @@ import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/student' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, href: '/dashboard/student/messages' },
   { id: 'feed', label: 'My Feed', icon: Rss, href: '/dashboard/student/feed' },
-  { id: 'classes', label: 'Live Classes', icon: Video, href: '/dashboard/student' },
   { id: 'calendar', label: 'Calendar', icon: Calendar, href: '/dashboard/student/calendar' },
   { id: 'exams', label: 'Exams', icon: FileText, href: '/dashboard/student/exams' },
   { id: 'gradebook', label: 'Gradebook', icon: GraduationCap, href: '/dashboard/student/gradebook' },
 ]
 
 export default function StudentLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+
+  const isActive = (href: string) =>
+    href === '/dashboard/student' ? pathname === href : pathname.startsWith(href)
+
   return (
     <MaintenanceGate>
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
@@ -36,7 +44,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 flex flex-col gap-1 px-3">
           {NAV_ITEMS.map(item => {
-            const active = item.id === 'overview' // Mock active state
+            const active = isActive(item.href)
             return (
               <Link
                 key={item.id}

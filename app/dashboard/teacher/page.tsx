@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BookOpen, Users, Plus, Lock, Unlock, Check, X, Radio, Image as ImageIcon, ShieldCheck } from "lucide-react"
+import { BookOpen, Users, Plus, Lock, Unlock, Check, X, Radio, Image as ImageIcon, ShieldCheck, MessageSquare } from "lucide-react"
 import Link from "next/link"
 
 interface Course {
@@ -343,17 +343,25 @@ export default function TeacherDashboardPage() {
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <Link
-                      href={`/dashboard/teacher/feed`}
-                      className="text-indigo-600 hover:text-indigo-700 font-bold"
+                      href="/dashboard/teacher/messages"
+                      className="text-slate-600 hover:text-indigo-600 font-bold flex items-center gap-1 transition-colors"
                     >
-                      Post Stream →
+                      <MessageSquare className="w-3.5 h-3.5" /> Class Chat
                     </Link>
-                    <Link
-                      href={`/dashboard/teacher/live/${encodeURIComponent(course.title)}`}
-                      className="text-red-600 hover:text-red-700 font-bold flex items-center gap-1"
-                    >
-                      <Radio className="w-3.5 h-3.5" /> Start Stream
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href="/dashboard/teacher/feed"
+                        className="text-indigo-600 hover:text-indigo-700 font-bold"
+                      >
+                        Feed →
+                      </Link>
+                      <Link
+                        href={`/dashboard/teacher/live/${encodeURIComponent(course.title)}`}
+                        className="text-red-600 hover:text-red-700 font-bold flex items-center gap-1"
+                      >
+                        <Radio className="w-3.5 h-3.5" /> Start Stream
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>

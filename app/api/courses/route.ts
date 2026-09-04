@@ -44,6 +44,11 @@ export async function GET(request: NextRequest) {
           where: { studentId: session.userId, status: 'PENDING' },
           select: { id: true, status: true },
         },
+        liveRooms: {
+          where: { isLive: true, endedAt: null },
+          select: { id: true, title: true, isLive: true },
+          take: 1,
+        },
         _count: {
           select: { students: true, requests: true, liveRooms: true },
         },
@@ -63,6 +68,7 @@ export async function GET(request: NextRequest) {
         studentCount: c._count.students,
         requestCount: c._count.requests,
         liveRoomCount: c._count.liveRooms,
+        activeLiveRoom: c.liveRooms.length > 0 ? c.liveRooms[0] : null,
         isEnrolled: c.students.length > 0 || c.teacherId === session.userId,
         hasPendingRequest: c.requests.length > 0,
       })),

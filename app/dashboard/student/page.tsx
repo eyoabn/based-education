@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BookOpen, Users, Lock, Unlock, CheckCircle, Clock, ChevronRight, Sparkles, Building2, Radio, Video } from "lucide-react"
+import { BookOpen, Users, Lock, Unlock, CheckCircle, Clock, ChevronRight, Sparkles, Building2, Radio, Video, MessageSquare } from "lucide-react"
 import Link from "next/link"
 
 interface Course {
@@ -22,6 +22,7 @@ interface Course {
   studentCount: number
   requestCount: number
   liveRoomCount: number
+  activeLiveRoom?: { id: string; title: string; isLive: boolean } | null
   isEnrolled: boolean
   hasPendingRequest: boolean
 }
@@ -312,17 +313,26 @@ export default function StudentDashboardPage() {
                 <div className="p-5 pt-0">
                   {course.isEnrolled ? (
                     <div className="space-y-2">
-                      <button
-                        disabled
-                        className="w-full py-2.5 px-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-                      >
+                      <div className="w-full py-2 px-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
                         <CheckCircle className="w-4 h-4 text-emerald-600" /> Enrolled (Access Granted)
-                      </button>
+                      </div>
+                      {course.activeLiveRoom?.isLive ? (
+                        <Link
+                          href={`/dashboard/student/live/${encodeURIComponent(course.activeLiveRoom.id)}`}
+                          className="w-full py-2 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20 transition-all"
+                        >
+                          <Radio className="w-3.5 h-3.5 animate-pulse" /> Join Live Stream Now
+                        </Link>
+                      ) : (
+                        <div className="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-semibold text-slate-500 flex items-center justify-center gap-1.5">
+                          <Radio className="w-3 h-3 text-slate-400" /> Live Stream Offline
+                        </div>
+                      )}
                       <Link
-                        href={`/dashboard/student/live/${encodeURIComponent(course.title)}`}
-                        className="w-full py-2 px-4 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                        href={`/dashboard/student/messages?courseId=${encodeURIComponent(course.id)}`}
+                        className="w-full py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                       >
-                        <Radio className="w-3.5 h-3.5 animate-pulse" /> Live Studio Channel
+                        <MessageSquare className="w-3.5 h-3.5" /> Class Chat &amp; Instructor
                       </Link>
                     </div>
                   ) : course.hasPendingRequest ? (

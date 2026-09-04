@@ -103,6 +103,8 @@ function StudentRoom({ roomId }: { roomId: string }) {
             else next.delete(participant.identity)
             return next
           })
+        } else if (topic === "session-ended" || topic === "shutdown") {
+          setDisconnectReason("ended")
         }
       }
       
@@ -112,6 +114,26 @@ function StudentRoom({ roomId }: { roomId: string }) {
       setDisconnectReason("ended")
     }
   }, [connectionState, disconnectReason, room])
+
+  // Active status poller: periodically check if instructor ended the stream
+  useEffect(() => {
+    if (disconnectReason) return
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`/api/live/status?room=${encodeURIComponent(roomId)}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (!data.isLive) {
+            setDisconnectReason("ended")
+          }
+        }
+      } catch {}
+    }
+
+    const interval = setInterval(checkStatus, 4000)
+    return () => clearInterval(interval)
+  }, [roomId, disconnectReason])
 
   const toggleHand = async () => {
     const newState = !handRaised
@@ -126,7 +148,11 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
   return (
     <>
-      <AttendanceHeartbeat roomId={roomId} enabled={!disconnectReason} />
+      <AttendanceHeartbeat
+        roomId={roomId}
+        enabled={!disconnectReason}
+        onSessionEnded={() => setDisconnectReason("ended")}
+      />
 
       {disconnectReason && <DisconnectedModal reason={disconnectReason} />}
 
@@ -276,6 +302,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
 export default function StudentLivePage({ params }: StudentLivePageProps) {
   const { roomId } = use(params)
+  const router = useRouter()
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [livekitUrl, setLivekitUrl] = useState<string | null>(null)
@@ -295,13 +322,19 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
 
   if (error) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center">
-        <div className="text-center p-8 bg-[#0A0A0A] rounded-3xl border border-red-500/20 max-w-sm">
+      <div className="h-screen bg-black flex items-center justify-center p-4">
+        <div className="text-center p-8 bg-[#0A0A0A] rounded-3xl border border-red-500/20 max-w-md w-full shadow-2xl">
           <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
-            <span className="text-red-500 font-bold text-xl">!</span>
+            <span className="text-red-400 font-bold text-2xl">!</span>
           </div>
-          <p className="text-red-400 font-bold mb-2 text-lg">Connection Failed</p>
-          <p className="text-slate-500 text-sm leading-relaxed">{error}</p>
+          <h2 className="text-white font-bold mb-2 text-xl">Session Unavailable</h2>
+          <p className="text-slate-400 text-sm leading-relaxed mb-6">{error}</p>
+          <button
+            onClick={() => router.push("/dashboard/student")}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/20 text-sm"
+          >
+            Return to Dashboard
+          </button>
         </div>
       </div>
     )
@@ -314,8 +347,8 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
           <div className="w-14 h-14 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
           <div className="text-center">
-            <h3 className="text-white font-bold text-lg mb-1">Preparing Sanctuary</h3>
-            <p className="text-slate-400 text-sm">Joining live session...</p>
+            <h3 className="text-white font-bold text-lg mb-1">Checking Live Session</h3>
+            <p className="text-slate-400 text-sm">Connecting to sanctuary...</p>
           </div>
         </div>
       </div>

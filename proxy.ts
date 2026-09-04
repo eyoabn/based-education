@@ -31,6 +31,12 @@ export async function proxy(request: NextRequest) {
 
   const { role, teacherStatus } = payload;
 
+  // Exact /dashboard root redirect to role portal
+  if (url.pathname === '/dashboard' || url.pathname === '/dashboard/') {
+    url.pathname = `/dashboard/${role.toLowerCase()}`;
+    return NextResponse.redirect(url);
+  }
+
   // Student Protection
   if (url.pathname.startsWith('/dashboard/student')) {
     if (role !== 'STUDENT') {
@@ -65,3 +71,5 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: ['/dashboard/:path*'],
 };
+
+export default proxy;

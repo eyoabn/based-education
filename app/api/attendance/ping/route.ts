@@ -32,12 +32,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing roomId' }, { status: 400 });
     }
 
-    const room = await prisma.liveRoom.findUnique({
-      where: { id: roomId },
-      select: { id: true },
+    const room = await prisma.liveRoom.findFirst({
+      where: {
+        OR: [
+          { id: roomId },
+          { title: roomId },
+        ],
+      },
+      select: { id: true, isLive: true, endedAt: true },
     });
     if (!room) {
-      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Room not found', sessionEnded: true }, { status: 404 });
+    }
+
+    if (!room.isLive || room.endedAt !== null) {
+      await prisma.attendance.updateMany({
+        where: { roomId: room.id, studentId: session.userId },
+        data: { leftAt: new Date(), isActive: false },
+      }).catch(() => {});
+
+      return NextResponse.json({
+        ok: false,
+        isLive: false,
+        sessionEnded: true,
+        message: 'Live session has ended.',
+      });
     }
 
     const now = new Date();

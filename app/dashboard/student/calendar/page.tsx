@@ -224,19 +224,20 @@ export default function StudentCalendarPage() {
               </div>
 
               {selected.type === "LIVE_CLASS" && selected.roomId && (
-                <Link
-                  href={`/dashboard/student/live/${selected.roomId}`}
-                  className={`mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                    isJoinable(selected, now)
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                      : "bg-slate-100 text-slate-400 pointer-events-none"
-                  }`}
-                >
-                  <Video className="w-4 h-4" />
-                  {isJoinable(selected, now)
-                    ? "Join Live Stream Now"
-                    : `Opens ${JOIN_WINDOW_MIN} min before start`}
-                </Link>
+                selected.isLive ? (
+                  <Link
+                    href={`/dashboard/student/live/${selected.roomId}`}
+                    className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                  >
+                    <Radio className="w-4 h-4 animate-pulse" />
+                    Join Live Stream Now
+                  </Link>
+                ) : (
+                  <div className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    Scheduled · Waiting for instructor to start stream
+                  </div>
+                )
               )}
             </div>
           )}

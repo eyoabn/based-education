@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
             isLive: true,
             scheduledAt: new Date(),
             startedAt: new Date(),
+            endedAt: null,
             courseId: course?.id ?? null,
           },
           include: {
@@ -64,13 +65,14 @@ export async function GET(request: NextRequest) {
             }
           }
         });
-      } else if (!liveRoom.isLive) {
+      } else if (!liveRoom.isLive || liveRoom.endedAt !== null) {
         // Update room status to LIVE
         liveRoom = await prisma.liveRoom.update({
           where: { id: liveRoom.id },
           data: {
             isLive: true,
             startedAt: new Date(),
+            endedAt: null,
           },
           include: {
             course: {
@@ -95,7 +97,32 @@ export async function GET(request: NextRequest) {
           });
         }
       }
-    } else if (session.role === 'STUDENT' && liveRoom) {
+    } else {
+      // Student verification — MUST have an active live session
+      if (!liveRoom) {
+        return NextResponse.json(
+          { error: 'Live session not found. Please wait for your instructor to launch the session.' },
+          { status: 404 }
+        );
+      }
+
+      if (!liveRoom.isLive || liveRoom.endedAt !== null) {
+        return NextResponse.json(
+          { error: 'This live session is not active. The instructor has not started the stream or it has already ended.' },
+          { status: 403 }
+        );
+      }
+
+      if (liveRoom.courseId && liveRoom.course) {
+        const isEnrolled = liveRoom.course.students.some(s => s.id === session.userId);
+        if (!isEnrolled) {
+          return NextResponse.json(
+            { error: 'You must be enrolled in this course to join its live session.' },
+            { status: 403 }
+          );
+        }
+      }
+
       // Record student attendance heartbeat record
       await prisma.attendance.upsert({
         where: {
@@ -120,6 +147,8 @@ export async function GET(request: NextRequest) {
 
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
+    const rawWsUrl = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud";
+    const livekitWsUrl = rawWsUrl.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
 
     // Fallback Mock Token if env vars are missing locally
     if (!apiKey || !apiSecret) {
@@ -127,7 +156,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         token: `mock-token-for-${session.userId}-${Date.now()}`,
         isMock: true,
-        roomId: liveRoom?.id || roomTitle
+        roomId: liveRoom?.id || roomTitle,
+        livekitUrl: livekitWsUrl
       });
     }
     
@@ -148,7 +178,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       token: await at.toJwt(),
       roomId: liveRoom?.id || roomTitle,
-      livekitUrl: process.env.LIVEKIT_URL
+      livekitUrl: livekitWsUrl
     });
   } catch (error) {
     console.error("[GET /api/live/token]", error);

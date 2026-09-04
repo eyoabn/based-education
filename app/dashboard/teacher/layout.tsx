@@ -1,6 +1,9 @@
+"use client"
+
 import { type ReactNode } from "react"
 import Link from "next/link"
-import { Search, LayoutDashboard, Rss, Video, Calendar, Users, FileText, GraduationCap, Radio } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { Search, LayoutDashboard, Rss, Video, Calendar, Users, FileText, GraduationCap, Radio, MessageSquare } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import MaintenanceGate from "@/components/admin/MaintenanceGate"
 import LogoutButton from "@/components/auth/LogoutButton"
@@ -8,6 +11,7 @@ import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/teacher' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, href: '/dashboard/teacher/messages' },
   { id: 'feed', label: 'Post Stream', icon: Rss, href: '/dashboard/teacher/feed' },
   { id: 'studio', label: 'Go Live Studio', icon: Video, href: '/dashboard/teacher/live/MainStudio' },
   { id: 'schedules', label: 'Schedules', icon: Calendar, href: '/dashboard/teacher/schedules' },
@@ -17,6 +21,11 @@ const NAV_ITEMS = [
 ]
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+
+  const isActive = (href: string) =>
+    href === '/dashboard/teacher' ? pathname === href : pathname.startsWith(href)
+
   return (
     <MaintenanceGate>
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
@@ -38,7 +47,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 flex flex-col gap-1 px-3 mt-2">
           {NAV_ITEMS.map(item => {
-            const active = item.id === 'overview'
+            const active = isActive(item.href)
             return (
               <Link
                 key={item.id}
@@ -73,13 +82,16 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
             />
           </div>
           
-          <div className="flex items-center gap-6 ml-4">
+          <div className="flex items-center gap-4 ml-4">
             <NotificationBell />
             <LogoutButton />
-            <button className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-semibold text-sm rounded-lg hover:bg-red-100 transition-colors">
+            <Link
+              href="/dashboard/teacher/live/MainStudio"
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-semibold text-sm rounded-lg hover:bg-red-100 transition-colors"
+            >
               <Radio className="w-4 h-4 animate-pulse" />
               Go Live
-            </button>
+            </Link>
             <UserHeaderBadge />
           </div>
         </header>

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const decodedRoom = decodeURIComponent(room);
 
-    if (action === 'SHUTDOWN_ROOM') {
+    if (action === 'SHUTDOWN_ROOM' || action === 'TEACHER_LEFT') {
       // Mark database LiveRoom as no longer live
       await prisma.liveRoom.updateMany({
         where: {
@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL;
+    const rawUrl = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL;
+    const apiUrl = rawUrl ? rawUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:') : undefined;
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
 
@@ -65,57 +66,109 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'MUTE_ALL':
-        const participants = await roomService.listParticipants(decodedRoom);
-        for (const p of participants) {
-          if (p.identity !== session.userId) {
-            const aTracks = p.tracks.filter(t => t.type === 0);
-            for (const track of aTracks) {
-              await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true);
+        try {
+          const participants = await roomService.listParticipants(decodedRoom);
+          for (const p of participants) {
+            if (p.identity !== session.userId) {
+              const aTracks = p.tracks.filter(t => t.type === 0);
+              for (const track of aTracks) {
+                await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true);
+              }
             }
+          }
+        } catch (err: any) {
+          if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
+            console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during MUTE_ALL`);
+          } else {
+            throw err;
           }
         }
         break;
 
       case 'DISABLE_CAMERAS_ALL':
-        const allParticipants = await roomService.listParticipants(decodedRoom);
-        for (const p of allParticipants) {
-          if (p.identity !== session.userId) {
-            const vTracks = p.tracks.filter(t => t.type === 1); // 1 = VIDEO
-            for (const track of vTracks) {
-              await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true);
+        try {
+          const allParticipants = await roomService.listParticipants(decodedRoom);
+          for (const p of allParticipants) {
+            if (p.identity !== session.userId) {
+              const vTracks = p.tracks.filter(t => t.type === 1); // 1 = VIDEO
+              for (const track of vTracks) {
+                await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true);
+              }
             }
+          }
+        } catch (err: any) {
+          if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
+            console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during DISABLE_CAMERAS_ALL`);
+          } else {
+            throw err;
           }
         }
         break;
 
       case 'TOGGLE_CHAT':
-        const roomInfo = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
-        let metaObj = {};
-        try { metaObj = JSON.parse(roomInfo?.metadata || '{}'); } catch {}
-        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...metaObj, chatDisabled }));
+        try {
+          const roomInfo = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
+          let metaObj = {};
+          try { metaObj = JSON.parse(roomInfo?.metadata || '{}'); } catch {}
+          await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...metaObj, chatDisabled }));
+        } catch (err: any) {
+          if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
+            console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during TOGGLE_CHAT`);
+          } else {
+            throw err;
+          }
+        }
         break;
 
       case 'TOGGLE_REPRESENTATIVE':
         if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
-        const roomObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
-        let currentMeta: any = {};
-        try { currentMeta = JSON.parse(roomObj?.metadata || '{}'); } catch {}
-        const reps: string[] = currentMeta.representatives || [];
-        const isRep = reps.includes(identity);
-        const updatedReps = isRep ? reps.filter(id => id !== identity) : [...reps, identity];
-        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...currentMeta, representatives: updatedReps }));
+        try {
+          const roomObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
+          let currentMeta: any = {};
+          try { currentMeta = JSON.parse(roomObj?.metadata || '{}'); } catch {}
+          const reps: string[] = currentMeta.representatives || [];
+          const isRep = reps.includes(identity);
+          const updatedReps = isRep ? reps.filter(id => id !== identity) : [...reps, identity];
+          await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...currentMeta, representatives: updatedReps }));
+        } catch (err: any) {
+          if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
+            console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during TOGGLE_REPRESENTATIVE`);
+          } else {
+            throw err;
+          }
+        }
         break;
 
       case 'UPDATE_MEDIA':
         const { mediaState } = body;
-        const rObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
-        let rMeta: any = {};
-        try { rMeta = JSON.parse(rObj?.metadata || '{}'); } catch {}
-        await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...rMeta, mediaState }));
+        try {
+          const rObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
+          let rMeta: any = {};
+          try { rMeta = JSON.parse(rObj?.metadata || '{}'); } catch {}
+          await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...rMeta, mediaState }));
+        } catch (err: any) {
+          if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
+            console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during UPDATE_MEDIA`);
+          } else {
+            throw err;
+          }
+        }
         break;
 
       case 'SHUTDOWN_ROOM':
-        await roomService.deleteRoom(decodedRoom).catch(() => {});
+      case 'TEACHER_LEFT':
+        try {
+          const encoder = new TextEncoder();
+          await roomService.sendData(
+            decodedRoom,
+            encoder.encode(JSON.stringify({ type: 'SESSION_ENDED' })),
+            0,
+            { topic: 'session-ended' }
+          ).catch(() => {});
+          await roomService.deleteRoom(decodedRoom).catch(() => {});
+        } catch (e) {
+          console.warn("LiveKit shutdown error:", e);
+        }
         break;
 
       default:
