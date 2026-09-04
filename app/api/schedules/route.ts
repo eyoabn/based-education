@@ -68,6 +68,8 @@ export async function GET(request: NextRequest) {
         scheduledAt: true,
         endsAt: true,
         isLive: true,
+        startedAt: true,
+        endedAt: true,
         course: { select: { title: true } },
         teacher: { select: { name: true } },
       },
@@ -83,7 +85,7 @@ export async function GET(request: NextRequest) {
       courseTitle: room.course?.title ?? null,
       teacherName: room.teacher?.name ?? null,
       roomId: room.id,
-      isLive: room.isLive,
+      isLive: Boolean(room.isLive && room.endedAt === null),
     }));
 
     // Students also get their exam and assignment deadlines on the same grid.
