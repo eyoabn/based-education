@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import logo from "../../public/logo.jpg";
 
 const FEATURES = [
   {
@@ -68,8 +70,8 @@ export default function LandingPage() {
           <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A94A)' }} />
         </div>
 
-        <img
-          src="/logo.jpg"
+        <Image
+          src={logo}
           alt="Spiritual Academy Logo"
           className="w-32 h-32 object-contain mb-10 drop-shadow-2xl"
           style={{ filter: 'drop-shadow(0 0 32px #C9A94A66)' }}
@@ -276,7 +278,7 @@ export default function LandingPage() {
           style={{ background: 'radial-gradient(ellipse 70% 60% at 50% 50%, #C9A94A12, transparent)' }}
         />
         <div className="max-w-2xl mx-auto relative z-10">
-          <img src="/logo.jpg" alt="Logo" className="w-20 h-20 object-contain mx-auto mb-8" style={{ filter: 'drop-shadow(0 0 20px #C9A94A55)' }} />
+          <Image src={logo} alt="Logo" className="w-20 h-20 object-contain mx-auto mb-8" style={{ filter: 'drop-shadow(0 0 20px #C9A94A55)' }} />
           <h2
             className="text-3xl md:text-5xl font-bold mb-6"
             style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8' }}
