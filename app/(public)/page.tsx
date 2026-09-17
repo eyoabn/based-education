@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import logo from "../../public/logo.jpg";
 
 const FEATURES = [
   {
@@ -71,8 +70,11 @@ export default function LandingPage() {
         </div>
 
         <Image
-          src={logo}
+          src="/logo.png"
           alt="Spiritual Academy Logo"
+          width={128}
+          height={128}
+          priority
           className="w-32 h-32 object-contain mb-10 drop-shadow-2xl"
           style={{ filter: 'drop-shadow(0 0 32px #C9A94A66)' }}
         />
@@ -278,7 +280,14 @@ export default function LandingPage() {
           style={{ background: 'radial-gradient(ellipse 70% 60% at 50% 50%, #C9A94A12, transparent)' }}
         />
         <div className="max-w-2xl mx-auto relative z-10">
-          <Image src={logo} alt="Logo" className="w-20 h-20 object-contain mx-auto mb-8" style={{ filter: 'drop-shadow(0 0 20px #C9A94A55)' }} />
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={80}
+            height={80}
+            className="w-20 h-20 object-contain mx-auto mb-8"
+            style={{ filter: 'drop-shadow(0 0 20px #C9A94A55)' }}
+          />
           <h2
             className="text-3xl md:text-5xl font-bold mb-6"
             style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8' }}

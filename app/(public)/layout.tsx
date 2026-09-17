@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Check, Send } from "lucide-react";
 import { toast } from "sonner";
-import logo from "../../public/logo.jpg";
 
 const NAV_LINKS = ['Teachings', 'About', 'Community', 'Contact'];
 
@@ -24,7 +23,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         }}
       >
         <Link href="/" className="flex items-center gap-3">
-          <Image src={logo} alt="Logo" className="h-10 w-10 object-contain" />
+          <Image src="/logo.png" alt="Logo" width={40} height={40} className="h-10 w-10 object-contain" />
           <span
             className="text-lg font-semibold hidden sm:block"
             style={{ fontFamily: 'var(--font-display)', color: '#C9A94A', letterSpacing: '0.08em' }}
@@ -118,7 +117,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       {/* FOOTER */}
       <footer className="py-12 px-6 text-center" style={{ borderTop: '1px solid #C9A94A22' }}>
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Image src={logo} alt="Logo" className="h-8 w-8 object-contain opacity-70" />
+          <Image src="/logo.png" alt="Logo" width={32} height={32} className="h-8 w-8 object-contain opacity-70" />
           <span className="text-sm" style={{ fontFamily: 'var(--font-display)', color: '#C9A94A88', letterSpacing: '0.1em' }}>
             Spiritual Academy
           </span>
