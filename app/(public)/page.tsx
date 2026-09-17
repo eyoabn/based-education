@@ -21,7 +21,7 @@ const FEATURES = [
   {
     icon: '📖',
     title: 'Bible Study',
-    desc: 'Structured Bible studies designed to take you deeper into God\\'s Word, verse by verse.',
+    desc: "Structured Bible studies designed to take you deeper into God's Word, verse by verse.",
   },
 ];
 
@@ -39,7 +39,7 @@ const TESTIMONIALS = [
   {
     name: 'Maria Santos',
     role: 'Community Member',
-    quote: 'I\\'ve grown more spiritually in three months here than I had in years. Truly anointed teaching.',
+    quote: "I've grown more spiritually in three months here than I had in years. Truly anointed teaching.",
   },
 ];
 
