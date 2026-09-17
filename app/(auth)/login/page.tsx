@@ -45,16 +45,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-800/50 border border-slate-700/50 rounded-2xl shadow-2xl p-8 backdrop-blur-sm">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 selection:bg-[#C9A94A] selection:text-black">
+      <div className="w-full max-w-md bg-[#0A0A0A] border border-[#C9A94A]/20 rounded-3xl shadow-2xl p-8">
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <span className="text-xl font-bold text-white">EC</span>
-          </div>
+          <Link href="/" className="w-16 h-16 flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Sanctuary Logo"
+              className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(201,169,74,0.4)]"
+            />
+          </Link>
         </div>
-        <h2 className="text-2xl font-bold text-white text-center mb-2">Welcome back</h2>
-        <p className="text-slate-400 text-center mb-8 text-sm">
-          Sign in to your Educonnect account.
+        <h2 className="text-2xl font-bold text-white text-center mb-2">Welcome Back</h2>
+        <p className="text-[#C9A94A] text-center mb-8 text-sm font-medium">
+          Sign in to access your sacred teachings and classes.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,14 +73,14 @@ export default function LoginPage() {
               autoComplete="email"
               value={email}
               onChange={event => setEmail(event.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#C9A94A] focus:border-transparent transition-all"
               placeholder="john@example.com"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1 flex justify-between">
               Password
-              <Link href="#" className="text-indigo-400 hover:text-indigo-300 text-xs">
+              <Link href="#" className="text-[#C9A94A] hover:text-[#d4af37] text-xs">
                 Forgot password?
               </Link>
             </label>
@@ -85,7 +90,7 @@ export default function LoginPage() {
               autoComplete="current-password"
               value={password}
               onChange={event => setPassword(event.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#C9A94A] focus:border-transparent transition-all"
               placeholder="Enter your password"
             />
           </div>
@@ -99,17 +104,17 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white font-semibold rounded-lg shadow-lg shadow-indigo-500/25 transition-all mt-6 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-[#C9A94A] hover:bg-[#b5953e] disabled:opacity-70 text-black font-bold rounded-lg shadow-lg shadow-[#C9A94A]/25 transition-all mt-6 flex items-center justify-center gap-2"
           >
-            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isLoading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
             {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         <p className="text-center text-sm text-slate-400 mt-6">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium">
-            Sign up
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-[#C9A94A] hover:text-[#d4af37] font-medium">
+            Join the Sanctuary
           </Link>
         </p>
       </div>
