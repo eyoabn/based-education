@@ -35,7 +35,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(formattedPosts);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
+    console.error("[GET /api/posts]", error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch posts';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

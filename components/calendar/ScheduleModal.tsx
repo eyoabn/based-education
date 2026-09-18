@@ -212,7 +212,7 @@ export default function ScheduleModal({
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g. Thermodynamics — Second Law"
               autoFocus
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
             />
           </div>
 
@@ -230,7 +230,7 @@ export default function ScheduleModal({
               onChange={e => setDescription(e.target.value)}
               rows={3}
               placeholder="What will you cover? Students see this on their calendar."
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
             />
           </div>
 
@@ -245,7 +245,7 @@ export default function ScheduleModal({
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
               />
             </div>
             <div>
@@ -260,7 +260,7 @@ export default function ScheduleModal({
                   setStartTime(e.target.value)
                   if (e.target.value) setEndTime(addHour(e.target.value))
                 }}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
               />
             </div>
             <div>
@@ -272,7 +272,7 @@ export default function ScheduleModal({
                 type="time"
                 value={endTime}
                 onChange={e => setEndTime(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
               />
             </div>
           </div>
@@ -286,7 +286,7 @@ export default function ScheduleModal({
               id="target-course"
               value={courseId}
               onChange={e => setCourseId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow cursor-pointer"
             >
               <option value="">All my students (open class)</option>
               {courses.map(course => (

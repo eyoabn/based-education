@@ -73,7 +73,7 @@ export default function StudentLayoutClient({ children }: { children: ReactNode 
             <input 
               type="text"
               placeholder="Search classes, resources..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow"
+              className="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow"
             />
           </div>
           

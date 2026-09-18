@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BookOpen, Users, Plus, Lock, Unlock, Check, X, Radio, Image as ImageIcon, ShieldCheck, MessageSquare } from "lucide-react"
+import { BookOpen, Users, Plus, Lock, Unlock, Check, X, Radio, Image as ImageIcon, ShieldCheck, MessageSquare, AlertCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 interface Course {
@@ -372,132 +372,147 @@ export default function TeacherDashboardPage() {
 
       {/* Create Course Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h2 className="text-xl font-bold text-slate-900">Create New Course</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0e0e13] border border-primary/30 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.9)] space-y-6 animate-in zoom-in-95 duration-200 text-white">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white tracking-tight">Create New Course</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Define your curriculum, logo and enrollment mode.</p>
+                </div>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {error && <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg">{error}</div>}
+            {error && (
+              <div className="p-3.5 bg-red-950/50 border border-red-500/30 text-red-200 text-xs font-semibold rounded-xl flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{error}</span>
+              </div>
+            )}
 
             <form onSubmit={handleCreateCourse} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Course Name *
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Course Name <span className="text-primary">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Advanced Data Structures & Algorithms"
+                  placeholder="e.g. Advanced Sacred Geometry & Principles"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-[#17171e] border border-white/15 text-white placeholder:text-slate-500 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Course Code (Optional)
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Course Code <span className="text-slate-500 font-normal normal-case">(Optional — auto-generated if blank)</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. CS-301 (Auto-generated if blank)"
+                  placeholder="e.g. CRS-101"
                   value={code}
                   onChange={e => setCode(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-[#17171e] border border-white/15 text-white placeholder:text-slate-500 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all uppercase"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Course Logo URL (Optional)
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Course Logo URL <span className="text-slate-500 font-normal normal-case">(Optional)</span>
                 </label>
                 <div className="relative">
-                  <ImageIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <ImageIcon className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="url"
                     placeholder="https://example.com/logo.png"
                     value={logoUrl}
                     onChange={e => setLogoUrl(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#17171e] border border-white/15 text-white placeholder:text-slate-500 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                   Description
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Briefly describe what students will learn in this course..."
+                  placeholder="Briefly describe what students will explore in this course..."
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-[#17171e] border border-white/15 text-white placeholder:text-slate-500 rounded-xl text-sm resize-none focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                   Student Join Permission Mode
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setAccessMode("PUBLIC")}
-                    className={`p-3 rounded-xl border text-left flex flex-col gap-1 transition-all ${
+                    className={`p-3.5 rounded-xl border text-left flex flex-col gap-1.5 transition-all ${
                       accessMode === "PUBLIC"
-                        ? "border-emerald-500 bg-emerald-50/50 text-emerald-900 ring-2 ring-emerald-500/20"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-200 ring-2 ring-emerald-500/30 shadow-md"
+                        : "border-white/10 bg-[#17171e] text-slate-400 hover:text-white hover:border-white/20"
                     }`}
                   >
-                    <span className="font-bold text-xs flex items-center gap-1">
-                      <Unlock className="w-3.5 h-3.5 text-emerald-600" /> Public (Open)
+                    <span className="font-bold text-xs flex items-center gap-1.5">
+                      <Unlock className="w-3.5 h-3.5 text-emerald-400" /> Public (Open)
                     </span>
-                    <span className="text-[11px] text-slate-500 leading-tight">
-                      Any student can join instantly without approval.
+                    <span className="text-[11px] text-slate-400 leading-tight">
+                      Any student can join instantly without requiring approval.
                     </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setAccessMode("PERMISSION_REQUIRED")}
-                    className={`p-3 rounded-xl border text-left flex flex-col gap-1 transition-all ${
+                    className={`p-3.5 rounded-xl border text-left flex flex-col gap-1.5 transition-all ${
                       accessMode === "PERMISSION_REQUIRED"
-                        ? "border-amber-500 bg-amber-50/50 text-amber-900 ring-2 ring-amber-500/20"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        ? "border-amber-500/60 bg-amber-950/40 text-amber-200 ring-2 ring-amber-500/30 shadow-md"
+                        : "border-white/10 bg-[#17171e] text-slate-400 hover:text-white hover:border-white/20"
                     }`}
                   >
-                    <span className="font-bold text-xs flex items-center gap-1">
-                      <Lock className="w-3.5 h-3.5 text-amber-600" /> Restricted
+                    <span className="font-bold text-xs flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-amber-400" /> Restricted
                     </span>
-                    <span className="text-[11px] text-slate-500 leading-tight">
-                      Students must request permission; you approve or decline.
+                    <span className="text-[11px] text-slate-400 leading-tight">
+                      Students must request access; you approve or decline.
                     </span>
                   </button>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg"
+                  className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-black font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
                 >
-                  {submitting ? "Publishing..." : "Publish Course"}
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {submitting ? "Publishing Course..." : "Publish Course"}
                 </button>
               </div>
             </form>

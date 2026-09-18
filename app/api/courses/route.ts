@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ course }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/courses]", error);
-    return NextResponse.json({ error: 'Failed to create course' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create course';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

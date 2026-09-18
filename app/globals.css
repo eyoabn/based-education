@@ -123,6 +123,37 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Form inputs default to dark text on light backgrounds to prevent white-on-white text */
+input,
+textarea,
+select {
+  color: #0f172a;
+}
+
+/* Explicit light text classes stay light on dark cards */
+input[class*="text-white"],
+textarea[class*="text-white"],
+select[class*="text-white"],
+input[class*="text-slate-100"],
+textarea[class*="text-slate-100"],
+select[class*="text-slate-100"],
+input[class*="text-slate-200"],
+textarea[class*="text-slate-200"],
+select[class*="text-slate-200"],
+input[class*="text-slate-300"],
+textarea[class*="text-slate-300"],
+select[class*="text-slate-300"],
+.dark input,
+.dark textarea,
+.dark select {
+  color: #f8fafc;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
 /* Hide scrollbars by default, show on hover */
 * {
   scrollbar-width: thin;
