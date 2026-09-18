@@ -82,7 +82,7 @@ export default function ParticipantList({ roomId, isTeacher, raisedHands, repres
                 key={p.identity}
                 p={p}
                 isTeacher={isTeacher}
-                isLocal={p.identity === localParticipant.identity}
+                isLocal={p.identity === localParticipant?.identity}
                 isRaisedHand
                 isRepresentative={representatives.includes(p.identity)}
                 onKick={handleKick}
@@ -104,7 +104,7 @@ export default function ParticipantList({ roomId, isTeacher, raisedHands, repres
               key={p.identity}
               p={p}
               isTeacher={isTeacher}
-              isLocal={p.identity === localParticipant.identity}
+              isLocal={p.identity === localParticipant?.identity}
               isRepresentative={representatives.includes(p.identity)}
               onKick={handleKick}
               onMute={handleMuteOne}

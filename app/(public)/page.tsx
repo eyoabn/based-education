@@ -121,33 +121,6 @@ export default function LandingPage() {
             Sign In
           </Link>
         </div>
-
-        {/* Stats */}
-        <div className="flex flex-wrap justify-center gap-12 mt-20 pt-12" style={{ borderTop: '1px solid #C9A94A22' }}>
-          {[
-            { num: '2,400+', label: 'Students' },
-            { num: '180+', label: 'Teachings' },
-            { num: '12', label: 'Years of Ministry' },
-          ].map(({ num, label }) => (
-            <div key={label} className="text-center">
-              <div
-                className="text-3xl font-bold"
-                style={{ fontFamily: 'var(--font-display)', color: '#C9A94A' }}
-              >
-                {num}
-              </div>
-              <div className="text-xs uppercase tracking-widest mt-1" style={{ color: '#F5F0E855' }}>
-                {label}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
-          <span className="text-xs uppercase tracking-widest" style={{ fontFamily: 'var(--font-display)', color: '#C9A94A', fontSize: '0.6rem' }}>Scroll</span>
-          <div className="w-px h-8" style={{ background: 'linear-gradient(to bottom, #C9A94A, transparent)' }} />
-        </div>
       </section>
 
       {/* FEATURES */}
@@ -295,7 +268,7 @@ export default function LandingPage() {
             Ready to Begin Your Journey?
           </h2>
           <p className="text-base mb-10 leading-relaxed" style={{ color: '#F5F0E8AA', fontWeight: 300 }}>
-            Join thousands of believers who are growing in faith, wisdom, and divine purpose through anointed online teachings.
+            Join believers who are growing in faith, wisdom, and divine purpose through anointed online teachings.
           </p>
           <Link
             href="/register"

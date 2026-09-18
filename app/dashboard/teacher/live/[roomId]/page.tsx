@@ -10,7 +10,7 @@ import HostControlBar from "@/components/live/HostControlBar"
 import ParticipantList from "@/components/live/ParticipantList"
 import LiveChat from "@/components/live/LiveChat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
-import { Wifi, Users, MessageSquare, Clock, LogOut } from "lucide-react"
+import { Wifi, Users, MessageSquare, Clock, LogOut, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X, Hand } from "lucide-react"
 
 interface TeacherLivePageProps {
   params: Promise<{ roomId: string }>
@@ -36,7 +36,10 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const router = useRouter()
   const connectionState = useConnectionState()
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
+  const [handRaiseNotification, setHandRaiseNotification] = useState<{ identity: string, name: string } | null>(null)
   const { localParticipant } = useLocalParticipant()
   const [isMicEnabled, setIsMicEnabled] = useState(true)
   const [isCamEnabled, setIsCamEnabled] = useState(true)
@@ -46,6 +49,15 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const [isChatDisabled, setIsChatDisabled] = useState(false)
   const [representatives, setRepresentatives] = useState<string[]>([])
   const [mediaState, setMediaState] = useState<MediaState | null>(null)
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener("fullscreenchange", handleFsChange)
+    return () => document.removeEventListener("fullscreenchange", handleFsChange)
+  }, [])
 
   // Unload / pagehide safeguard: if teacher closes tab or navigates away, shut down the live room
   useEffect(() => {
@@ -86,6 +98,12 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           else next.delete(participant.identity)
           return next
         })
+        if (isRaised) {
+          setHandRaiseNotification({
+            identity: participant.identity,
+            name: participant.name || participant.identity || "Student"
+          })
+        }
       }
     }
     room.on("dataReceived", handleData)
@@ -112,6 +130,23 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     } catch {}
     setIsScreenSharing(!isScreenSharing)
   }, [isScreenSharing, localParticipant])
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {})
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {})
+    }
+  }
+
+  const toggleTab = (tab: "chat" | "participants") => {
+    if (isPanelOpen && activeTab === tab) {
+      setIsPanelOpen(false)
+    } else {
+      setActiveTab(tab)
+      setIsPanelOpen(true)
+    }
+  }
 
   const handleMuteAll = async () => {
     await fetch("/api/live/control", {
@@ -166,123 +201,185 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           </div>
         </div>
       )}
-      <div className="flex flex-col lg:flex-row h-[100dvh] bg-black overflow-hidden">
-      {/* Main Stage */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
-        {/* Top Header Bar */}
-        <div className="flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-3xl z-10">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full">
+
+      {/* Floating Hand-Raise Alert for Teacher */}
+      {handRaiseNotification && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-amber-500 text-black px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-md animate-in slide-in-from-top-4 duration-300 font-medium text-sm">
+          <span className="text-xl">✋</span>
+          <span><strong>{handRaiseNotification.name}</strong> has raised their hand!</span>
+          <button
+            onClick={() => {
+              setRaisedHands(prev => { const next = new Set(prev); next.delete(handRaiseNotification.identity); return next })
+              setHandRaiseNotification(null)
+            }}
+            className="ml-2 px-3 py-1 bg-black/15 hover:bg-black/25 rounded-lg text-xs font-bold transition-colors"
+          >
+            Lower Hand
+          </button>
+          <button
+            onClick={() => setHandRaiseNotification(null)}
+            className="p-1 hover:bg-black/10 rounded-lg transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row h-[100dvh] w-screen bg-black overflow-hidden select-none">
+        {/* Main Stage (Google Meet Layout) */}
+        <div className="flex-1 flex flex-col min-w-0 relative h-full">
+          {/* Top Header Bar */}
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-black/60 backdrop-blur-2xl border-b border-white/10 z-10">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-red-600/20 border border-red-500/30 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-xs font-bold text-red-400 uppercase tracking-wide">LIVE</span>
               </div>
-            </div>
-            <div>
-              <h1 className="font-bold text-white text-sm">{decodeURIComponent(roomId)}</h1>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <Clock className="w-3 h-3" />
-                <LiveDuration />
+              <div>
+                <h1 className="font-bold text-white text-sm truncate max-w-[150px] sm:max-w-xs">{decodeURIComponent(roomId)}</h1>
+                <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                  <Clock className="w-3 h-3" />
+                  <LiveDuration />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <SharedMediaPlayer
-              mediaState={mediaState}
-              isHostOrRep={true}
-              onUpdateMediaState={handleUpdateMediaState}
-            />
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400">
-              <Wifi className="w-3.5 h-3.5" />
-              <span className="font-semibold">HD</span>
+            <div className="flex items-center gap-2">
+              <SharedMediaPlayer
+                mediaState={mediaState}
+                isHostOrRep={true}
+                onUpdateMediaState={handleUpdateMediaState}
+              />
+              
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 text-xs text-emerald-400">
+                <Wifi className="w-3.5 h-3.5" />
+                <span className="font-semibold text-[11px]">HD</span>
+              </div>
+
+              {/* Fullscreen Button */}
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/10 transition-colors"
+                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              >
+                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
+
+              {/* Toggle People Button */}
+              <button
+                onClick={() => toggleTab("participants")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                  isPanelOpen && activeTab === "participants"
+                    ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
+                    : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">People</span>
+                {raisedHands.size > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-bold">
+                    ✋ {raisedHands.size}
+                  </span>
+                )}
+              </button>
+
+              {/* Toggle Chat Button */}
+              <button
+                onClick={() => toggleTab("chat")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                  isPanelOpen && activeTab === "chat"
+                    ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
+                    : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Chat</span>
+              </button>
+
+              {/* End Stream */}
+              <button
+                onClick={handleShutdown}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-xl text-red-400 text-xs font-semibold transition-colors"
+                title="Leave and End Stream for all students"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">End Stream</span>
+              </button>
             </div>
-            <button
-              onClick={() => setActiveTab("participants")}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-slate-300 text-xs font-semibold transition-colors"
-            >
-              <Users className="w-3.5 h-3.5" />
-              Participants
-            </button>
-            <button
-              onClick={() => setActiveTab("chat")}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-slate-300 text-xs font-semibold transition-colors"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              Chat
-            </button>
-            <button
-              onClick={handleShutdown}
-              className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg text-red-400 text-xs font-semibold transition-colors"
-              title="Leave and End Stream for all students"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              End Stream
-            </button>
+          </div>
+
+          {/* Video Grid */}
+          <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
+            <RoomAudioRenderer />
+            <LiveGrid isTeacher />
+            <HostControlBar
+              roomId={roomId}
+              isMicEnabled={isMicEnabled}
+              isCamEnabled={isCamEnabled}
+              isScreenSharing={isScreenSharing}
+              onMicToggle={handleMicToggle}
+              onCamToggle={handleCamToggle}
+              onScreenShareToggle={handleScreenShare}
+              onMuteAll={handleMuteAll}
+              onDisableCameras={handleDisableCameras}
+              onDisableChat={handleDisableChat}
+              isChatDisabled={isChatDisabled}
+              onShutdown={handleShutdown}
+            />
           </div>
         </div>
 
-        {/* Video Grid */}
-        <div className="flex-1 relative overflow-hidden">
-          <RoomAudioRenderer />
-          <LiveGrid isTeacher />
-          <HostControlBar
-            roomId={roomId}
-            isMicEnabled={isMicEnabled}
-            isCamEnabled={isCamEnabled}
-            isScreenSharing={isScreenSharing}
-            onMicToggle={handleMicToggle}
-            onCamToggle={handleCamToggle}
-            onScreenShareToggle={handleScreenShare}
-            onMuteAll={handleMuteAll}
-            onDisableCameras={handleDisableCameras}
-            onDisableChat={handleDisableChat}
-            isChatDisabled={isChatDisabled}
-            onShutdown={handleShutdown}
-          />
-        </div>
-      </div>
+        {/* Collapsible Right Side Panel */}
+        {isPanelOpen && (
+          <div className="w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200">
+            {/* Panel Tabs */}
+            <div className="flex items-center justify-between border-b border-white/10 px-2">
+              <div className="flex flex-1">
+                {[
+                  { id: "chat", label: "Chat", icon: MessageSquare },
+                  { id: "participants", label: `People (${raisedHands.size ? `✋ ${raisedHands.size}` : ""})`, icon: Users },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all border-b-2 ${
+                      activeTab === tab.id
+                        ? "border-primary text-primary bg-primary/5"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    }`}
+                  >
+                    <tab.icon className="w-3.5 h-3.5" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setIsPanelOpen(false)}
+                className="p-2 text-slate-400 hover:text-white rounded-lg transition-colors ml-1"
+                title="Close panel"
+              >
+                <PanelRightClose className="w-4 h-4" />
+              </button>
+            </div>
 
-      {/* Right Side Panel */}
-      <div className="h-[40dvh] lg:h-80 lg:min-w-[320px] lg:h-auto border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#050505] shrink-0">
-        {/* Panel Tabs */}
-        <div className="flex border-b border-white/5">
-          {[
-            { id: "chat", label: "Chat", icon: MessageSquare },
-            { id: "participants", label: "People", icon: Users },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all border-b-2 ${
-                activeTab === tab.id
-                  ? "border-primary text-primary bg-primary/5"
-                  : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
-              }`}
-            >
-              <tab.icon className="w-3.5 h-3.5" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          {activeTab === "chat" ? (
-            <LiveChat isTeacher isDisabled={isChatDisabled} />
-          ) : (
-            <ParticipantList
-              roomId={roomId}
-              isTeacher
-              raisedHands={raisedHands}
-              representatives={representatives}
-              onLowerHand={(identity) => {
-                setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
-              }}
-            />
-          )}
-        </div>
+            <div className="flex-1 overflow-hidden">
+              {activeTab === "chat" ? (
+                <LiveChat isTeacher isDisabled={isChatDisabled} />
+              ) : (
+                <ParticipantList
+                  roomId={roomId}
+                  isTeacher
+                  raisedHands={raisedHands}
+                  representatives={representatives}
+                  onLowerHand={(identity) => {
+                    setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
     </>
   )
 }

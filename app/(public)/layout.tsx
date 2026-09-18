@@ -6,8 +6,6 @@ import Image from "next/image";
 import { ArrowRight, Check, Send } from "lucide-react";
 import { toast } from "sonner";
 
-const NAV_LINKS = ['Teachings', 'About', 'Community', 'Contact'];
-
 export default function PublicLayout({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -32,22 +30,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           </span>
         </Link>
 
-        {/* Desktop links */}
-        <ul className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <li key={link}>
-              <Link
-                href="#"
-                className="text-sm uppercase tracking-widest transition-colors hover:text-yellow-400"
-                style={{ color: '#F5F0E8AA', fontFamily: 'var(--font-display)', fontSize: '0.7rem' }}
-              >
-                {link}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <div className="hidden md:flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <Link
             href="/login"
             className="px-5 py-2 rounded-lg text-sm uppercase tracking-widest transition-all hover:bg-white/5"
@@ -69,45 +52,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             Get Started
           </Link>
         </div>
-
-        {/* Mobile menu button */}
-        <button
-          className="md:hidden flex flex-col gap-1.5 p-2"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {[0, 1, 2].map((i) => (
-            <span key={i} className="block w-5 h-px" style={{ background: '#C9A94A' }} />
-          ))}
-        </button>
       </nav>
-
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-30 pt-20 px-6 flex flex-col gap-6"
-          style={{ background: '#080808EE', backdropFilter: 'blur(16px)' }}
-        >
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link}
-              href="#"
-              className="text-xl uppercase tracking-widest py-3 border-b"
-              style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8', borderColor: '#C9A94A22' }}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {link}
-            </Link>
-          ))}
-          <Link
-            href="/register"
-            onClick={() => setMobileMenuOpen(false)}
-            className="mt-4 py-4 rounded-lg uppercase tracking-widest font-bold text-center"
-            style={{ background: 'linear-gradient(135deg, #C9A94A, #9A7A2E)', color: '#080808', fontFamily: 'var(--font-display)' }}
-          >
-            Get Started
-          </Link>
-        </div>
-      )}
 
       {/* Main Content */}
       <main>

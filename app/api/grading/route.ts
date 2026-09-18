@@ -344,6 +344,7 @@ export async function PATCH(request: NextRequest) {
         message: `"${submission.exam.title}" has been graded: ${finalScore}/${
           submission.maxScore
         } (${pct}%) — ${passed ? 'Passed' : 'Did not pass'}.`,
+        link: '/dashboard/student/gradebook',
       };
 
       await prisma.notification.create({

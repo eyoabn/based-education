@@ -201,6 +201,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         message: `${session.name} submitted "${exam.title}"${
           exam.course?.title ? ` (${exam.course.title})` : ''
         }. Auto-graded ${grading.autoScore}/${grading.maxScore}.${flagSuffix}`,
+        link: '/dashboard/teacher/grading',
       };
 
       await prisma.notification.create({

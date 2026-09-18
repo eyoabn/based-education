@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
           type: 'NEW_POST' as const,
           title,
           message,
+          link: '/dashboard/student/feed',
         })),
       });
 

@@ -91,6 +91,7 @@ export async function POST(
         type: 'COURSE_JOIN_REQUESTED',
         title: 'New Student Join Request',
         message: `${session.name} requested to join your course "${course.title}".`,
+        link: '/dashboard/teacher',
       },
     });
 

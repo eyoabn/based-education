@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
           : { students: { some: { id: session.userId } } };
     }
 
+    const isTeacherOrAdmin = session.role === 'TEACHER' || session.role === 'ADMIN';
+
     const courses = await prisma.course.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
@@ -40,10 +42,20 @@ export async function GET(request: NextRequest) {
           where: { id: session.userId },
           select: { id: true },
         },
-        requests: {
-          where: { studentId: session.userId, status: 'PENDING' },
-          select: { id: true, status: true },
-        },
+        requests: isTeacherOrAdmin
+          ? {
+              where: { status: 'PENDING' },
+              include: {
+                student: {
+                  select: { id: true, name: true, email: true, avatarUrl: true },
+                },
+              },
+              orderBy: { createdAt: 'desc' },
+            }
+          : {
+              where: { studentId: session.userId, status: 'PENDING' },
+              select: { id: true, status: true },
+            },
         liveRooms: {
           where: { isLive: true, endedAt: null },
           select: { id: true, title: true, isLive: true },
@@ -71,6 +83,7 @@ export async function GET(request: NextRequest) {
         activeLiveRoom: c.liveRooms.length > 0 ? c.liveRooms[0] : null,
         isEnrolled: c.students.length > 0 || c.teacherId === session.userId,
         hasPendingRequest: c.requests.length > 0,
+        pendingRequests: isTeacherOrAdmin ? c.requests : [],
       })),
     });
   } catch (error) {

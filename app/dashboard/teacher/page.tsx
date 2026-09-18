@@ -14,6 +14,7 @@ interface Course {
   studentCount: number
   requestCount: number
   createdAt: string
+  pendingRequests?: JoinRequest[]
 }
 
 interface JoinRequest {
@@ -57,8 +58,38 @@ export default function TeacherDashboardPage() {
         const data = await res.json()
         if (Array.isArray(data?.courses)) {
           setCourses(data.courses)
-          // Fetch pending join requests for all permission required courses
-          fetchRequestsForCourses(data.courses)
+          
+          // Instant one-shot request map population
+          const map: Record<string, JoinRequest[]> = {}
+          const needParallelFetch: Course[] = []
+          for (const c of data.courses) {
+            if (Array.isArray(c.pendingRequests)) {
+              map[c.id] = c.pendingRequests
+            } else if (c.accessMode === "PERMISSION_REQUIRED") {
+              needParallelFetch.push(c)
+            }
+          }
+          setRequestsMap(map)
+
+          // Fallback parallel fetch if needed
+          if (needParallelFetch.length > 0) {
+            Promise.all(
+              needParallelFetch.map(c =>
+                fetch(`/api/courses/${c.id}/requests`, { cache: "no-store" })
+                  .then(r => r.ok ? r.json() : { requests: [] })
+                  .then(reqData => ({ courseId: c.id, requests: reqData.requests || [] }))
+                  .catch(() => ({ courseId: c.id, requests: [] }))
+              )
+            ).then(results => {
+              setRequestsMap(prev => {
+                const next = { ...prev }
+                for (const r of results) {
+                  next[r.courseId] = r.requests
+                }
+                return next
+              })
+            })
+          }
         }
       }
     } catch (err) {
@@ -66,24 +97,6 @@ export default function TeacherDashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  async function fetchRequestsForCourses(courseList: Course[]) {
-    const map: Record<string, JoinRequest[]> = {}
-    for (const c of courseList) {
-      if (c.accessMode === "PERMISSION_REQUIRED") {
-        try {
-          const reqRes = await fetch(`/api/courses/${c.id}/requests`, { cache: "no-store" })
-          if (reqRes.ok) {
-            const reqData = await reqRes.json()
-            map[c.id] = reqData.requests || []
-          }
-        } catch {
-          // ignore error
-        }
-      }
-    }
-    setRequestsMap(map)
   }
 
   const handleCreateCourse = async (e: React.FormEvent) => {
@@ -149,7 +162,7 @@ export default function TeacherDashboardPage() {
   const pendingRequestsCount = Object.values(requestsMap).reduce((acc, reqs) => acc + reqs.length, 0)
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="w-full max-w-7xl mx-auto space-y-8">
       {/* Top Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-xl">
         <div>
@@ -372,9 +385,9 @@ export default function TeacherDashboardPage() {
 
       {/* Create Course Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0e0e13] border border-primary/30 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.9)] space-y-6 animate-in zoom-in-95 duration-200 text-white">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0e0e13] border border-primary/30 rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.9)] animate-in zoom-in-95 duration-200 text-white overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/10 p-6 pb-4 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
                   <BookOpen className="w-5 h-5 text-primary" />
@@ -393,14 +406,15 @@ export default function TeacherDashboardPage() {
               </button>
             </div>
 
-            {error && (
-              <div className="p-3.5 bg-red-950/50 border border-red-500/30 text-red-200 text-xs font-semibold rounded-xl flex items-center gap-2.5">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                <span>{error}</span>
-              </div>
-            )}
+            <div className="overflow-y-auto p-6 pt-4 space-y-4 flex-1">
+              {error && (
+                <div className="p-3.5 bg-red-950/50 border border-red-500/30 text-red-200 text-xs font-semibold rounded-xl flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <span>{error}</span>
+                </div>
+              )}
 
-            <form onSubmit={handleCreateCourse} className="space-y-4">
+              <form id="create-course-form" onSubmit={handleCreateCourse} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                   Course Name <span className="text-primary">*</span>
@@ -498,24 +512,27 @@ export default function TeacherDashboardPage() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-black font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
-                >
-                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  {submitting ? "Publishing Course..." : "Publish Course"}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
+
+            <div className="p-5 border-t border-white/10 flex items-center justify-end gap-3 shrink-0 bg-[#0a0a0f]">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="create-course-form"
+                disabled={submitting}
+                className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-black font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {submitting ? "Publishing Course..." : "Publish Course"}
+              </button>
+            </div>
           </div>
         </div>
       )}

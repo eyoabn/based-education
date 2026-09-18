@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, use } from "react"
 import { useRouter } from "next/navigation"
-import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRoomContext, useRoomInfo } from "@livekit/components-react"
+import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRoomContext, useRoomInfo, useLocalParticipant } from "@livekit/components-react"
 import { ConnectionState, DataPacket_Kind } from "livekit-client"
 import "@livekit/components-styles"
 import LiveGrid from "@/components/live/LiveGrid"
@@ -11,7 +11,8 @@ import ParticipantList from "@/components/live/ParticipantList"
 import AttendanceHeartbeat from "@/components/live/AttendanceHeartbeat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
 import {
-  Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown
+  Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown,
+  Maximize2, Minimize2, PanelRightClose, PanelRightOpen
 } from "lucide-react"
 
 interface StudentLivePageProps {
@@ -64,12 +65,15 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const router = useRouter()
   const connectionState = useConnectionState()
   const hasConnectedRef = useRef(false)
+  const { localParticipant } = useLocalParticipant()
 
   const [isMicEnabled, setIsMicEnabled] = useState(true)
   const [isCamEnabled, setIsCamEnabled] = useState(true)
   const [handRaised, setHandRaised] = useState(false)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
   const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [disconnectReason, setDisconnectReason] = useState<"kicked" | "ended" | null>(null)
   const room = useRoomContext()
   const { metadata } = useRoomInfo()
@@ -77,7 +81,16 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const [representatives, setRepresentatives] = useState<string[]>([])
   const [mediaState, setMediaState] = useState<MediaState | null>(null)
 
-  const isRepresentative = room.localParticipant ? representatives.includes(room.localParticipant.identity) : false
+  const isRepresentative = localParticipant ? representatives.includes(localParticipant.identity) : false
+
+  // Sync with fullscreen changes (e.g. Esc key pressed)
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener("fullscreenchange", handleFsChange)
+    return () => document.removeEventListener("fullscreenchange", handleFsChange)
+  }, [])
 
   useEffect(() => {
     if (metadata) {
@@ -135,12 +148,49 @@ function StudentRoom({ roomId }: { roomId: string }) {
     return () => clearInterval(interval)
   }, [roomId, disconnectReason])
 
+  const handleMicToggle = async () => {
+    try {
+      const next = !isMicEnabled
+      await localParticipant?.setMicrophoneEnabled(next)
+      setIsMicEnabled(next)
+    } catch (e) {
+      console.error("Failed to toggle microphone:", e)
+    }
+  }
+
+  const handleCamToggle = async () => {
+    try {
+      const next = !isCamEnabled
+      await localParticipant?.setCameraEnabled(next)
+      setIsCamEnabled(next)
+    } catch (e) {
+      console.error("Failed to toggle camera:", e)
+    }
+  }
+
   const toggleHand = async () => {
     const newState = !handRaised
     setHandRaised(newState)
-    if (room.localParticipant) {
+    if (localParticipant) {
       const payload = new TextEncoder().encode(newState ? "true" : "false")
-      await room.localParticipant.publishData(payload, { reliable: true, topic: "raise-hand" })
+      await localParticipant.publishData(payload, { reliable: true, topic: "raise-hand" }).catch(() => {})
+    }
+  }
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {})
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {})
+    }
+  }
+
+  const toggleTab = (tab: "chat" | "participants") => {
+    if (isPanelOpen && activeTab === tab) {
+      setIsPanelOpen(false)
+    } else {
+      setActiveTab(tab)
+      setIsPanelOpen(true)
     }
   }
 
@@ -167,30 +217,32 @@ function StudentRoom({ roomId }: { roomId: string }) {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row h-[100dvh] bg-black overflow-hidden">
-        {/* Main Stage */}
-        <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex flex-col lg:flex-row h-[100dvh] w-screen bg-black overflow-hidden select-none">
+        {/* Main Stage (Google Meet Layout) */}
+        <div className="flex-1 flex flex-col min-w-0 relative h-full">
           {/* Top Header */}
-          <div className="flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-3xl z-10">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-black/60 backdrop-blur-2xl border-b border-white/10 z-10">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-red-600/20 border border-red-500/30 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-xs font-bold text-red-400 uppercase tracking-wide">LIVE</span>
               </div>
               <div>
-                <h1 className="font-bold text-white text-sm">{decodeURIComponent(roomId)}</h1>
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+                <h1 className="font-bold text-white text-sm truncate max-w-[150px] sm:max-w-xs">{decodeURIComponent(roomId)}</h1>
+                <div className="flex items-center gap-2 text-[11px] text-slate-400">
                   <Clock className="w-3 h-3" />
                   <LiveDuration />
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-2">
               {isRepresentative && (
-                <span className="flex items-center gap-1 text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-full">
+                <span className="hidden sm:flex items-center gap-1 text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-full">
                   <Crown className="w-3.5 h-3.5" /> Co-Host
                 </span>
               )}
+
               <SharedMediaPlayer
                 mediaState={mediaState}
                 isHostOrRep={isRepresentative}
@@ -202,99 +254,187 @@ function StudentRoom({ roomId }: { roomId: string }) {
                   })
                 }}
               />
-              <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 text-xs text-emerald-400">
                 <Wifi className="w-3.5 h-3.5" />
-                <span className="font-semibold">HD</span>
+                <span className="font-semibold text-[11px]">HD</span>
               </div>
+
+              {/* Fullscreen Toggle Button */}
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/10 transition-colors"
+                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              >
+                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
+
+              {/* Toggle Chat Tab */}
+              <button
+                onClick={() => toggleTab("chat")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                  isPanelOpen && activeTab === "chat"
+                    ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
+                    : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Chat</span>
+              </button>
+
+              {/* Toggle People Tab */}
+              <button
+                onClick={() => toggleTab("participants")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                  isPanelOpen && activeTab === "participants"
+                    ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
+                    : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">People</span>
+                {raisedHands.size > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-bold">
+                    {raisedHands.size}
+                  </span>
+                )}
+              </button>
+
+              {/* Leave Button */}
               <button
                 onClick={handleLeave}
-                className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg text-red-400 text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-xl text-red-400 text-xs font-semibold transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                Leave
+                <span className="hidden sm:inline">Leave</span>
               </button>
             </div>
           </div>
 
-          {/* Video Grid */}
-          <div className="flex-1 relative overflow-hidden">
+          {/* Video Grid Stage */}
+          <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
             <RoomAudioRenderer />
             <LiveGrid isTeacher={false} />
 
-            {/* Student Floating Controls */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-max max-w-[95vw]">
-              <div className="flex items-center gap-1 sm:gap-2 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl px-2 sm:px-4 py-2 sm:py-3 shadow-2xl shadow-black/80 overflow-x-auto no-scrollbar">
+            {/* Google Meet Style Floating Bottom Control Bar */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-max max-w-[95vw]">
+              <div className="flex items-center gap-2 bg-[#0c0c0f]/90 backdrop-blur-2xl border border-white/15 rounded-3xl p-2 px-3 sm:px-4 shadow-2xl shadow-black">
                 {/* Mic */}
                 <button
-                  onClick={() => setIsMicEnabled(!isMicEnabled)}
+                  onClick={handleMicToggle}
                   className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
-                    isMicEnabled ? "bg-white/5 hover:bg-white/10 text-white" : "bg-red-500/20 text-red-400"
+                    isMicEnabled
+                      ? "bg-white/10 hover:bg-white/20 text-white"
+                      : "bg-red-600 text-white shadow-lg shadow-red-600/40"
                   }`}
+                  title={isMicEnabled ? "Mute microphone" : "Unmute microphone"}
                 >
                   {isMicEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-                  <span className="text-[10px] font-medium opacity-70">{isMicEnabled ? "Mute" : "Unmute"}</span>
+                  <span className="text-[10px] font-bold">{isMicEnabled ? "Mute" : "Unmute"}</span>
                 </button>
 
                 {/* Camera */}
                 <button
-                  onClick={() => setIsCamEnabled(!isCamEnabled)}
+                  onClick={handleCamToggle}
                   className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
-                    isCamEnabled ? "bg-white/5 hover:bg-white/10 text-white" : "bg-red-500/20 text-red-400"
+                    isCamEnabled
+                      ? "bg-white/10 hover:bg-white/20 text-white"
+                      : "bg-red-600 text-white shadow-lg shadow-red-600/40"
                   }`}
+                  title={isCamEnabled ? "Turn off camera" : "Turn on camera"}
                 >
                   {isCamEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-                  <span className="text-[10px] font-medium opacity-70">{isCamEnabled ? "Stop Cam" : "Start Cam"}</span>
+                  <span className="text-[10px] font-bold">{isCamEnabled ? "Stop Cam" : "Start Cam"}</span>
                 </button>
 
                 <div className="w-px h-10 bg-white/10 mx-1" />
 
-                {/* Raise Hand */}
+                {/* Raise Hand Button */}
                 <button
                   onClick={toggleHand}
                   className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
                     handRaised
-                      ? "bg-primary/20 text-primary ring-1 ring-primary/40 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-                      : "bg-white/5 hover:bg-white/10 text-white"
+                      ? "bg-amber-500 text-black ring-2 ring-amber-300 font-bold shadow-lg shadow-amber-500/30"
+                      : "bg-white/10 hover:bg-white/20 text-white"
                   }`}
+                  title={handRaised ? "Lower hand" : "Raise hand to ask question"}
                 >
                   <Hand className={`w-5 h-5 ${handRaised ? "animate-bounce" : ""}`} />
-                  <span className="text-[10px] font-medium opacity-70">{handRaised ? "Hand Raised" : "Raise Hand"}</span>
+                  <span className="text-[10px] font-bold">{handRaised ? "Hand Raised" : "Raise Hand"}</span>
+                </button>
+
+                <div className="w-px h-10 bg-white/10 mx-1" />
+
+                {/* Fullscreen in Bottom Bar */}
+                <button
+                  onClick={toggleFullscreen}
+                  className={`hidden sm:flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                    isFullscreen ? "bg-primary/20 text-primary" : "bg-white/10 hover:bg-white/20 text-white"
+                  }`}
+                  title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                >
+                  {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                  <span className="text-[10px] font-medium">{isFullscreen ? "Exit Full" : "Full Screen"}</span>
+                </button>
+
+                {/* Side Panel Toggle */}
+                <button
+                  onClick={() => setIsPanelOpen(!isPanelOpen)}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                    isPanelOpen ? "bg-white/20 text-white" : "bg-white/10 hover:bg-white/20 text-slate-300"
+                  }`}
+                  title={isPanelOpen ? "Collapse Side Panel" : "Expand Side Panel"}
+                >
+                  {isPanelOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRightOpen className="w-5 h-5" />}
+                  <span className="text-[10px] font-medium">{isPanelOpen ? "Hide" : "Panel"}</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side Panel */}
-        <div className="h-[40dvh] lg:h-80 lg:min-w-[320px] lg:h-auto border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col bg-[#050505] shrink-0">
-          <div className="flex border-b border-white/5">
-            {[
-              { id: "chat", label: "Chat", icon: MessageSquare },
-              { id: "participants", label: "People", icon: Users },
-            ].map(tab => (
+        {/* Collapsible Right Side Panel (Chat / People) */}
+        {isPanelOpen && (
+          <div className="w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200">
+            {/* Panel Tabs */}
+            <div className="flex items-center justify-between border-b border-white/10 px-2">
+              <div className="flex flex-1">
+                {[
+                  { id: "chat", label: "Chat", icon: MessageSquare },
+                  { id: "participants", label: `People (${raisedHands.size ? `✋ ${raisedHands.size}` : ""})`, icon: Users },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all border-b-2 ${
+                      activeTab === tab.id
+                        ? "border-primary text-primary bg-primary/5"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    }`}
+                  >
+                    <tab.icon className="w-3.5 h-3.5" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all border-b-2 ${
-                  activeTab === tab.id
-                    ? "border-primary text-primary bg-primary/5"
-                    : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
-                }`}
+                onClick={() => setIsPanelOpen(false)}
+                className="p-2 text-slate-400 hover:text-white rounded-lg transition-colors ml-1"
+                title="Close panel"
               >
-                <tab.icon className="w-3.5 h-3.5" />
-                {tab.label}
+                <PanelRightClose className="w-4 h-4" />
               </button>
-            ))}
-          </div>
+            </div>
 
-          <div className="flex-1 overflow-hidden">
-            {activeTab === "chat" ? (
-              <LiveChat isTeacher={false} isDisabled={isChatDisabled} />
-            ) : (
-              <ParticipantList roomId={roomId} isTeacher={false} raisedHands={raisedHands} representatives={representatives} />
-            )}
+            <div className="flex-1 overflow-hidden">
+              {activeTab === "chat" ? (
+                <LiveChat isTeacher={false} isDisabled={isChatDisabled} />
+              ) : (
+                <ParticipantList roomId={roomId} isTeacher={false} raisedHands={raisedHands} representatives={representatives} />
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   )

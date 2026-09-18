@@ -73,15 +73,21 @@ export default function LiveChat({ isTeacher = false, isDisabled = false }: Live
 }
 
 function ChatBubble({ msg, isTeacher, onPin, showPinAction }: { msg: any, isTeacher: boolean, onPin: (m: string) => void, showPinAction: boolean }) {
-  const isHost = msg.from?.identity === "teacher" // in real app, check role metadata
+  let isHost = false
+  try {
+    const meta = JSON.parse(msg.from?.metadata || "{}")
+    isHost = meta.role === "TEACHER" || meta.role === "ADMIN" || msg.from?.identity === "teacher"
+  } catch {
+    isHost = msg.from?.identity === "teacher"
+  }
   return (
     <div className="group">
       <div className="flex items-center gap-2 mb-1">
-        <span className={`text-xs font-semibold ${isHost ? "text-indigo-400" : "text-slate-300"}`}>
+        <span className={`text-xs font-semibold ${isHost ? "text-amber-400" : "text-slate-300"}`}>
           {msg.from?.name || "Anonymous"}
         </span>
         {isHost && (
-          <span className="text-[9px] bg-indigo-600/40 text-indigo-300 px-1.5 py-0.5 rounded font-bold">HOST</span>
+          <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold">HOST</span>
         )}
         <span className="text-[10px] text-slate-600 ml-auto">
           {new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}

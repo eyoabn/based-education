@@ -108,6 +108,7 @@ export async function PATCH(
             type: 'COURSE_JOIN_APPROVED',
             title: 'Course Join Request Approved!',
             message: `Your request to join "${joinRequest.course.title}" has been approved. You now have full access to the course content.`,
+            link: '/dashboard/student/courses',
           },
         }),
       ]);
@@ -123,6 +124,7 @@ export async function PATCH(
             type: 'COURSE_JOIN_REJECTED',
             title: 'Course Join Request Declined',
             message: `Your request to join "${joinRequest.course.title}" was declined by the instructor.`,
+            link: '/dashboard/student/courses',
           },
         }),
       ]);

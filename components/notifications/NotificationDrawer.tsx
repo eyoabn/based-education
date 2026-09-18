@@ -70,9 +70,57 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
       }
     }
 
-    // Redirect if there's a link
-    if (notification.link) {
-      router.push(notification.link)
+    // Determine destination target URL
+    let targetUrl = notification.link
+    if (!targetUrl) {
+      switch (notification.type) {
+        case 'GRADE_RELEASED':
+        case 'grade':
+          targetUrl = '/dashboard/student/gradebook'
+          break
+        case 'EXAM_SUBMITTED':
+          targetUrl = '/dashboard/teacher/grading'
+          break
+        case 'EXAM_PUBLISHED':
+        case 'ASSIGNMENT_DUE':
+        case 'exam':
+          targetUrl = '/dashboard/student/exams'
+          break
+        case 'COURSE_JOIN_REQUESTED':
+          targetUrl = '/dashboard/teacher'
+          break
+        case 'COURSE_JOIN_APPROVED':
+        case 'COURSE_JOIN_REJECTED':
+          targetUrl = '/dashboard/student/courses'
+          break
+        case 'LIVE_CLASS_STARTING':
+        case 'live':
+          targetUrl = '/dashboard/student/calendar'
+          break
+        case 'CLASS_SCHEDULED':
+          targetUrl = '/dashboard/student/calendar'
+          break
+        case 'NEW_POST':
+        case 'post':
+          targetUrl = '/dashboard/student/feed'
+          break
+        default:
+          if (notification.title.toLowerCase().includes('grade')) {
+            targetUrl = '/dashboard/student/gradebook'
+          } else if (notification.title.toLowerCase().includes('live')) {
+            targetUrl = '/dashboard/student/calendar'
+          } else if (notification.title.toLowerCase().includes('course')) {
+            targetUrl = '/dashboard/student/courses'
+          } else if (notification.title.toLowerCase().includes('exam') || notification.title.toLowerCase().includes('task')) {
+            targetUrl = '/dashboard/student/exams'
+          } else {
+            targetUrl = '/dashboard/student/feed'
+          }
+      }
+    }
+
+    if (targetUrl) {
+      router.push(targetUrl)
       onClose()
     }
   }

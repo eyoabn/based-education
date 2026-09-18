@@ -164,12 +164,14 @@ export async function GET(request: NextRequest) {
     const at = new AccessToken(apiKey, apiSecret, {
       identity: session.userId,
       name: session.name,
+      metadata: JSON.stringify({ role: session.role, name: session.name }),
     });
 
     at.addGrant({
       room: liveRoom?.id || roomTitle,
       roomJoin: true,
-      canPublish: isTeacher,
+      canPublish: true,
+      canPublishData: true,
       canSubscribe: true,
       roomAdmin: isTeacher,
       roomCreate: isTeacher,
