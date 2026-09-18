@@ -225,7 +225,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row h-[100dvh] w-screen bg-black overflow-hidden select-none">
+      <div className="fixed inset-0 w-full h-full bg-black overflow-hidden select-none flex flex-col lg:flex-row">
         {/* Main Stage (Google Meet Layout) */}
         <div className="flex-1 flex flex-col min-w-0 relative h-full">
           {/* Top Header Bar */}
@@ -309,7 +309,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           </div>
 
           {/* Video Grid */}
-          <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
+          <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center min-w-0 min-h-0 w-full h-full">
             <RoomAudioRenderer />
             <LiveGrid isTeacher />
             <HostControlBar
@@ -373,6 +373,20 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                   representatives={representatives}
                   onLowerHand={(identity) => {
                     setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
+                  }}
+                  onShutCamera={async (identity) => {
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: roomId, action: "SHUT_CAMERA_PARTICIPANT", identity }),
+                    })
+                  }}
+                  onToggleRepresentative={async (identity) => {
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: roomId, action: "TOGGLE_REPRESENTATIVE", identity }),
+                    })
                   }}
                 />
               )}

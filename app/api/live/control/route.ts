@@ -10,8 +10,8 @@ export async function POST(request: NextRequest) {
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     const session = await verifyToken(token);
-    if (!session || (session.role !== 'TEACHER' && session.role !== 'ADMIN')) {
-      return NextResponse.json({ error: 'Forbidden. Only teachers can perform moderation.' }, { status: 403 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -21,6 +21,35 @@ export async function POST(request: NextRequest) {
     }
 
     const decodedRoom = decodeURIComponent(room);
+
+    const rawUrl = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL;
+    const apiUrl = rawUrl ? rawUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:') : undefined;
+    const apiKey = process.env.LIVEKIT_API_KEY;
+    const apiSecret = process.env.LIVEKIT_API_SECRET;
+
+    if (!apiUrl || !apiKey || !apiSecret) {
+      console.warn("LiveKit Env Vars missing. Mocking room control action:", action);
+      return NextResponse.json({ success: true, mocked: true });
+    }
+
+    const roomService = new RoomServiceClient(apiUrl, apiKey, apiSecret);
+
+    // Verify moderator privileges: Instructor, Admin, or Room Representative (Co-Host)
+    const isTeacher = session.role === 'TEACHER' || session.role === 'ADMIN';
+    let isRepresentative = false;
+    if (!isTeacher) {
+      try {
+        const rObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
+        if (rObj?.metadata) {
+          const meta = JSON.parse(rObj.metadata);
+          isRepresentative = Array.isArray(meta.representatives) && meta.representatives.includes(session.userId);
+        }
+      } catch (e) {}
+    }
+
+    if (!isTeacher && !isRepresentative) {
+      return NextResponse.json({ error: 'Forbidden. Only instructors and co-hosts can perform moderation.' }, { status: 403 });
+    }
 
     if (action === 'SHUTDOWN_ROOM' || action === 'TEACHER_LEFT') {
       // Mark database LiveRoom as no longer live
@@ -38,18 +67,6 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    const rawUrl = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL;
-    const apiUrl = rawUrl ? rawUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:') : undefined;
-    const apiKey = process.env.LIVEKIT_API_KEY;
-    const apiSecret = process.env.LIVEKIT_API_SECRET;
-
-    if (!apiUrl || !apiKey || !apiSecret) {
-      console.warn("LiveKit Env Vars missing. Mocking room control action:", action);
-      return NextResponse.json({ success: true, mocked: true });
-    }
-
-    const roomService = new RoomServiceClient(apiUrl, apiKey, apiSecret);
-
     switch (action) {
       case 'KICK_PARTICIPANT':
         if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
@@ -58,10 +75,41 @@ export async function POST(request: NextRequest) {
       
       case 'MUTE_PARTICIPANT':
         if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
-        const participant = await roomService.getParticipant(decodedRoom, identity);
-        const audioTracks = participant.tracks.filter(t => t.type === 0); // 0 = AUDIO
-        for (const track of audioTracks) {
-          await roomService.mutePublishedTrack(decodedRoom, identity, track.sid, true);
+        try {
+          const participant = await roomService.getParticipant(decodedRoom, identity);
+          const audioTracks = participant.tracks.filter(t => t.type === 0); // 0 = AUDIO
+          for (const track of audioTracks) {
+            await roomService.mutePublishedTrack(decodedRoom, identity, track.sid, true);
+          }
+          const encoder = new TextEncoder();
+          await roomService.sendData(
+            decodedRoom,
+            encoder.encode(JSON.stringify({ action: 'MUTE_MIC', identity })),
+            0,
+            { topic: 'participant-moderation' }
+          ).catch(() => {});
+        } catch (e) {
+          console.warn("Error muting participant audio:", e);
+        }
+        break;
+
+      case 'SHUT_CAMERA_PARTICIPANT':
+        if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
+        try {
+          const participant = await roomService.getParticipant(decodedRoom, identity);
+          const videoTracks = participant.tracks.filter(t => t.type === 1); // 1 = VIDEO
+          for (const track of videoTracks) {
+            await roomService.mutePublishedTrack(decodedRoom, identity, track.sid, true);
+          }
+          const encoder = new TextEncoder();
+          await roomService.sendData(
+            decodedRoom,
+            encoder.encode(JSON.stringify({ action: 'SHUT_CAMERA', identity })),
+            0,
+            { topic: 'participant-moderation' }
+          ).catch(() => {});
+        } catch (e) {
+          console.warn("Error shutting participant video:", e);
         }
         break;
 
@@ -76,6 +124,13 @@ export async function POST(request: NextRequest) {
               }
             }
           }
+          const encoder = new TextEncoder();
+          await roomService.sendData(
+            decodedRoom,
+            encoder.encode(JSON.stringify({ action: 'MUTE_ALL' })),
+            0,
+            { topic: 'participant-moderation' }
+          ).catch(() => {});
         } catch (err: any) {
           if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
             console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during MUTE_ALL`);
@@ -96,6 +151,13 @@ export async function POST(request: NextRequest) {
               }
             }
           }
+          const encoder = new TextEncoder();
+          await roomService.sendData(
+            decodedRoom,
+            encoder.encode(JSON.stringify({ action: 'DISABLE_CAMERAS_ALL' })),
+            0,
+            { topic: 'participant-moderation' }
+          ).catch(() => {});
         } catch (err: any) {
           if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
             console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during DISABLE_CAMERAS_ALL`);

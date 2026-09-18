@@ -20,6 +20,10 @@ const NAV_ITEMS = [
 export default function StudentLayoutClient({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
+  if (pathname.includes('/live/')) {
+    return <div className="fixed inset-0 w-full h-full overflow-hidden bg-black p-0 m-0 z-50">{children}</div>
+  }
+
   const isActive = (href: string) =>
     href === '/dashboard/student' ? pathname === href : pathname.startsWith(href)
 

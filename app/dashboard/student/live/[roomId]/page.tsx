@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, use } from "react"
 import { useRouter } from "next/navigation"
 import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRoomContext, useRoomInfo, useLocalParticipant } from "@livekit/components-react"
-import { ConnectionState, DataPacket_Kind } from "livekit-client"
+import { ConnectionState, DataPacket_Kind, Track } from "livekit-client"
 import "@livekit/components-styles"
 import LiveGrid from "@/components/live/LiveGrid"
 import LiveChat from "@/components/live/LiveChat"
@@ -12,7 +12,7 @@ import AttendanceHeartbeat from "@/components/live/AttendanceHeartbeat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
 import {
   Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown,
-  Maximize2, Minimize2, PanelRightClose, PanelRightOpen
+  Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X
 } from "lucide-react"
 
 interface StudentLivePageProps {
@@ -69,6 +69,8 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
   const [isMicEnabled, setIsMicEnabled] = useState(true)
   const [isCamEnabled, setIsCamEnabled] = useState(true)
+  const [isScreenSharing, setIsScreenSharing] = useState(false)
+  const [showScreenSharePermissionModal, setShowScreenSharePermissionModal] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
@@ -83,6 +85,14 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
   const isRepresentative = localParticipant ? representatives.includes(localParticipant.identity) : false
 
+  // If student is demoted from co-host, automatically disable their screen share
+  useEffect(() => {
+    if (!isRepresentative && isScreenSharing) {
+      localParticipant?.setScreenShareEnabled(false)
+      setIsScreenSharing(false)
+    }
+  }, [isRepresentative, isScreenSharing, localParticipant])
+
   // Sync with fullscreen changes (e.g. Esc key pressed)
   useEffect(() => {
     const handleFsChange = () => {
@@ -91,6 +101,22 @@ function StudentRoom({ roomId }: { roomId: string }) {
     document.addEventListener("fullscreenchange", handleFsChange)
     return () => document.removeEventListener("fullscreenchange", handleFsChange)
   }, [])
+
+  // Listen to remote track muted events on localParticipant
+  useEffect(() => {
+    if (!localParticipant) return
+    const onTrackMuted = (pub: any) => {
+      if (pub.source === Track.Source.Microphone) {
+        setIsMicEnabled(false)
+      } else if (pub.source === Track.Source.Camera) {
+        setIsCamEnabled(false)
+      }
+    }
+    localParticipant.on("trackMuted", onTrackMuted)
+    return () => {
+      localParticipant.off("trackMuted", onTrackMuted)
+    }
+  }, [localParticipant])
 
   useEffect(() => {
     if (metadata) {
@@ -118,6 +144,17 @@ function StudentRoom({ roomId }: { roomId: string }) {
           })
         } else if (topic === "session-ended" || topic === "shutdown") {
           setDisconnectReason("ended")
+        } else if (topic === "participant-moderation") {
+          try {
+            const data = JSON.parse(new TextDecoder().decode(payload))
+            if (data.action === "MUTE_ALL" || (data.identity === localParticipant?.identity && data.action === "MUTE_MIC")) {
+              localParticipant?.setMicrophoneEnabled(false)
+              setIsMicEnabled(false)
+            } else if (data.action === "DISABLE_CAMERAS_ALL" || (data.identity === localParticipant?.identity && data.action === "SHUT_CAMERA")) {
+              localParticipant?.setCameraEnabled(false)
+              setIsCamEnabled(false)
+            }
+          } catch (e) {}
         }
       }
       
@@ -126,7 +163,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
     } else if (connectionState === ConnectionState.Disconnected && hasConnectedRef.current && !disconnectReason) {
       setDisconnectReason("ended")
     }
-  }, [connectionState, disconnectReason, room])
+  }, [connectionState, disconnectReason, room, localParticipant])
 
   // Active status poller: periodically check if instructor ended the stream
   useEffect(() => {
@@ -165,6 +202,20 @@ function StudentRoom({ roomId }: { roomId: string }) {
       setIsCamEnabled(next)
     } catch (e) {
       console.error("Failed to toggle camera:", e)
+    }
+  }
+
+  const handleScreenShareToggle = async () => {
+    if (!isRepresentative) {
+      setShowScreenSharePermissionModal(true)
+      return
+    }
+    try {
+      const next = !isScreenSharing
+      await localParticipant?.setScreenShareEnabled(next)
+      setIsScreenSharing(next)
+    } catch (e) {
+      console.error("Failed to toggle screen share:", e)
     }
   }
 
@@ -217,7 +268,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row h-[100dvh] w-screen bg-black overflow-hidden select-none">
+      <div className="fixed inset-0 w-full h-full bg-black overflow-hidden select-none flex flex-col lg:flex-row">
         {/* Main Stage (Google Meet Layout) */}
         <div className="flex-1 flex flex-col min-w-0 relative h-full">
           {/* Top Header */}
@@ -312,7 +363,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
           </div>
 
           {/* Video Grid Stage */}
-          <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
+          <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center min-w-0 min-h-0 w-full h-full">
             <RoomAudioRenderer />
             <LiveGrid isTeacher={false} />
 
@@ -345,6 +396,30 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 >
                   {isCamEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
                   <span className="text-[10px] font-bold">{isCamEnabled ? "Stop Cam" : "Start Cam"}</span>
+                </button>
+
+                {/* Screen Share (With Co-Host / Teacher Permission Check) */}
+                <button
+                  onClick={handleScreenShareToggle}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                    isScreenSharing
+                      ? "bg-primary text-black font-bold shadow-lg shadow-primary/30 ring-2 ring-primary"
+                      : isRepresentative
+                      ? "bg-white/10 hover:bg-white/20 text-white"
+                      : "bg-white/5 hover:bg-white/10 text-slate-400"
+                  }`}
+                  title={
+                    isScreenSharing
+                      ? "Stop sharing screen"
+                      : isRepresentative
+                      ? "Share your screen"
+                      : "Share screen (Requires Instructor Permission)"
+                  }
+                >
+                  {isScreenSharing ? <MonitorOff className="w-5 h-5" /> : <MonitorUp className="w-5 h-5" />}
+                  <span className="text-[10px] font-bold">
+                    {isScreenSharing ? "Stop Share" : "Share Screen"}
+                  </span>
                 </button>
 
                 <div className="w-px h-10 bg-white/10 mx-1" />
@@ -393,6 +468,48 @@ function StudentRoom({ roomId }: { roomId: string }) {
           </div>
         </div>
 
+        {/* Permission Modal for Student Screen Share */}
+        {showScreenSharePermissionModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="max-w-md w-full bg-[#0A0A0E] border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-center">
+              <button
+                onClick={() => setShowScreenSharePermissionModal(false)}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400">
+                <ShieldAlert className="w-8 h-8" />
+              </div>
+
+              <h3 className="text-xl font-bold text-white mb-2">Presenter Permission Required</h3>
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                Only the Guide (instructor) or an appointed Student Co-Host / Admin can present their screen to the sanctuary. Would you like to raise your hand to request presenter permission?
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    if (!handRaised) toggleHand()
+                    setShowScreenSharePermissionModal(false)
+                  }}
+                  className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all shadow-lg shadow-amber-500/20 text-sm flex items-center justify-center gap-2"
+                >
+                  <Hand className="w-4 h-4" />
+                  {handRaised ? "Hand Already Raised" : "Raise Hand to Request"}
+                </button>
+                <button
+                  onClick={() => setShowScreenSharePermissionModal(false)}
+                  className="py-3 px-5 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Collapsible Right Side Panel (Chat / People) */}
         {isPanelOpen && (
           <div className="w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200">
@@ -430,7 +547,19 @@ function StudentRoom({ roomId }: { roomId: string }) {
               {activeTab === "chat" ? (
                 <LiveChat isTeacher={false} isDisabled={isChatDisabled} />
               ) : (
-                <ParticipantList roomId={roomId} isTeacher={false} raisedHands={raisedHands} representatives={representatives} />
+                <ParticipantList
+                  roomId={roomId}
+                  isTeacher={false}
+                  raisedHands={raisedHands}
+                  representatives={representatives}
+                  onShutCamera={async (identity) => {
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: roomId, action: "SHUT_CAMERA_PARTICIPANT", identity }),
+                    })
+                  }}
+                />
               )}
             </div>
           </div>
