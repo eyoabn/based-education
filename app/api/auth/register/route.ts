@@ -113,11 +113,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[auth:register]', error)
     return NextResponse.json(
-      {
-        error: 'Unable to create the account right now.',
-        details: error instanceof Error ? error.message : String(error),
-        code: (error as any)?.code,
-      },
+      { error: 'Unable to create the account right now.' },
       { status: 500 }
     )
   }
