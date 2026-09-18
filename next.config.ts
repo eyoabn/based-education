@@ -69,6 +69,9 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {
+    root: import.meta.dirname,
+  },
 
   // ── Image optimisation ──────────────────────────────────────────────────
   images: {
