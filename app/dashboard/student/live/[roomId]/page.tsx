@@ -61,14 +61,14 @@ function LiveDuration() {
   return <span className="font-mono">{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}</span>
 }
 
-function StudentRoom({ roomId }: { roomId: string }) {
+function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, initialMediaEnabled?: boolean }) {
   const router = useRouter()
   const connectionState = useConnectionState()
   const hasConnectedRef = useRef(false)
   const { localParticipant } = useLocalParticipant()
 
-  const [isMicEnabled, setIsMicEnabled] = useState(true)
-  const [isCamEnabled, setIsCamEnabled] = useState(true)
+  const [isMicEnabled, setIsMicEnabled] = useState(initialMediaEnabled)
+  const [isCamEnabled, setIsCamEnabled] = useState(initialMediaEnabled)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [showScreenSharePermissionModal, setShowScreenSharePermissionModal] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
@@ -575,6 +575,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [livekitUrl, setLivekitUrl] = useState<string | null>(null)
+  const [participantCount, setParticipantCount] = useState<number>(0)
 
   useEffect(() => {
     fetch(`/api/live/token?room=${encodeURIComponent(roomId)}`)
@@ -584,6 +585,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
         else {
           setToken(data.token)
           setLivekitUrl(data.livekitUrl || process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud")
+          setParticipantCount(data.participantCount || 0)
         }
       })
       .catch(() => setError("Failed to connect to the live session."))
@@ -624,13 +626,15 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
     )
   }
 
+  const initialMediaEnabled = participantCount < 10;
+
   return (
     <LiveKitRoom
       token={token}
       serverUrl={livekitUrl}
       connect={!token.includes("mock")}
-      video={true}
-      audio={true}
+      video={initialMediaEnabled}
+      audio={initialMediaEnabled}
       options={{ 
         adaptiveStream: true, 
         dynacast: true,
@@ -641,7 +645,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
         }
       }}
     >
-      <StudentRoom roomId={roomId} />
+      <StudentRoom roomId={roomId} initialMediaEnabled={initialMediaEnabled} />
     </LiveKitRoom>
   )
 }

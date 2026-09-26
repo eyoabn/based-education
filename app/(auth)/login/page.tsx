@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { triggers } from "@/lib/e2e-triggers"
+import { notify } from "@/components/ui/ToastProvider"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -80,9 +81,13 @@ export default function LoginPage() {
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1 flex justify-between">
               Password
-              <Link href="#" className="text-[#C9A94A] hover:text-[#d4af37] text-xs">
+              <button
+                type="button"
+                onClick={() => notify.info("Reset Password", "Please contact the system administrator to reset your password. The admin will create a new password and email it to you.")}
+                className="text-[#C9A94A] hover:text-[#d4af37] text-xs"
+              >
                 Forgot password?
-              </Link>
+              </button>
             </label>
             <input
               type="password"

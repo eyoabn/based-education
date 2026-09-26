@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { AccessToken } from 'livekit-server-sdk';
-
+import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('token')?.value;
@@ -157,8 +156,19 @@ export async function GET(request: NextRequest) {
         token: `mock-token-for-${session.userId}-${Date.now()}`,
         isMock: true,
         roomId: liveRoom?.id || roomTitle,
-        livekitUrl: livekitWsUrl
+        livekitUrl: livekitWsUrl,
+        participantCount: 0
       });
+    }
+
+    let participantCount = 0;
+    try {
+      const apiUrl = rawWsUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
+      const roomService = new RoomServiceClient(apiUrl, apiKey, apiSecret);
+      const participants = await roomService.listParticipants(liveRoom?.id || roomTitle);
+      participantCount = participants.length;
+    } catch (e) {
+      // Room might not exist yet, or LiveKit is unreachable
     }
     
     const at = new AccessToken(apiKey, apiSecret, {
@@ -180,7 +190,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       token: await at.toJwt(),
       roomId: liveRoom?.id || roomTitle,
-      livekitUrl: livekitWsUrl
+      livekitUrl: livekitWsUrl,
+      participantCount
     });
   } catch (error) {
     console.error("[GET /api/live/token]", error);
