@@ -167,6 +167,21 @@ export async function POST(request: NextRequest) {
         }
         break;
 
+      case 'LOWER_HAND':
+        if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
+        try {
+          const encoder = new TextEncoder();
+          await roomService.sendData(
+            decodedRoom,
+            encoder.encode(JSON.stringify({ action: 'LOWER_HAND', identity })),
+            0,
+            { topic: 'participant-moderation' }
+          ).catch(() => {});
+        } catch (e) {
+          console.warn("Error lowering hand:", e);
+        }
+        break;
+
       case 'TOGGLE_CHAT':
         try {
           const roomInfo = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);

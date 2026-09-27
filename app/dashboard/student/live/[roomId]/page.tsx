@@ -153,6 +153,11 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
             } else if (data.action === "DISABLE_CAMERAS_ALL" || (data.identity === localParticipant?.identity && data.action === "SHUT_CAMERA")) {
               localParticipant?.setCameraEnabled(false)
               setIsCamEnabled(false)
+            } else if (data.action === "LOWER_HAND") {
+              if (data.identity === localParticipant?.identity) {
+                setHandRaised(false)
+              }
+              setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
             }
           } catch (e) {}
         }
@@ -511,8 +516,7 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
         )}
 
         {/* Collapsible Right Side Panel (Chat / People) */}
-        {isPanelOpen && (
-          <div className="w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200">
+        <div className={`w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200 ${isPanelOpen ? "flex" : "hidden"}`}>
             {/* Panel Tabs */}
             <div className="flex items-center justify-between border-b border-white/10 px-2">
               <div className="flex flex-1">
@@ -543,10 +547,11 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
               </button>
             </div>
 
-            <div className="flex-1 overflow-hidden">
-              {activeTab === "chat" ? (
+            <div className="flex-1 overflow-hidden relative flex flex-col">
+              <div className={`flex-1 flex flex-col ${activeTab === "chat" ? "" : "hidden"}`}>
                 <LiveChat isTeacher={false} isDisabled={isChatDisabled} />
-              ) : (
+              </div>
+              <div className={`flex-1 flex flex-col ${activeTab === "participants" ? "" : "hidden"}`}>
                 <ParticipantList
                   roomId={roomId}
                   isTeacher={false}
@@ -560,10 +565,9 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
                     })
                   }}
                 />
-              )}
+              </div>
             </div>
           </div>
-        )}
       </div>
     </>
   )

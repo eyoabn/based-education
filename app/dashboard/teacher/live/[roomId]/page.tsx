@@ -104,6 +104,13 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             name: participant.name || participant.identity || "Student"
           })
         }
+      } else if (topic === "participant-moderation") {
+        try {
+          const data = JSON.parse(new TextDecoder().decode(payload))
+          if (data.action === "LOWER_HAND") {
+            setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
+          }
+        } catch (e) {}
       }
     }
     room.on("dataReceived", handleData)
@@ -330,8 +337,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
         </div>
 
         {/* Collapsible Right Side Panel */}
-        {isPanelOpen && (
-          <div className="w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200">
+        <div className={`w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200 ${isPanelOpen ? "flex" : "hidden"}`}>
             {/* Panel Tabs */}
             <div className="flex items-center justify-between border-b border-white/10 px-2">
               <div className="flex flex-1">
@@ -362,17 +368,23 @@ function TeacherRoom({ roomId }: { roomId: string }) {
               </button>
             </div>
 
-            <div className="flex-1 overflow-hidden">
-              {activeTab === "chat" ? (
+            <div className="flex-1 overflow-hidden relative flex flex-col">
+              <div className={`flex-1 flex flex-col ${activeTab === "chat" ? "" : "hidden"}`}>
                 <LiveChat isTeacher isDisabled={isChatDisabled} />
-              ) : (
+              </div>
+              <div className={`flex-1 flex flex-col ${activeTab === "participants" ? "" : "hidden"}`}>
                 <ParticipantList
                   roomId={roomId}
                   isTeacher
                   raisedHands={raisedHands}
                   representatives={representatives}
-                  onLowerHand={(identity) => {
+                  onLowerHand={async (identity) => {
                     setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: roomId, action: "LOWER_HAND", identity }),
+                    })
                   }}
                   onShutCamera={async (identity) => {
                     await fetch("/api/live/control", {
@@ -389,10 +401,9 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                     })
                   }}
                 />
-              )}
+              </div>
             </div>
           </div>
-        )}
       </div>
     </>
   )
