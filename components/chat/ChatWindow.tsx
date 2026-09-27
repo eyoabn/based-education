@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import {
   MessageSquare, Send, Users, Search, Plus, X, BookOpen, Clock,
-  Check, CheckCheck, Sparkles, User as UserIcon
+  Check, CheckCheck, Sparkles, User as UserIcon, ArrowLeft
 } from "lucide-react"
 
 interface Participant {
@@ -92,7 +92,10 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
           const match = convList.find(c => c.courseId === initialCourseId)
           if (match) setActiveConvId(match.id)
         } else if (convList.length > 0 && !activeConvId) {
-          setActiveConvId(convList[0].id)
+          const isMobile = typeof window !== "undefined" && window.innerWidth < 768
+          if (!isMobile) {
+            setActiveConvId(convList[0].id)
+          }
         }
       }
     } catch (err) {
@@ -252,19 +255,19 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
   )
 
   return (
-    <div className="flex h-[calc(100vh-8.5rem)] rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="flex h-[calc(100dvh-10rem)] sm:h-[calc(100vh-8.5rem)] rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden relative">
       {/* Left Sidebar: Conversations list */}
-      <div className="w-80 md:w-96 border-r border-slate-200 flex flex-col bg-slate-50/50 shrink-0">
+      <div className={`w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50/50 shrink-0 ${activeConvId ? 'hidden md:flex' : 'flex'}`}>
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 bg-white space-y-3">
+        <div className="p-3 sm:p-4 border-b border-slate-200 bg-white space-y-2.5 sm:space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+            <h2 className="font-bold text-slate-900 text-base sm:text-lg flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-indigo-600" />
               Messages
             </h2>
             <button
               onClick={openNewChatModal}
-              className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition-colors flex items-center gap-1.5 text-xs font-bold"
+              className="p-1.5 sm:p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition-colors flex items-center gap-1.5 text-xs font-bold"
               title="Start a new message"
             >
               <Plus className="w-4 h-4" /> New Chat
@@ -334,19 +337,19 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
                 <button
                   key={conv.id}
                   onClick={() => setActiveConvId(conv.id)}
-                  className={`w-full text-left p-3.5 flex items-start gap-3 transition-colors ${
+                  className={`w-full text-left p-3 sm:p-3.5 flex items-start gap-3 transition-colors ${
                     active ? "bg-indigo-50/70 border-l-4 border-indigo-600" : "hover:bg-slate-100/70"
                   }`}
                 >
                   {/* Avatar / Icon */}
                   <div className="relative shrink-0">
                     {conv.isDirect ? (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-sm">
                         {conv.title.substring(0, 2).toUpperCase()}
                       </div>
                     ) : (
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-indigo-900 text-white font-bold flex items-center justify-center text-sm shadow-sm">
-                        <BookOpen className="w-5 h-5 text-indigo-300" />
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-slate-800 to-indigo-900 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-sm">
+                        <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-300" />
                       </div>
                     )}
                   </div>
@@ -388,49 +391,57 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
       </div>
 
       {/* Right Column: Chat Window */}
-      <div className="flex-1 flex flex-col bg-white overflow-hidden">
+      <div className={`flex-1 flex-col bg-white overflow-hidden ${activeConvId ? 'flex' : 'hidden md:flex'}`}>
         {activeConv ? (
           <>
             {/* Active Header */}
-            <div className="h-16 px-6 border-b border-slate-200 flex items-center justify-between bg-white shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-indigo-600/10 text-indigo-700 flex items-center justify-center font-bold text-sm">
+            <div className="h-14 sm:h-16 px-3 sm:px-6 border-b border-slate-200 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveConvId(null)}
+                  className="md:hidden p-1.5 -ml-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors shrink-0"
+                  aria-label="Back to conversations list"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-indigo-600/10 text-indigo-700 flex items-center justify-center font-bold text-xs sm:text-sm shrink-0">
                   {activeConv.isDirect ? (
                     activeConv.title.substring(0, 2).toUpperCase()
                   ) : (
                     <BookOpen className="w-4 h-4" />
                   )}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-slate-900 text-sm">{activeConv.title}</h3>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm truncate">{activeConv.title}</h3>
                     {activeConv.isDirect ? (
-                      <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold">
-                        Direct Message
+                      <span className="hidden sm:inline-block px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold shrink-0">
+                        Direct
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                        Course Channel
+                      <span className="hidden sm:inline-block px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold shrink-0">
+                        Course
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">
                     {activeConv.isDirect
                       ? activeConv.participants[0]?.email || "Private 1-on-1 Chat"
-                      : "Shared discussion with teacher and enrolled students"}
+                      : "Shared discussion with teacher and students"}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Messages Thread */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-slate-50/40">
               {messagesLoading && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-slate-400 text-xs">
                   Loading message history...
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-2">
+                <div className="flex flex-col items-center justify-center h-full text-center p-6 sm:p-8 space-y-2">
                   <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mb-1">
                     <MessageSquare className="w-6 h-6" />
                   </div>
@@ -459,7 +470,7 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
                       )}
 
                       <div
-                        className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm break-words whitespace-pre-wrap ${
+                        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm break-words whitespace-pre-wrap ${
                           msg.isMe
                             ? "bg-indigo-600 text-white rounded-br-none"
                             : "bg-white border border-slate-200 text-slate-800 rounded-bl-none"
@@ -482,8 +493,8 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
             </div>
 
             {/* Input Composer */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white">
-              <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white transition-all">
+            <form onSubmit={handleSendMessage} className="p-2.5 sm:p-4 border-t border-slate-200 bg-white">
+              <div className="flex items-center gap-2 sm:gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white transition-all">
                 <textarea
                   rows={1}
                   value={inputMessage}
@@ -494,21 +505,21 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
                       handleSendMessage(e)
                     }
                   }}
-                  placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
-                  className="flex-1 bg-transparent px-2 text-sm text-slate-800 placeholder-slate-400 resize-none focus:outline-none max-h-32"
+                  placeholder="Type a message..."
+                  className="flex-1 bg-transparent px-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 resize-none focus:outline-none max-h-24 sm:max-h-32"
                 />
                 <button
                   type="submit"
                   disabled={!inputMessage.trim() || sending}
-                  className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-40 transition-colors shadow-sm shrink-0"
+                  className="p-2 sm:p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-40 transition-colors shadow-sm shrink-0"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </form>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 text-center">
             <MessageSquare className="w-12 h-12 text-slate-300 mb-3" />
             <h3 className="text-base font-bold text-slate-800">Select a Conversation</h3>
             <p className="text-xs text-slate-500 max-w-sm mt-1 mb-4">

@@ -113,11 +113,11 @@ export default function AdminApprovalsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-1 flex items-center gap-2">
-          <UserCheck className="w-6 h-6 text-slate-400" />
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+          <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-slate-400 shrink-0" />
           Teacher Verification
         </h1>
-        <p className="text-slate-500">
+        <p className="text-xs sm:text-sm text-slate-500">
           Review credentials before granting class hosting and assessment publishing rights.
         </p>
       </div>
@@ -133,7 +133,7 @@ export default function AdminApprovalsPage() {
       <div
         role="tablist"
         aria-label="Application status"
-        className="flex flex-wrap gap-1 p-1 bg-slate-100 rounded-xl"
+        className="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl"
       >
         {APPROVAL_TABS.map(tab => {
           const active = filter === tab.id
@@ -145,15 +145,15 @@ export default function AdminApprovalsPage() {
               role="tab"
               aria-selected={active}
               onClick={() => setFilter(tab.id)}
-              className={`flex-1 min-w-[140px] inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
                 active
                   ? "bg-white text-slate-900 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              {tab.label}
+              <span className="truncate">{tab.label}</span>
               <span
-                className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold tabular-nums ${
+                className={`px-1.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold tabular-nums shrink-0 ${
                   tab.id === "PENDING" && count > 0
                     ? "bg-amber-100 text-amber-700"
                     : active

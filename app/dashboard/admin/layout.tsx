@@ -1,9 +1,9 @@
 "use client"
 
-import { type ReactNode } from "react"
+import { type ReactNode, useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, LayoutDashboard, UserCheck, Users, CreditCard } from "lucide-react"
+import { Search, LayoutDashboard, UserCheck, Users, CreditCard, Menu, X } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import LogoutButton from "@/components/auth/LogoutButton"
 import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
@@ -17,6 +17,11 @@ const NAV_ITEMS = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    setMobileDrawerOpen(false)
+  }, [pathname])
 
   // The overview lives at the section root, so it only matches exactly —
   // a prefix test would light it up on every child route.
@@ -25,8 +30,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
-      {/* Sidebar Navigator */}
-      <aside className="w-[240px] shrink-0 bg-slate-900 flex flex-col py-6 relative z-10 text-slate-300">
+      {/* Desktop Sidebar Navigator */}
+      <aside className="hidden md:flex w-[240px] shrink-0 bg-slate-900 flex-col py-6 relative z-10 text-slate-300">
         <div className="px-5 mb-8">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-[0_4px_12px_rgba(79,70,229,0.4)]">
@@ -41,7 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <span className="px-1.5 py-0.5 rounded-full bg-slate-700 text-slate-300 text-[9px]">ROOT</span>
         </div>
 
-        <nav className="flex-1 flex flex-col gap-1 px-3 mt-2">
+        <nav className="flex-1 flex flex-col gap-1 px-3 mt-2 overflow-y-auto">
           {NAV_ITEMS.map(item => {
             const active = isActive(item.href)
             return (
@@ -66,29 +71,168 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </nav>
       </aside>
 
+      {/* Mobile Drawer Backdrop & Menu */}
+      {mobileDrawerOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div 
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => setMobileDrawerOpen(false)} 
+            aria-hidden="true"
+          />
+          <div className="relative w-[280px] max-w-[80vw] bg-slate-900 text-slate-300 h-full flex flex-col py-6 shadow-2xl z-50 animate-in slide-in-from-left duration-200">
+            <div className="px-5 mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-xs">⚡</span>
+                </div>
+                <span className="font-bold text-lg text-white tracking-tight">EduConnect</span>
+              </div>
+              <button 
+                onClick={() => setMobileDrawerOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Close navigation menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-5 pb-2 text-[10px] font-bold tracking-widest uppercase text-slate-400/50 flex justify-between items-center">
+              Super Admin Navigation
+              <span className="px-1.5 py-0.5 rounded-full bg-slate-700 text-slate-300 text-[9px]">ROOT</span>
+            </div>
+
+            <nav className="flex-1 flex flex-col gap-1 px-3 overflow-y-auto">
+              {NAV_ITEMS.map(item => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setMobileDrawerOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all relative ${
+                      active 
+                        ? 'bg-slate-700/50 text-white font-semibold' 
+                        : 'hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {active && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-slate-400" />
+                    )}
+                    <item.icon className={`w-5 h-5 ${active ? 'text-slate-300' : 'text-slate-500'}`} />
+                    <span className="text-sm">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+
+            <div className="px-4 pt-4 border-t border-slate-800/80 mt-auto">
+              <LogoutButton />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header className="h-16 shrink-0 border-b border-slate-200 bg-white flex items-center px-8 justify-between">
-          <div className="flex-1 max-w-md relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text"
-              placeholder="Search platform..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none transition-shadow"
-            />
+        <header className="h-14 sm:h-16 shrink-0 border-b border-slate-200 bg-white flex items-center px-3 sm:px-6 md:px-8 justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-md">
+            {/* Hamburger trigger for mobile */}
+            <button
+              type="button"
+              onClick={() => setMobileDrawerOpen(true)}
+              className="md:hidden p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors shrink-0"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Mobile Brand Name */}
+            <span className="font-bold text-sm sm:hidden text-slate-800 shrink-0">Admin Portal</span>
+
+            <div className="flex-1 relative hidden sm:block">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text"
+                placeholder="Search platform..."
+                className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-100 border-none rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-slate-500 focus:outline-none transition-shadow"
+              />
+            </div>
           </div>
           
-          <div className="flex items-center gap-6 ml-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <NotificationBell />
-            <LogoutButton />
+            <div className="hidden sm:block">
+              <LogoutButton />
+            </div>
             <UserHeaderBadge />
           </div>
         </header>
         
-        <div className="flex-1 overflow-auto bg-slate-50 p-8">
+        {/* Scrollable Page Body */}
+        <div className="flex-1 overflow-auto bg-slate-50 p-3 sm:p-6 md:p-8 pb-20 md:pb-8">
           {children}
         </div>
+
+        {/* Mobile Bottom Navigation Bar */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 flex items-center justify-around px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+          <Link
+            href="/dashboard/admin"
+            className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+              pathname === '/dashboard/admin'
+                ? 'text-indigo-600 font-bold'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Analytics</span>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/approvals"
+            className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+              pathname.startsWith('/dashboard/admin/approvals')
+                ? 'text-indigo-600 font-bold'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            <span>Approvals</span>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/users"
+            className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+              pathname.startsWith('/dashboard/admin/users')
+                ? 'text-indigo-600 font-bold'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Users</span>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/monetization"
+            className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg text-[10px] font-semibold transition-colors ${
+              pathname.startsWith('/dashboard/admin/monetization')
+                ? 'text-indigo-600 font-bold'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>Monetization</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setMobileDrawerOpen(true)}
+            className="flex flex-col items-center gap-1 py-1 px-2 rounded-lg text-[10px] font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+          >
+            <Menu className="w-4 h-4" />
+            <span>More</span>
+          </button>
+        </nav>
       </main>
     </div>
   )

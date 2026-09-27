@@ -13,39 +13,39 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen" style={{ background: '#080808', fontFamily: 'var(--font-body)' }}>
       {/* NAV */}
       <nav
-        className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 md:px-12 py-4"
+        className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-3.5 sm:px-6 md:px-12 py-3 sm:py-4"
         style={{
           background: 'rgba(8,8,8,0.92)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid #C9A94A22',
         }}
       >
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Logo" width={40} height={40} className="h-10 w-10 object-contain" />
+        <Link href="/" className="flex items-center gap-2 sm:gap-3">
+          <Image src="/logo.png" alt="Logo" width={36} height={36} className="h-8 w-8 sm:h-10 sm:w-10 object-contain" />
           <span
-            className="text-lg font-semibold hidden sm:block"
-            style={{ fontFamily: 'var(--font-display)', color: '#C9A94A', letterSpacing: '0.08em' }}
+            className="text-sm sm:text-lg font-semibold tracking-wide"
+            style={{ fontFamily: 'var(--font-display)', color: '#C9A94A', letterSpacing: '0.06em' }}
           >
             Spiritual Academy
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/login"
-            className="px-5 py-2 rounded-lg text-sm uppercase tracking-widest transition-all hover:bg-white/5"
-            style={{ color: '#C9A94A', fontFamily: 'var(--font-display)', fontSize: '0.7rem', border: '1px solid #C9A94A55' }}
+            className="px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs uppercase tracking-wider transition-all hover:bg-white/5"
+            style={{ color: '#C9A94A', fontFamily: 'var(--font-display)', fontSize: '0.68rem', border: '1px solid #C9A94A55' }}
           >
             Sign In
           </Link>
           <Link
             href="/register"
-            className="px-5 py-2 rounded-lg text-sm uppercase tracking-widest transition-all hover:brightness-110 flex items-center justify-center"
+            className="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs uppercase tracking-wider transition-all hover:brightness-110 flex items-center justify-center font-bold"
             style={{
               background: 'linear-gradient(135deg, #C9A94A, #9A7A2E)',
               color: '#080808',
               fontFamily: 'var(--font-display)',
-              fontSize: '0.7rem',
+              fontSize: '0.68rem',
               fontWeight: 700,
             }}
           >

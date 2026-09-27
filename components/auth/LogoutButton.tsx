@@ -27,14 +27,14 @@ export default function LogoutButton() {
       disabled={isLoading}
       title="Sign out"
       aria-label="Sign out"
-      className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-60"
+      className="inline-flex items-center gap-2 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-60"
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
         <LogOut className="h-4 w-4" />
       )}
-      Sign out
+      <span className="hidden sm:inline">Sign out</span>
     </button>
   )
 }

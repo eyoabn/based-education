@@ -119,7 +119,7 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-1 overflow-x-auto no-scrollbar max-w-full">
           {STATUS_FILTERS.map(status => {
             const active = statusFilter === status
             const count =
@@ -128,7 +128,7 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-colors ${
                   active
                     ? "bg-slate-900 text-white"
                     : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"

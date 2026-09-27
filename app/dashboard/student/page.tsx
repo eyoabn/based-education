@@ -121,21 +121,21 @@ export default function StudentDashboardPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Active Live Class Alert Banner */}
       {liveEvents.length > 0 && (
-        <div className="bg-gradient-to-r from-red-600 via-red-500 to-amber-600 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse">
+        <div className="bg-gradient-to-r from-red-600 via-red-500 to-amber-600 rounded-2xl p-4 sm:p-6 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <Radio className="w-6 h-6 text-white animate-ping" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Radio className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-ping" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-white text-red-600 text-xs font-black uppercase tracking-wider">
+                <span className="px-2 py-0.5 rounded-full bg-white text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-wider">
                   LIVE NOW
                 </span>
-                <span className="text-xs font-semibold text-red-100">
+                <span className="text-xs font-semibold text-red-100 truncate max-w-[180px] sm:max-w-none">
                   {liveEvents[0].courseTitle || "Course Class"}
                 </span>
               </div>
-              <h2 className="text-xl font-extrabold text-white mt-1">{liveEvents[0].title}</h2>
+              <h2 className="text-lg sm:text-xl font-extrabold text-white mt-0.5">{liveEvents[0].title}</h2>
               {liveEvents[0].teacherName && (
                 <p className="text-xs text-red-100">Instructor: {liveEvents[0].teacherName}</p>
               )}
@@ -143,7 +143,7 @@ export default function StudentDashboardPage() {
           </div>
           <Link
             href={`/dashboard/student/live/${encodeURIComponent(liveEvents[0].id)}`}
-            className="px-6 py-3 bg-white hover:bg-slate-100 text-red-600 font-extrabold text-sm rounded-xl shadow-lg transition-transform hover:scale-105 inline-flex items-center gap-2 shrink-0"
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-white hover:bg-slate-100 text-red-600 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg transition-transform hover:scale-105 inline-flex items-center justify-center gap-2 shrink-0 text-center"
           >
             <Video className="w-4 h-4" /> Join Live Stream Now
           </Link>
@@ -151,22 +151,22 @@ export default function StudentDashboardPage() {
       )}
 
       {/* Welcome Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-2 sm:mb-3">
             <Sparkles className="w-3.5 h-3.5" /> Learning Portal
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Welcome back, {userName}! 👋</h1>
-          <p className="text-indigo-200 text-sm mt-1 max-w-xl">
-            Explore live courses, request permission to join restricted classes, and track your learning progress.
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">Welcome back, {userName}! 👋</h1>
+          <p className="text-indigo-200 text-xs sm:text-sm mt-1 max-w-xl">
+            Explore live courses, request permission to join restricted classes, and track your progress.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/dashboard/student/calendar"
-            className="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-sm rounded-xl shadow-lg transition-colors inline-flex items-center gap-2"
+            className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-lg transition-colors inline-flex items-center justify-center gap-2 text-center"
           >
-            <Clock className="w-4 h-4" /> Schedule & Live
+            <Clock className="w-4 h-4" /> Schedule &amp; Live
           </Link>
         </div>
       </div>

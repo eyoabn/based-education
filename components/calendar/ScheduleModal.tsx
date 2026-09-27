@@ -176,13 +176,13 @@ export default function ScheduleModal({
         className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 animate-fade-up max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100">
+        <div className="flex items-start justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <CalendarPlus className="w-5 h-5" />
             </div>
             <div>
-              <h2 id="schedule-modal-title" className="text-lg font-bold text-slate-900">
+              <h2 id="schedule-modal-title" className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
                 Schedule New Live Class
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -199,7 +199,7 @@ export default function ScheduleModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+        <form onSubmit={handleSubmit} className="px-4 py-4 sm:px-6 sm:py-5 space-y-4">
           {/* Title */}
           <div>
             <label htmlFor="class-title" className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -310,18 +310,18 @@ export default function ScheduleModal({
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
             >
               {submitting ? (
                 <>

@@ -76,25 +76,25 @@ function DetailsModal({ row, onClose }: { row: GradebookRow; onClose: () => void
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-slate-100">
+        <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-5 border-b border-slate-100">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-slate-900 truncate">{row.examTitle}</h2>
-            <p className="text-sm text-slate-400 mt-0.5 truncate">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">{row.examTitle}</h2>
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5 truncate">
               {row.courseTitle ?? "General"}
               {row.teacherName ? ` · ${row.teacherName}` : ""}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+            className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors shrink-0"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -104,31 +104,31 @@ function DetailsModal({ row, onClose }: { row: GradebookRow; onClose: () => void
         {/* Score band */}
         {row.score !== null && (
           <div
-            className={`px-6 py-4 flex items-center justify-between gap-4 ${
+            className={`px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3 ${
               passed ? "bg-emerald-50" : "bg-red-50"
             }`}
           >
             <div className="flex items-center gap-2">
               {passed ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
               ) : (
-                <XCircle className="w-5 h-5 text-red-600" />
+                <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 shrink-0" />
               )}
               <span
-                className={`font-bold ${passed ? "text-emerald-700" : "text-red-700"}`}
+                className={`text-xs sm:text-sm font-bold ${passed ? "text-emerald-700" : "text-red-700"}`}
               >
                 {passed ? "Passed" : "Did not pass"}
               </span>
-              <span className="text-xs text-slate-500">
+              <span className="text-[11px] sm:text-xs text-slate-500">
                 (pass mark {row.passingPct}%)
               </span>
             </div>
             <div className="text-right">
-              <div className="text-xl font-bold text-slate-900 tabular-nums">
+              <div className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">
                 {row.score}
                 <span className="text-slate-400 font-normal">/{row.maxScore}</span>
               </div>
-              <div className="text-xs text-slate-500 tabular-nums">
+              <div className="text-[11px] sm:text-xs text-slate-500 tabular-nums">
                 {scorePct(row.score, row.maxScore)}%
               </div>
             </div>
@@ -136,7 +136,7 @@ function DetailsModal({ row, onClose }: { row: GradebookRow; onClose: () => void
         )}
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
           {row.feedback && (
             <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
               <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-indigo-700 mb-1.5">

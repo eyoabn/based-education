@@ -244,28 +244,28 @@ export default function TeacherDashboardPage() {
               const course = courses.find(c => c.id === courseId)
               if (!course || reqs.length === 0) return null
               return reqs.map(req => (
-                <div key={req.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
+                <div key={req.id} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
                       {req.student.name.substring(0, 2).toUpperCase()}
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{req.student.name}</p>
-                      <p className="text-xs text-slate-500">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900 truncate">{req.student.name}</p>
+                      <p className="text-xs text-slate-500 truncate">
                         Requested access for <span className="font-semibold text-indigo-600">{course.title}</span> ({course.code})
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-auto">
                     <button
                       onClick={() => handleApproveOrReject(courseId, req.id, "APPROVED")}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm"
+                      className="flex-1 sm:flex-initial justify-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm"
                     >
                       <Check className="w-3.5 h-3.5" /> Approve
                     </button>
                     <button
                       onClick={() => handleApproveOrReject(courseId, req.id, "REJECTED")}
-                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm"
+                      className="flex-1 sm:flex-initial justify-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm"
                     >
                       <X className="w-3.5 h-3.5" /> Decline
                     </button>
@@ -475,7 +475,7 @@ export default function TeacherDashboardPage() {
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                   Student Join Permission Mode
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setAccessMode("PUBLIC")}

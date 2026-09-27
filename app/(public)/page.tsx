@@ -49,24 +49,24 @@ export default function LandingPage() {
     <>
       {/* HERO */}
       <section
-        className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20"
+        className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-24 sm:pt-28 pb-16"
         style={{
           background: 'radial-gradient(ellipse 80% 60% at 50% 30%, #1A1200 0%, #080808 70%)',
         }}
       >
         {/* Glow orb */}
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, #C9A94A18 0%, transparent 70%)', filter: 'blur(40px)' }}
         />
 
         {/* Decorative line */}
-        <div className="flex items-center gap-4 mb-10">
-          <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, #C9A94A)' }} />
-          <span className="text-xs uppercase tracking-[0.3em]" style={{ color: '#C9A94A', fontFamily: 'var(--font-display)' }}>
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-10">
+          <div className="h-px w-10 sm:w-16" style={{ background: 'linear-gradient(to right, transparent, #C9A94A)' }} />
+          <span className="text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em]" style={{ color: '#C9A94A', fontFamily: 'var(--font-display)' }}>
             Walk In The Light
           </span>
-          <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A94A)' }} />
+          <div className="h-px w-10 sm:w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A94A)' }} />
         </div>
 
         <Image
@@ -75,12 +75,12 @@ export default function LandingPage() {
           width={128}
           height={128}
           priority
-          className="w-32 h-32 object-contain mb-10 drop-shadow-2xl"
+          className="w-24 h-24 sm:w-32 sm:h-32 object-contain mb-6 sm:mb-10 drop-shadow-2xl"
           style={{ filter: 'drop-shadow(0 0 32px #C9A94A66)' }}
         />
 
         <h1
-          className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 max-w-4xl"
+          className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-4 sm:mb-6 max-w-4xl"
           style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8', letterSpacing: '0.02em' }}
         >
           Discover the{' '}
@@ -89,17 +89,17 @@ export default function LandingPage() {
         </h1>
 
         <p
-          className="text-base md:text-lg max-w-xl mb-12 leading-relaxed"
+          className="text-sm sm:text-base md:text-lg max-w-xl mb-8 sm:mb-12 leading-relaxed px-2"
           style={{ color: '#F5F0E8AA', fontWeight: 300 }}
         >
           Join a sacred community of seekers. Receive powerful, Scripture-rooted teachings
           that transform your mind, ignite your faith, and guide you into your divine purpose.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center w-full max-w-xs sm:max-w-none justify-center">
           <Link
             href="/register"
-            className="px-8 py-4 rounded-lg text-sm uppercase tracking-widest font-bold transition-all hover:brightness-110 hover:scale-105 active:scale-95"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-lg text-xs sm:text-sm uppercase tracking-widest font-bold transition-all hover:brightness-110 active:scale-95 text-center"
             style={{
               background: 'linear-gradient(135deg, #C9A94A, #9A7A2E)',
               color: '#080808',
@@ -111,7 +111,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/login"
-            className="px-8 py-4 rounded-lg text-sm uppercase tracking-widest transition-all hover:bg-white/5"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-lg text-xs sm:text-sm uppercase tracking-widest transition-all hover:bg-white/5 active:scale-95 text-center"
             style={{
               color: '#C9A94A',
               fontFamily: 'var(--font-display)',
@@ -124,29 +124,29 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES */}
-      <section className="py-24 px-6 md:px-12 lg:px-24">
+      <section className="py-14 sm:py-20 md:py-24 px-4 sm:px-8 md:px-12 lg:px-24">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="h-px w-12" style={{ background: '#C9A94A55' }} />
-              <span className="text-xs uppercase tracking-[0.3em]" style={{ color: '#C9A94A', fontFamily: 'var(--font-display)' }}>
+          <div className="text-center mb-10 sm:mb-16">
+            <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+              <div className="h-px w-8 sm:w-12" style={{ background: '#C9A94A55' }} />
+              <span className="text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em]" style={{ color: '#C9A94A', fontFamily: 'var(--font-display)' }}>
                 What We Offer
               </span>
-              <div className="h-px w-12" style={{ background: '#C9A94A55' }} />
+              <div className="h-px w-8 sm:w-12" style={{ background: '#C9A94A55' }} />
             </div>
             <h2
-              className="text-3xl md:text-5xl font-bold"
+              className="text-2xl sm:text-4xl md:text-5xl font-bold"
               style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8' }}
             >
               Everything You Need to Grow
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {FEATURES.map(({ icon, title, desc }) => (
               <div
                 key={title}
-                className="rounded-2xl p-8 transition-all hover:scale-[1.01] group"
+                className="rounded-2xl p-5 sm:p-8 transition-all hover:scale-[1.01] group"
                 style={{
                   background: '#111111',
                   border: '1px solid #C9A94A22',
@@ -156,18 +156,18 @@ export default function LandingPage() {
                 onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.borderColor = '#C9A94A22')}
               >
                 <div
-                  className="text-3xl mb-4 w-14 h-14 rounded-xl flex items-center justify-center"
+                  className="text-2xl sm:text-3xl mb-3 sm:mb-4 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center"
                   style={{ background: '#C9A94A11', border: '1px solid #C9A94A33' }}
                 >
                   {icon}
                 </div>
                 <h3
-                  className="text-xl font-semibold mb-3"
+                  className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3"
                   style={{ fontFamily: 'var(--font-display)', color: '#C9A94A' }}
                 >
                   {title}
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#F5F0E8AA' }}>
+                <p className="text-xs sm:text-sm leading-relaxed" style={{ color: '#F5F0E8AA' }}>
                   {desc}
                 </p>
               </div>
@@ -178,7 +178,7 @@ export default function LandingPage() {
 
       {/* QUOTE BANNER */}
       <section
-        className="py-20 px-6 text-center relative overflow-hidden"
+        className="py-14 sm:py-20 px-4 sm:px-6 text-center relative overflow-hidden"
         style={{ background: '#0D0900' }}
       >
         <div
@@ -186,66 +186,22 @@ export default function LandingPage() {
           style={{ background: 'radial-gradient(ellipse 60% 80% at 50% 50%, #C9A94A0A, transparent)' }}
         />
         <div className="max-w-3xl mx-auto relative z-10">
-          <div className="text-5xl mb-6" style={{ color: '#C9A94A44', fontFamily: 'var(--font-display)' }}>"</div>
+          <div className="text-4xl sm:text-5xl mb-4 sm:mb-6" style={{ color: '#C9A94A44', fontFamily: 'var(--font-display)' }}>"</div>
           <blockquote
-            className="text-2xl md:text-3xl font-semibold leading-relaxed mb-6"
+            className="text-xl sm:text-2xl md:text-3xl font-semibold leading-relaxed mb-4 sm:mb-6"
             style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8' }}
           >
             Your word is a lamp to my feet and a light to my path.
           </blockquote>
-          <cite className="text-sm uppercase tracking-widest" style={{ color: '#C9A94A', fontFamily: 'var(--font-display)' }}>
+          <cite className="text-xs sm:text-sm uppercase tracking-widest" style={{ color: '#C9A94A', fontFamily: 'var(--font-display)' }}>
             — Psalm 119:105
           </cite>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="py-24 px-6 md:px-12 lg:px-24">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2
-              className="text-3xl md:text-5xl font-bold"
-              style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8' }}
-            >
-              Lives Being Transformed
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map(({ name, role, quote }) => (
-              <div
-                key={name}
-                className="rounded-2xl p-8"
-                style={{
-                  background: '#111111',
-                  border: '1px solid #C9A94A22',
-                }}
-              >
-                <div className="text-3xl mb-4" style={{ color: '#C9A94A44', fontFamily: 'var(--font-display)' }}>"</div>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: '#F5F0E8CC' }}>
-                  {quote}
-                </p>
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                    style={{ background: 'linear-gradient(135deg, #C9A94A, #9A7A2E)', color: '#080808', fontFamily: 'var(--font-display)' }}
-                  >
-                    {name[0]}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold" style={{ color: '#F5F0E8', fontFamily: 'var(--font-display)' }}>{name}</div>
-                    <div className="text-xs" style={{ color: '#F5F0E855' }}>{role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section
-        className="py-24 px-6 text-center relative overflow-hidden"
+        className="py-16 sm:py-24 px-4 sm:px-6 text-center relative overflow-hidden"
         style={{ background: '#0D0900' }}
       >
         <div
@@ -258,21 +214,21 @@ export default function LandingPage() {
             alt="Logo"
             width={80}
             height={80}
-            className="w-20 h-20 object-contain mx-auto mb-8"
+            className="w-16 h-16 sm:w-20 sm:h-20 object-contain mx-auto mb-6 sm:mb-8"
             style={{ filter: 'drop-shadow(0 0 20px #C9A94A55)' }}
           />
           <h2
-            className="text-3xl md:text-5xl font-bold mb-6"
+            className="text-2xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6"
             style={{ fontFamily: 'var(--font-display)', color: '#F5F0E8' }}
           >
             Ready to Begin Your Journey?
           </h2>
-          <p className="text-base mb-10 leading-relaxed" style={{ color: '#F5F0E8AA', fontWeight: 300 }}>
+          <p className="text-sm sm:text-base mb-8 sm:mb-10 leading-relaxed max-w-lg mx-auto" style={{ color: '#F5F0E8AA', fontWeight: 300 }}>
             Join believers who are growing in faith, wisdom, and divine purpose through anointed online teachings.
           </p>
           <Link
             href="/register"
-            className="inline-block px-10 py-5 rounded-xl text-sm uppercase tracking-widest font-bold transition-all hover:brightness-110 hover:scale-105"
+            className="inline-block w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 rounded-xl text-xs sm:text-sm uppercase tracking-widest font-bold transition-all hover:brightness-110"
             style={{
               background: 'linear-gradient(135deg, #C9A94A, #9A7A2E)',
               color: '#080808',

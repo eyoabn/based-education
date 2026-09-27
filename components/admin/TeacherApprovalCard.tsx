@@ -69,9 +69,9 @@ export default function TeacherApprovalCard({
   return (
     <>
       <article className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+        <div className="p-4 sm:p-5">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
               <img
                 src={avatarFor(application.name, application.avatarUrl)}
                 alt=""
@@ -186,17 +186,17 @@ export default function TeacherApprovalCard({
 
         {/* Decision bar */}
         {pending && !rejecting && (
-          <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+          <div className="px-4 sm:px-5 py-3 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <span className="text-xs text-slate-500 inline-flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
               Approving grants class hosting and assessment publishing.
             </span>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-2 w-full sm:w-auto shrink-0">
               <button
                 onClick={() => setRejecting(true)}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
               >
                 <X className="w-4 h-4" />
                 Reject Application
@@ -204,7 +204,7 @@ export default function TeacherApprovalCard({
               <button
                 onClick={() => void decide("APPROVED")}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-60"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-60"
               >
                 {busy === "APPROVE" ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -219,7 +219,7 @@ export default function TeacherApprovalCard({
 
         {/* Rejection reason — required, and shown to the applicant verbatim */}
         {pending && rejecting && (
-          <div className="px-5 py-4 bg-red-50/60 border-t border-red-100">
+          <div className="px-4 sm:px-5 py-3 sm:py-4 bg-red-50/60 border-t border-red-100">
             <label
               htmlFor={`reason-${application.id}`}
               className="block text-xs font-bold uppercase tracking-wide text-red-800 mb-2"
@@ -239,7 +239,7 @@ export default function TeacherApprovalCard({
               {application.name.split(" ")[0]} receives this text in their notification and email.
             </p>
 
-            <div className="flex items-center justify-end gap-2 mt-3">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 mt-3">
               <button
                 onClick={() => {
                   setRejecting(false)
@@ -247,7 +247,7 @@ export default function TeacherApprovalCard({
                   setError(null)
                 }}
                 disabled={busy !== null}
-                className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50 text-center"
               >
                 Cancel
               </button>
@@ -257,7 +257,7 @@ export default function TeacherApprovalCard({
                 title={
                   reason.trim().length < 10 ? "Write at least a sentence of explanation." : undefined
                 }
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {busy === "REJECT" ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

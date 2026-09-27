@@ -57,12 +57,15 @@ export default function UserHeaderBadge() {
     .toUpperCase();
 
   return (
-    <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
-      <div className="text-right">
+    <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 md:pl-6 border-l border-slate-200">
+      <div className="text-right hidden sm:block">
         <div className="text-sm font-bold text-slate-800 truncate max-w-[140px]">{name}</div>
         <div className="text-xs text-slate-500 font-medium">{role}</div>
       </div>
-      <div className="w-9 h-9 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center border-2 border-indigo-200 overflow-hidden shadow-sm">
+      <div 
+        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center border-2 border-indigo-200 overflow-hidden shadow-sm shrink-0"
+        title={`${name} (${role})`}
+      >
         {user?.avatarUrl ? (
           <img src={user.avatarUrl} alt={name} className="w-full h-full object-cover" />
         ) : (

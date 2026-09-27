@@ -239,28 +239,28 @@ export default function AdminMonetizationPage() {
 
       {/* Money at a glance */}
       {metrics && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">
               Gross this month
             </h3>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight mt-1">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1">
               {formatMoney(metrics.revenueCents, { compact: true })}
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">
               Commission this month
             </h3>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight mt-1">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1">
               {formatMoney(metrics.commissionCents, { compact: true })}
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">
               Lifetime plan revenue
             </h3>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight mt-1">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1">
               {formatMoney(lifetimeGross, { compact: true })}
             </div>
           </div>
@@ -275,21 +275,21 @@ export default function AdminMonetizationPage() {
 
       {/* Commission rate */}
       {settings && (
-        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+        <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Percent className="w-4 h-4 text-slate-400" />
                 Platform commission rate
               </h2>
-              <p className="text-sm text-slate-500 mt-1 max-w-lg">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-lg">
                 The share the platform keeps from each teacher transaction. Changes apply to future
                 payments only — settled records are never rewritten.
               </p>
             </div>
 
-            <div className="flex items-end gap-2">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-end gap-2 w-full sm:w-auto">
+              <div className="w-full sm:w-auto">
                 <label
                   htmlFor="commission"
                   className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5"
@@ -305,7 +305,7 @@ export default function AdminMonetizationPage() {
                     step={0.5}
                     value={commissionDraft}
                     onChange={event => setCommissionDraft(event.target.value)}
-                    className="w-28 pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full sm:w-28 pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                     %
@@ -316,7 +316,7 @@ export default function AdminMonetizationPage() {
               <button
                 onClick={() => void saveCommission()}
                 disabled={savingCommission || !commissionDirty}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {savingCommission && <Loader2 className="w-4 h-4 animate-spin" />}
                 Save rate
@@ -420,7 +420,7 @@ export default function AdminMonetizationPage() {
                       />
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
+                    <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
                       <label className="inline-flex items-center gap-2 text-sm text-slate-600">
                         <input
                           type="checkbox"
@@ -433,14 +433,14 @@ export default function AdminMonetizationPage() {
                         Available for new subscribers
                       </label>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <button
                           onClick={() => {
                             setEditingId(null)
                             setDraft(null)
                           }}
                           disabled={savingPlan}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
                         >
                           <X className="w-4 h-4" />
                           Cancel
@@ -448,7 +448,7 @@ export default function AdminMonetizationPage() {
                         <button
                           onClick={() => void savePlan(plan.id)}
                           disabled={savingPlan}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors disabled:opacity-60"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors disabled:opacity-60"
                         >
                           {savingPlan ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -464,8 +464,8 @@ export default function AdminMonetizationPage() {
               }
 
               return (
-                <li key={plan.id} className="px-5 py-4 flex flex-wrap items-start gap-4">
-                  <div className="flex-1 min-w-[200px]">
+                <li key={plan.id} className="p-4 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+                  <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-bold text-slate-900">{plan.name}</h3>
                       <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
@@ -493,29 +493,31 @@ export default function AdminMonetizationPage() {
                     )}
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-slate-900 tracking-tight tabular-nums">
-                      {plan.priceCents === 0 ? "Free" : formatMoney(plan.priceCents)}
-                      {plan.priceCents > 0 && (
-                        <span className="text-sm font-medium text-slate-400">
-                          {INTERVAL_LABEL[plan.interval]}
-                        </span>
-                      )}
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                    <div className="text-left sm:text-right">
+                      <div className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight tabular-nums">
+                        {plan.priceCents === 0 ? "Free" : formatMoney(plan.priceCents)}
+                        {plan.priceCents > 0 && (
+                          <span className="text-xs sm:text-sm font-medium text-slate-400">
+                            {INTERVAL_LABEL[plan.interval]}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 tabular-nums">
+                        {formatCount(plan.subscriberCount)} subscriber
+                        {plan.subscriberCount === 1 ? "" : "s"} ·{" "}
+                        {formatMoney(plan.grossCents, { compact: true })} lifetime
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5 tabular-nums">
-                      {formatCount(plan.subscriberCount)} subscriber
-                      {plan.subscriberCount === 1 ? "" : "s"} ·{" "}
-                      {formatMoney(plan.grossCents, { compact: true })} lifetime
-                    </p>
-                  </div>
 
-                  <button
-                    onClick={() => startEdit(plan)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-colors shrink-0"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    Edit
-                  </button>
+                    <button
+                      onClick={() => startEdit(plan)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-colors shrink-0"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      Edit
+                    </button>
+                  </div>
                 </li>
               )
             })}
@@ -525,7 +527,7 @@ export default function AdminMonetizationPage() {
 
       {/* Audit log */}
       <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
+        <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
             <History className="w-4 h-4 text-slate-400" />
             System audit log
@@ -541,7 +543,7 @@ export default function AdminMonetizationPage() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[600px] text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="text-left px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">

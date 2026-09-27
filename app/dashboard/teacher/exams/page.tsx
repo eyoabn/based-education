@@ -422,16 +422,16 @@ export default function TeacherExamsPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="composer-title"
-            className="relative w-full max-w-4xl my-8 bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 animate-fade-up"
+            className="relative w-full max-w-4xl my-2 sm:my-8 bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 animate-fade-up"
           >
             {/* Composer header */}
-            <div className="sticky top-0 z-10 flex items-start justify-between px-6 py-5 bg-white border-b border-slate-200 rounded-t-2xl">
+            <div className="sticky top-0 z-10 flex items-start justify-between px-4 sm:px-6 py-3.5 sm:py-5 bg-white border-b border-slate-200 rounded-t-2xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                   <FilePlus2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 id="composer-title" className="text-lg font-bold text-slate-900">
+                  <h2 id="composer-title" className="text-base sm:text-lg font-bold text-slate-900">
                     Create Assessment
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -450,7 +450,7 @@ export default function TeacherExamsPage() {
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-6">
+            <div className="px-3 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-6">
               {/* Meta form */}
               <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
@@ -705,11 +705,11 @@ export default function TeacherExamsPage() {
             </div>
 
             {/* Composer footer */}
-            <div className="sticky bottom-0 flex items-center justify-between gap-3 px-6 py-4 bg-white border-t border-slate-200 rounded-b-2xl">
+            <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2.5 px-3 sm:px-6 py-3 sm:py-4 bg-white border-t border-slate-200 rounded-b-2xl">
               <button
                 type="button"
                 onClick={() => setComposerOpen(false)}
-                className="px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -719,9 +719,9 @@ export default function TeacherExamsPage() {
                   type="button"
                   onClick={() => void handlePublish(false)}
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg transition-colors disabled:opacity-60"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Save Draft
                 </button>
 
@@ -729,16 +729,16 @@ export default function TeacherExamsPage() {
                   type="button"
                   onClick={() => void handlePublish(true)}
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                       Publishing...
                     </>
                   ) : (
                     <>
-                      <FilePlus2 className="w-4 h-4" />
+                      <FilePlus2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       Publish & Notify
                     </>
                   )}

@@ -269,7 +269,7 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
             setRole(event.target.value as RoleFilter)
             setPage(1)
           }}
-          className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full sm:w-auto px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           {ROLE_OPTIONS.map(option => (
             <option key={option.id} value={option.id}>
@@ -284,7 +284,7 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
             setStatus(event.target.value as StatusFilter)
             setPage(1)
           }}
-          className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full sm:w-auto px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           {STATUS_OPTIONS.map(option => (
             <option key={option.id} value={option.id}>
@@ -295,7 +295,7 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
 
         <button
           onClick={() => void load()}
-          className="inline-flex items-center gap-2 px-3 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-lg transition-colors"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-lg transition-colors"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
