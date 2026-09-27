@@ -122,6 +122,28 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Check if student was banned from this session by instructor
+      const targetRoomId = liveRoom.id;
+      const apiKeyCheck = process.env.LIVEKIT_API_KEY;
+      const apiSecretCheck = process.env.LIVEKIT_API_SECRET;
+      const rawWsUrlCheck = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL;
+      if (apiKeyCheck && apiSecretCheck && rawWsUrlCheck) {
+        try {
+          const apiUrl = rawWsUrlCheck.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
+          const roomService = new RoomServiceClient(apiUrl, apiKeyCheck, apiSecretCheck);
+          const rObj = await roomService.listRooms([targetRoomId]).then(res => res[0]).catch(() => null);
+          if (rObj?.metadata) {
+            const meta = JSON.parse(rObj.metadata);
+            if (Array.isArray(meta.banned) && meta.banned.includes(session.userId)) {
+              return NextResponse.json(
+                { error: 'You have been banned from this live session by the instructor.' },
+                { status: 403 }
+              );
+            }
+          }
+        } catch (e) {}
+      }
+
       // Record student attendance heartbeat record
       await prisma.attendance.upsert({
         where: {

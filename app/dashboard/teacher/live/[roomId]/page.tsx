@@ -156,6 +156,13 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   }
 
   const handleMuteAll = async () => {
+    try {
+      const encoder = new TextEncoder()
+      await room.localParticipant.publishData(
+        encoder.encode(JSON.stringify({ action: "MUTE_ALL" })),
+        { topic: "participant-moderation" }
+      )
+    } catch {}
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -164,6 +171,13 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   }
 
   const handleDisableCameras = async () => {
+    try {
+      const encoder = new TextEncoder()
+      await room.localParticipant.publishData(
+        encoder.encode(JSON.stringify({ action: "DISABLE_CAMERAS_ALL" })),
+        { topic: "participant-moderation" }
+      )
+    } catch {}
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -172,10 +186,19 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   }
 
   const handleDisableChat = async () => {
+    const nextState = !isChatDisabled
+    setIsChatDisabled(nextState)
+    try {
+      const encoder = new TextEncoder()
+      await room.localParticipant.publishData(
+        encoder.encode(JSON.stringify({ action: "TOGGLE_CHAT", chatDisabled: nextState })),
+        { topic: "participant-moderation" }
+      )
+    } catch {}
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ room: roomId, action: "TOGGLE_CHAT", chatDisabled: !isChatDisabled }),
+      body: JSON.stringify({ room: roomId, action: "TOGGLE_CHAT", chatDisabled: nextState }),
     })
   }
 
@@ -380,13 +403,41 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                   representatives={representatives}
                   onLowerHand={async (identity) => {
                     setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
+                    try {
+                      const encoder = new TextEncoder()
+                      await room.localParticipant.publishData(
+                        encoder.encode(JSON.stringify({ action: "LOWER_HAND", identity })),
+                        { topic: "participant-moderation" }
+                      )
+                    } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ room: roomId, action: "LOWER_HAND", identity }),
                     })
                   }}
+                  onMute={async (identity) => {
+                    try {
+                      const encoder = new TextEncoder()
+                      await room.localParticipant.publishData(
+                        encoder.encode(JSON.stringify({ action: "MUTE_MIC", identity })),
+                        { topic: "participant-moderation" }
+                      )
+                    } catch {}
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: roomId, action: "MUTE_PARTICIPANT", identity }),
+                    })
+                  }}
                   onShutCamera={async (identity) => {
+                    try {
+                      const encoder = new TextEncoder()
+                      await room.localParticipant.publishData(
+                        encoder.encode(JSON.stringify({ action: "SHUT_CAMERA", identity })),
+                        { topic: "participant-moderation" }
+                      )
+                    } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -394,10 +445,48 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                     })
                   }}
                   onToggleRepresentative={async (identity) => {
+                    const isRep = representatives.includes(identity)
+                    const nextReps = isRep ? representatives.filter(r => r !== identity) : [...representatives, identity]
+                    setRepresentatives(nextReps)
+                    try {
+                      const encoder = new TextEncoder()
+                      await room.localParticipant.publishData(
+                        encoder.encode(JSON.stringify({ action: "UPDATE_REPRESENTATIVES", representatives: nextReps, identity })),
+                        { topic: "participant-moderation" }
+                      )
+                    } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ room: roomId, action: "TOGGLE_REPRESENTATIVE", identity }),
+                    })
+                  }}
+                  onKick={async (identity) => {
+                    try {
+                      const encoder = new TextEncoder()
+                      await room.localParticipant.publishData(
+                        encoder.encode(JSON.stringify({ action: "KICK", identity })),
+                        { topic: "participant-moderation" }
+                      )
+                    } catch {}
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: roomId, action: "KICK_PARTICIPANT", identity }),
+                    })
+                  }}
+                  onBan={async (identity) => {
+                    try {
+                      const encoder = new TextEncoder()
+                      await room.localParticipant.publishData(
+                        encoder.encode(JSON.stringify({ action: "BAN", identity })),
+                        { topic: "participant-moderation" }
+                      )
+                    } catch {}
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: roomId, action: "BAN_PARTICIPANT", identity }),
                     })
                   }}
                 />

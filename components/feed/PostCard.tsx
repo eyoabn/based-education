@@ -16,6 +16,12 @@ export default function PostCard({
   const [showComments, setShowComments] = useState(false)
   const [isLiked, setIsLiked] = useState(post.isLiked || false)
   const [likeCount, setLikeCount] = useState(post._count?.likes || 0)
+  const [commentCount, setCommentCount] = useState<number>(post._count?.comments || 0)
+
+  const handleCommentPosted = () => {
+    setCommentCount((c: number) => c + 1)
+    onCommentPosted?.()
+  }
 
   const toggleLike = async () => {
     // Optimistic update
@@ -106,7 +112,7 @@ export default function PostCard({
             className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
           >
             <MessageSquare className="w-4 h-4" />
-            <span>{post._count?.comments || 0} Comments</span>
+            <span>{commentCount} Comments</span>
           </button>
         </div>
         
@@ -116,7 +122,7 @@ export default function PostCard({
       </div>
 
       {/* Comments Section */}
-      {showComments && <CommentSection postId={post.id} onCommentPosted={onCommentPosted} />}
+      {showComments && <CommentSection postId={post.id} onCommentPosted={handleCommentPosted} />}
     </div>
   )
 }

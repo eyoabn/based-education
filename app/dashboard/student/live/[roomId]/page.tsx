@@ -19,29 +19,37 @@ interface StudentLivePageProps {
   params: Promise<{ roomId: string }>
 }
 
-function DisconnectedModal({ reason }: { reason: "kicked" | "ended" }) {
+function DisconnectedModal({ reason }: { reason: "kicked" | "ended" | "banned" }) {
   const router = useRouter()
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center">
-      <div className="text-center max-w-sm mx-4 bg-[#0A0A0A] p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+      <div className="text-center max-w-sm mx-auto bg-[#0A0A0A] p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
         <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
-          {reason === "kicked" ? (
+          {reason === "banned" ? (
+            <ShieldAlert className="w-10 h-10 text-red-500" />
+          ) : reason === "kicked" ? (
             <LogOut className="w-9 h-9 text-red-400" />
           ) : (
             <div className="w-9 h-9 text-primary flex items-center justify-center text-3xl">✦</div>
           )}
         </div>
         <h2 className="text-xl font-bold text-white mb-3">
-          {reason === "kicked" ? "You Were Removed" : "Session Has Ended"}
+          {reason === "banned"
+            ? "You Have Been Banned"
+            : reason === "kicked"
+            ? "You Were Removed"
+            : "Session Has Ended"}
         </h2>
-        <p className="text-slate-400 text-sm mb-8">
-          {reason === "kicked"
+        <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+          {reason === "banned"
+            ? "The instructor has banned your account from this live session. You cannot rejoin."
+            : reason === "kicked"
             ? "The host has removed you from this live session."
             : "The guide has ended this live session. Peace be with you."}
         </p>
         <button
           onClick={() => router.push("/dashboard/student")}
-          className="px-6 py-3 bg-primary hover:bg-[#FCE69B] text-black font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
+          className="px-6 py-3 bg-primary hover:bg-[#FCE69B] text-black font-bold rounded-xl transition-all shadow-lg shadow-primary/20 cursor-pointer"
         >
           Return Home
         </button>
@@ -76,7 +84,8 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
   const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [disconnectReason, setDisconnectReason] = useState<"kicked" | "ended" | null>(null)
+  const [disconnectReason, setDisconnectReason] = useState<"kicked" | "ended" | "banned" | null>(null)
+  const [moderationNotice, setModerationNotice] = useState<string | null>(null)
   const room = useRoomContext()
   const { metadata } = useRoomInfo()
   const [isChatDisabled, setIsChatDisabled] = useState(false)
@@ -150,9 +159,21 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
             if (data.action === "MUTE_ALL" || (data.identity === localParticipant?.identity && data.action === "MUTE_MIC")) {
               localParticipant?.setMicrophoneEnabled(false)
               setIsMicEnabled(false)
+              setModerationNotice("Your microphone was muted by the instructor.")
             } else if (data.action === "DISABLE_CAMERAS_ALL" || (data.identity === localParticipant?.identity && data.action === "SHUT_CAMERA")) {
               localParticipant?.setCameraEnabled(false)
               setIsCamEnabled(false)
+              setModerationNotice("Your camera was turned off by the instructor.")
+            } else if (data.action === "KICK" && data.identity === localParticipant?.identity) {
+              setDisconnectReason("kicked")
+              room.disconnect()
+            } else if (data.action === "BAN" && data.identity === localParticipant?.identity) {
+              setDisconnectReason("banned")
+              room.disconnect()
+            } else if (data.action === "UPDATE_REPRESENTATIVES") {
+              if (Array.isArray(data.representatives)) {
+                setRepresentatives(data.representatives)
+              }
             } else if (data.action === "LOWER_HAND") {
               if (data.identity === localParticipant?.identity) {
                 setHandRaised(false)
@@ -270,6 +291,20 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
              <h3 className="text-white font-bold mb-1 text-lg">Reconnecting...</h3>
              <p className="text-slate-400 text-sm">Restoring your Sanctuary connection.</p>
           </div>
+        </div>
+      )}
+
+      {/* Real-time Moderation Banner Alert for Student */}
+      {moderationNotice && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 bg-red-600/95 text-white px-4 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md text-xs font-semibold animate-in slide-in-from-top-4 border border-red-400/40">
+          <ShieldAlert className="w-4 h-4 shrink-0 text-white" />
+          <span>{moderationNotice}</span>
+          <button
+            onClick={() => setModerationNotice(null)}
+            className="ml-2 p-1 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
