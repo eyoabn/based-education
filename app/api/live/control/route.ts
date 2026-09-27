@@ -275,6 +275,7 @@ export async function POST(request: NextRequest) {
             throw err;
           }
         }
+        await sendRoomData({ action: 'UPDATE_MEDIA', mediaState });
         break;
 
       case 'SHUTDOWN_ROOM':

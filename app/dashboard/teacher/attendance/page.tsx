@@ -10,6 +10,7 @@ import {
   Radio,
   RefreshCw,
   Timer,
+  Trash2,
   TrendingUp,
   Users,
 } from "lucide-react"
@@ -133,13 +134,42 @@ export default function TeacherAttendancePage() {
 
         <div className="flex items-center gap-2">
           {selectedRoomId && (
-            <button
-              onClick={() => void loadReport(selectedRoomId)}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-lg transition-colors shadow-sm"
-            >
-              <RefreshCw className={`w-4 h-4 ${loadingReport ? "animate-spin" : ""}`} />
-              Refresh
-            </button>
+            <>
+              <button
+                onClick={() => void loadReport(selectedRoomId)}
+                className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                title="Refresh attendance records"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingReport ? "animate-spin" : ""}`} />
+                Refresh
+              </button>
+
+              <button
+                onClick={async () => {
+                  if (!selectedRoomId) return
+                  if (!window.confirm("Are you sure you want to delete this session's attendance record? This will permanently remove the record.")) return
+                  try {
+                    const res = await fetch(`/api/attendance/report?roomId=${encodeURIComponent(selectedRoomId)}`, {
+                      method: "DELETE"
+                    })
+                    if (res.ok) {
+                      setRooms(prev => prev.filter(r => r.id !== selectedRoomId))
+                      setSelectedRoomId("")
+                      setReport(null)
+                    } else {
+                      alert("Could not delete attendance record.")
+                    }
+                  } catch {
+                    alert("Network error deleting attendance record.")
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                title="Delete this session record"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Delete Record</span>
+              </button>
+            </>
           )}
           {report && <AttendanceExportButtons report={report} />}
         </div>

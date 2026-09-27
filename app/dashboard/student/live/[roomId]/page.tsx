@@ -10,9 +10,10 @@ import LiveChat from "@/components/live/LiveChat"
 import ParticipantList from "@/components/live/ParticipantList"
 import AttendanceHeartbeat from "@/components/live/AttendanceHeartbeat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
+import FloatingReactions, { ReactionPicker } from "@/components/live/FloatingReactions"
 import {
   Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown,
-  Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X
+  Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X, Smile
 } from "lucide-react"
 
 interface StudentLivePageProps {
@@ -80,6 +81,7 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [showScreenSharePermissionModal, setShowScreenSharePermissionModal] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
+  const [showReactions, setShowReactions] = useState(false)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
   const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
@@ -179,6 +181,8 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
                 setHandRaised(false)
               }
               setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
+            } else if (data.action === "UPDATE_MEDIA") {
+              setMediaState(data.mediaState || null)
             }
           } catch (e) {}
         }
@@ -338,6 +342,14 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
                 mediaState={mediaState}
                 isHostOrRep={isRepresentative}
                 onUpdateMediaState={async (newState) => {
+                  setMediaState(newState)
+                  try {
+                    const encoder = new TextEncoder()
+                    await room.localParticipant.publishData(
+                      encoder.encode(JSON.stringify({ action: "UPDATE_MEDIA", mediaState: newState })),
+                      { topic: "participant-moderation" }
+                    )
+                  } catch {}
                   await fetch("/api/live/control", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -406,42 +418,43 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
           <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center min-w-0 min-h-0 w-full h-full">
             <RoomAudioRenderer />
             <LiveGrid isTeacher={false} />
+            <FloatingReactions room={room} currentUserName={localParticipant?.name || "Student"} />
 
             {/* Google Meet Style Floating Bottom Control Bar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-max max-w-[95vw]">
-              <div className="flex items-center gap-2 bg-[#0c0c0f]/90 backdrop-blur-2xl border border-white/15 rounded-3xl p-2 px-3 sm:px-4 shadow-2xl shadow-black">
+            <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 w-max max-w-[96vw]">
+              <div className="flex items-center gap-1 sm:gap-2 bg-[#0c0c0f]/90 backdrop-blur-2xl border border-white/15 rounded-3xl p-1.5 sm:p-2 px-2.5 sm:px-4 shadow-2xl shadow-black">
                 {/* Mic */}
                 <button
                   onClick={handleMicToggle}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
                     isMicEnabled
                       ? "bg-white/10 hover:bg-white/20 text-white"
                       : "bg-red-600 text-white shadow-lg shadow-red-600/40"
                   }`}
                   title={isMicEnabled ? "Mute microphone" : "Unmute microphone"}
                 >
-                  {isMicEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-                  <span className="text-[10px] font-bold">{isMicEnabled ? "Mute" : "Unmute"}</span>
+                  {isMicEnabled ? <Mic className="w-4 h-4 sm:w-5 sm:h-5" /> : <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-[9px] sm:text-[10px] font-bold">{isMicEnabled ? "Mute" : "Unmute"}</span>
                 </button>
 
                 {/* Camera */}
                 <button
                   onClick={handleCamToggle}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
                     isCamEnabled
                       ? "bg-white/10 hover:bg-white/20 text-white"
                       : "bg-red-600 text-white shadow-lg shadow-red-600/40"
                   }`}
                   title={isCamEnabled ? "Turn off camera" : "Turn on camera"}
                 >
-                  {isCamEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-                  <span className="text-[10px] font-bold">{isCamEnabled ? "Stop Cam" : "Start Cam"}</span>
+                  {isCamEnabled ? <Video className="w-4 h-4 sm:w-5 sm:h-5" /> : <VideoOff className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-[9px] sm:text-[10px] font-bold">{isCamEnabled ? "Stop Cam" : "Start Cam"}</span>
                 </button>
 
                 {/* Screen Share (With Co-Host / Teacher Permission Check) */}
                 <button
                   onClick={handleScreenShareToggle}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
                     isScreenSharing
                       ? "bg-primary text-black font-bold shadow-lg shadow-primary/30 ring-2 ring-primary"
                       : isRepresentative
@@ -456,52 +469,75 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
                       : "Share screen (Requires Instructor Permission)"
                   }
                 >
-                  {isScreenSharing ? <MonitorOff className="w-5 h-5" /> : <MonitorUp className="w-5 h-5" />}
-                  <span className="text-[10px] font-bold">
-                    {isScreenSharing ? "Stop Share" : "Share Screen"}
+                  {isScreenSharing ? <MonitorOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <MonitorUp className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-[9px] sm:text-[10px] font-bold">
+                    {isScreenSharing ? "Stop Share" : "Share"}
                   </span>
                 </button>
 
-                <div className="w-px h-10 bg-white/10 mx-1" />
+                {/* Google Meet Live Reactions / Stickers Button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowReactions(!showReactions)}
+                    className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
+                      showReactions
+                        ? "bg-primary/20 text-primary ring-1 ring-primary/40"
+                        : "bg-white/10 hover:bg-white/20 text-white"
+                    }`}
+                    title="Send live stickers and reactions"
+                  >
+                    <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+                    <span className="text-[9px] sm:text-[10px] font-bold">React</span>
+                  </button>
+
+                  <ReactionPicker
+                    room={room}
+                    currentUserName={localParticipant?.name || "Student"}
+                    isOpen={showReactions}
+                    onClose={() => setShowReactions(false)}
+                  />
+                </div>
+
+                <div className="w-px h-8 sm:h-10 bg-white/10 mx-0.5 sm:mx-1" />
 
                 {/* Raise Hand Button */}
                 <button
                   onClick={toggleHand}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
                     handRaised
                       ? "bg-amber-500 text-black ring-2 ring-amber-300 font-bold shadow-lg shadow-amber-500/30"
                       : "bg-white/10 hover:bg-white/20 text-white"
                   }`}
                   title={handRaised ? "Lower hand" : "Raise hand to ask question"}
                 >
-                  <Hand className={`w-5 h-5 ${handRaised ? "animate-bounce" : ""}`} />
-                  <span className="text-[10px] font-bold">{handRaised ? "Hand Raised" : "Raise Hand"}</span>
+                  <Hand className={`w-4 h-4 sm:w-5 sm:h-5 ${handRaised ? "animate-bounce" : ""}`} />
+                  <span className="text-[9px] sm:text-[10px] font-bold">{handRaised ? "Hand Raised" : "Hand"}</span>
                 </button>
 
-                <div className="w-px h-10 bg-white/10 mx-1" />
+                <div className="w-px h-8 sm:h-10 bg-white/10 mx-0.5 sm:mx-1" />
 
                 {/* Fullscreen in Bottom Bar */}
                 <button
                   onClick={toggleFullscreen}
-                  className={`hidden sm:flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                  className={`hidden sm:flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
                     isFullscreen ? "bg-primary/20 text-primary" : "bg-white/10 hover:bg-white/20 text-white"
                   }`}
                   title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                 >
-                  {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-                  <span className="text-[10px] font-medium">{isFullscreen ? "Exit Full" : "Full Screen"}</span>
+                  {isFullscreen ? <Minimize2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-[9px] sm:text-[10px] font-medium">{isFullscreen ? "Exit Full" : "Full Screen"}</span>
                 </button>
 
                 {/* Side Panel Toggle */}
                 <button
                   onClick={() => setIsPanelOpen(!isPanelOpen)}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
                     isPanelOpen ? "bg-white/20 text-white" : "bg-white/10 hover:bg-white/20 text-slate-300"
                   }`}
                   title={isPanelOpen ? "Collapse Side Panel" : "Expand Side Panel"}
                 >
-                  {isPanelOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRightOpen className="w-5 h-5" />}
-                  <span className="text-[10px] font-medium">{isPanelOpen ? "Hide" : "Panel"}</span>
+                  {isPanelOpen ? <PanelRightClose className="w-4 h-4 sm:w-5 sm:h-5" /> : <PanelRightOpen className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-[9px] sm:text-[10px] font-medium">{isPanelOpen ? "Hide" : "Panel"}</span>
                 </button>
               </div>
             </div>
@@ -514,7 +550,7 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
             <div className="max-w-md w-full bg-[#0A0A0E] border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-center">
               <button
                 onClick={() => setShowScreenSharePermissionModal(false)}
-                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -534,14 +570,14 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
                     if (!handRaised) toggleHand()
                     setShowScreenSharePermissionModal(false)
                   }}
-                  className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all shadow-lg shadow-amber-500/20 text-sm flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all shadow-lg shadow-amber-500/20 text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Hand className="w-4 h-4" />
                   {handRaised ? "Hand Already Raised" : "Raise Hand to Request"}
                 </button>
                 <button
                   onClick={() => setShowScreenSharePermissionModal(false)}
-                  className="py-3 px-5 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl transition-colors text-sm"
+                  className="py-3 px-5 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl transition-colors text-sm cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -550,9 +586,24 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
           </div>
         )}
 
-        {/* Collapsible Right Side Panel (Chat / People) */}
-        <div className={`w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200 ${isPanelOpen ? "flex" : "hidden"}`}>
-            {/* Panel Tabs */}
+        {/* Mobile Backdrop for Side Panel Drawer */}
+        {isPanelOpen && (
+          <div
+            onClick={() => setIsPanelOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 lg:hidden cursor-pointer animate-in fade-in duration-200"
+          />
+        )}
+
+        {/* Responsive Side Panel: Overlay Drawer on Mobile, Docked Sidebar on Desktop */}
+        <div
+          className={`fixed inset-x-0 bottom-0 top-auto z-40 lg:static lg:z-20 w-full lg:w-80 h-[72dvh] lg:h-full rounded-t-3xl lg:rounded-none border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-[#09090c]/98 backdrop-blur-2xl shadow-2xl transition-all duration-200 ${
+            isPanelOpen ? "translate-y-0 opacity-100 flex" : "translate-y-full lg:translate-y-0 hidden"
+          }`}
+        >
+          {/* Mobile Drag Pill */}
+          <div className="w-10 h-1 bg-white/20 rounded-full mx-auto my-2 lg:hidden shrink-0" />
+
+          {/* Panel Tabs */}
             <div className="flex items-center justify-between border-b border-white/10 px-2">
               <div className="flex flex-1">
                 {[

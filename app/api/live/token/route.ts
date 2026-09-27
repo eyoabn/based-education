@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
     const roomTitle = decodeURIComponent(roomParam);
     const isTeacher = session.role === 'TEACHER' || session.role === 'ADMIN';
 
-    // Find or sync the LiveRoom in PostgreSQL
+    const now = new Date();
+
+    // Look for active session first, or latest session by this title/ID
     let liveRoom = await prisma.liveRoom.findFirst({
       where: {
         OR: [
@@ -29,6 +31,7 @@ export async function GET(request: NextRequest) {
           { title: roomTitle }
         ]
       },
+      orderBy: { createdAt: 'desc' },
       include: {
         course: {
           include: {
@@ -39,65 +42,79 @@ export async function GET(request: NextRequest) {
     });
 
     if (isTeacher) {
-      if (!liveRoom) {
-        // Teacher is starting a new room
+      const isTodaySession = liveRoom?.startedAt
+        ? now.toDateString() === new Date(liveRoom.startedAt).toDateString() && liveRoom.endedAt === null
+        : false;
+
+      if (!liveRoom || !isTodaySession || liveRoom.endedAt !== null) {
+        // Teacher is starting a new daily session!
         const course = await prisma.course.findFirst({
           where: { teacherId: session.userId },
           select: { id: true }
         });
 
-        liveRoom = await prisma.liveRoom.create({
-          data: {
-            title: roomTitle,
-            teacherId: session.userId,
-            isLive: true,
-            scheduledAt: new Date(),
-            startedAt: new Date(),
-            endedAt: null,
-            courseId: course?.id ?? null,
-          },
-          include: {
-            course: {
-              include: {
-                students: { select: { id: true } }
+        // If current session was live and started today with no end, reuse it
+        if (liveRoom && isTodaySession && liveRoom.isLive) {
+          // Already live for today
+        } else {
+          // Create a fresh LiveRoom session for today, permanently preserving previous days' attendances!
+          liveRoom = await prisma.liveRoom.create({
+            data: {
+              title: liveRoom?.title || roomTitle,
+              teacherId: session.userId,
+              isLive: true,
+              scheduledAt: now,
+              startedAt: now,
+              endedAt: null,
+              courseId: liveRoom?.courseId ?? course?.id ?? null,
+            },
+            include: {
+              course: {
+                include: {
+                  students: { select: { id: true } }
+                }
               }
             }
-          }
-        });
-      } else if (!liveRoom.isLive || liveRoom.endedAt !== null) {
-        // Update room status to LIVE
-        liveRoom = await prisma.liveRoom.update({
-          where: { id: liveRoom.id },
-          data: {
-            isLive: true,
-            startedAt: new Date(),
-            endedAt: null,
-          },
-          include: {
-            course: {
-              include: {
-                students: { select: { id: true } }
-              }
-            }
-          }
-        });
-
-        // Notify enrolled students that the class is starting NOW
-        const studentIds = liveRoom.course?.students.map(s => s.id) || [];
-        if (studentIds.length > 0) {
-          await prisma.notification.createMany({
-            data: studentIds.map(studentId => ({
-              userId: studentId,
-              type: 'LIVE_CLASS_STARTING',
-              title: '🔴 Live Class Started!',
-              message: `Your instructor has started the live session for "${liveRoom?.title}". Click to join now!`,
-              link: `/dashboard/student/live/${liveRoom?.id}`
-            }))
           });
+
+          // Notify enrolled students that today's live class has started
+          const studentIds = liveRoom.course?.students.map(s => s.id) || [];
+          if (studentIds.length > 0) {
+            await prisma.notification.createMany({
+              data: studentIds.map(studentId => ({
+                userId: studentId,
+                type: 'LIVE_CLASS_STARTING',
+                title: '🔴 Live Class Started!',
+                message: `Your instructor has started today's live session for "${liveRoom?.title}". Click to join now!`,
+                link: `/dashboard/student/live/${liveRoom?.id}`
+              }))
+            }).catch(() => {});
+          }
         }
       }
     } else {
-      // Student verification — MUST have an active live session
+      // Student verification — check for today's active live session
+      if (!liveRoom || !liveRoom.isLive || liveRoom.endedAt !== null) {
+        const activeRoom = await prisma.liveRoom.findFirst({
+          where: {
+            OR: [
+              { id: roomTitle },
+              { title: roomTitle }
+            ],
+            isLive: true,
+            endedAt: null,
+          },
+          orderBy: { startedAt: 'desc' },
+          include: {
+            course: {
+              include: {
+                students: { select: { id: true } }
+              }
+            }
+          }
+        });
+        if (activeRoom) liveRoom = activeRoom;
+      }
       if (!liveRoom) {
         return NextResponse.json(
           { error: 'Live session not found. Please wait for your instructor to launch the session.' },

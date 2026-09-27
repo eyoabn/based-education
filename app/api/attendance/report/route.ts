@@ -226,3 +226,43 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to build attendance report' }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/attendance/report?roomId=<id>
+ * Allows teacher or admin to remove an attendance session record.
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = request.cookies.get('token')?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const session = await verifyToken(token);
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'TEACHER' && session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const roomId = searchParams.get('roomId');
+    if (!roomId) return NextResponse.json({ error: 'Missing roomId' }, { status: 400 });
+
+    const room = await prisma.liveRoom.findUnique({
+      where: { id: roomId },
+      select: { teacherId: true },
+    });
+
+    if (!room) return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+    if (session.role !== 'ADMIN' && room.teacherId !== session.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Cascade deletes all attendances associated with this room
+    await prisma.liveRoom.delete({
+      where: { id: roomId },
+    });
+
+    return NextResponse.json({ success: true, message: 'Attendance record deleted' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete attendance record' }, { status: 500 });
+  }
+}

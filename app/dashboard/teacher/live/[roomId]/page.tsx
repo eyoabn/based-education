@@ -10,6 +10,7 @@ import HostControlBar from "@/components/live/HostControlBar"
 import ParticipantList from "@/components/live/ParticipantList"
 import LiveChat from "@/components/live/LiveChat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
+import FloatingReactions from "@/components/live/FloatingReactions"
 import { Wifi, Users, MessageSquare, Clock, LogOut, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X, Hand } from "lucide-react"
 
 interface TeacherLivePageProps {
@@ -109,6 +110,8 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           const data = JSON.parse(new TextDecoder().decode(payload))
           if (data.action === "LOWER_HAND") {
             setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
+          } else if (data.action === "UPDATE_MEDIA") {
+            setMediaState(data.mediaState || null)
           }
         } catch (e) {}
       }
@@ -203,6 +206,14 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   }
 
   const handleUpdateMediaState = async (newMediaState: MediaState | null) => {
+    setMediaState(newMediaState)
+    try {
+      const encoder = new TextEncoder()
+      await room.localParticipant.publishData(
+        encoder.encode(JSON.stringify({ action: "UPDATE_MEDIA", mediaState: newMediaState })),
+        { topic: "participant-moderation" }
+      )
+    } catch {}
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -338,12 +349,15 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             </div>
           </div>
 
-          {/* Video Grid */}
+          {/* Video Grid & Live Stage */}
           <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center min-w-0 min-h-0 w-full h-full">
             <RoomAudioRenderer />
             <LiveGrid isTeacher />
+            <FloatingReactions room={room} currentUserName={localParticipant?.name || "Instructor"} />
             <HostControlBar
               roomId={roomId}
+              room={room}
+              currentUserName={localParticipant?.name || "Instructor"}
               isMicEnabled={isMicEnabled}
               isCamEnabled={isCamEnabled}
               isScreenSharing={isScreenSharing}
@@ -359,9 +373,24 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           </div>
         </div>
 
-        {/* Collapsible Right Side Panel */}
-        <div className={`w-full lg:w-80 h-[45dvh] lg:h-full border-t lg:border-t-0 lg:border-l border-white/10 flex-col bg-[#09090c] shrink-0 z-20 animate-in slide-in-from-right duration-200 ${isPanelOpen ? "flex" : "hidden"}`}>
-            {/* Panel Tabs */}
+        {/* Mobile Backdrop for Side Panel Drawer */}
+        {isPanelOpen && (
+          <div
+            onClick={() => setIsPanelOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 lg:hidden cursor-pointer animate-in fade-in duration-200"
+          />
+        )}
+
+        {/* Responsive Side Panel: Overlay Drawer on Mobile, Docked Sidebar on Desktop */}
+        <div
+          className={`fixed inset-x-0 bottom-0 top-auto z-40 lg:static lg:z-20 w-full lg:w-80 h-[72dvh] lg:h-full rounded-t-3xl lg:rounded-none border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-[#09090c]/98 backdrop-blur-2xl shadow-2xl transition-all duration-200 ${
+            isPanelOpen ? "translate-y-0 opacity-100 flex" : "translate-y-full lg:translate-y-0 hidden"
+          }`}
+        >
+          {/* Mobile Drag Pill */}
+          <div className="w-10 h-1 bg-white/20 rounded-full mx-auto my-2 lg:hidden shrink-0" />
+
+          {/* Panel Tabs */}
             <div className="flex items-center justify-between border-b border-white/10 px-2">
               <div className="flex flex-1">
                 {[
