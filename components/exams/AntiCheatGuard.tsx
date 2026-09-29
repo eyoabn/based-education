@@ -151,6 +151,8 @@ export default function AntiCheatGuard({
     const onKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase()
       const mod = e.ctrlKey || e.metaKey
+      const target = e.target as HTMLElement | null
+      const isInput = Boolean(target?.closest("[data-exam-input]"))
 
       // Devtools: F12, Ctrl/Cmd+Shift+I/J/C, Ctrl/Cmd+U (view source).
       if (
@@ -163,8 +165,20 @@ export default function AntiCheatGuard({
         return
       }
 
-      // Clipboard and print shortcuts.
-      if (mod && ["c", "v", "x", "a", "p", "s"].includes(key)) {
+      // Allow Select All (Ctrl/Cmd+A) inside legitimate essay inputs so students can edit their work.
+      if (isInput && mod && key === "a") {
+        return
+      }
+
+      // Print and save page shortcuts.
+      if (mod && ["p", "s"].includes(key)) {
+        e.preventDefault()
+        report("COPY")
+        return
+      }
+
+      // Clipboard and selection shortcuts elsewhere.
+      if (mod && ["c", "v", "x", "a"].includes(key)) {
         e.preventDefault()
         report(key === "v" ? "PASTE" : "COPY")
       }

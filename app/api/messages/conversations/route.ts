@@ -226,6 +226,25 @@ export async function POST(request: NextRequest) {
 
     // 2. Course Channel
     if (courseId) {
+      // Verify enrollment or instructor status before granting channel access
+      const hasAccess = session.role === 'ADMIN' || await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          OR: [
+            { teacherId: session.userId },
+            { students: { some: { id: session.userId } } },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Forbidden: You must be enrolled in or instruct this course to join its channel' },
+          { status: 403 }
+        );
+      }
+
       let conv = await prisma.conversation.findFirst({
         where: { courseId, isDirect: false },
       });

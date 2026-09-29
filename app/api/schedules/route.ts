@@ -38,26 +38,42 @@ export async function GET(request: NextRequest) {
     }
 
     const isTeacher = session.role === 'TEACHER';
+    const isAdmin = session.role === 'ADMIN';
 
-    // Courses the viewer is enrolled in (students) — used to scope deadlines.
-    const enrolledCourseIds = isTeacher
-      ? []
-      : (
-          await prisma.course.findMany({
-            where: { students: { some: { id: session.userId } } },
-            select: { id: true },
-          })
-        ).map(c => c.id);
+    // Courses the viewer is enrolled in (students), or teaches (teachers)
+    let relevantCourseIds: string[] = [];
+    if (!isAdmin) {
+      if (isTeacher) {
+        const taught = await prisma.course.findMany({
+          where: { teacherId: session.userId },
+          select: { id: true },
+        });
+        relevantCourseIds = taught.map(c => c.id);
+      } else {
+        const enrolled = await prisma.course.findMany({
+          where: { students: { some: { id: session.userId } } },
+          select: { id: true },
+        });
+        relevantCourseIds = enrolled.map(c => c.id);
+      }
+    }
 
     const rooms = await prisma.liveRoom.findMany({
       where: {
         scheduledAt: { gte: from, lte: to },
-        ...(isTeacher
-          ? { teacherId: session.userId }
+        ...(isAdmin
+          ? {}
+          : isTeacher
+          ? {
+              OR: [
+                { teacherId: session.userId },
+                { courseId: { in: relevantCourseIds } },
+              ],
+            }
           : {
               // A student sees classes for their courses, plus any
               // unassigned (open) class.
-              OR: [{ courseId: { in: enrolledCourseIds } }, { courseId: null }],
+              OR: [{ courseId: { in: relevantCourseIds } }, { courseId: null }],
             }),
       },
       orderBy: { scheduledAt: 'asc' },
@@ -88,68 +104,88 @@ export async function GET(request: NextRequest) {
       isLive: Boolean(room.isLive && room.endedAt === null),
     }));
 
-    // Students also get their exam and assignment deadlines on the same grid.
-    if (!isTeacher) {
-      const [exams, assignments] = await Promise.all([
-        prisma.exam.findMany({
-          where: {
-            dueAt: { gte: from, lte: to },
-            OR: [{ courseId: { in: enrolledCourseIds } }, { courseId: null }],
-          },
-          select: {
-            id: true,
-            title: true,
-            dueAt: true,
-            durationMins: true,
-            course: { select: { title: true } },
-          },
-        }),
-        prisma.assignment.findMany({
-          where: {
-            dueAt: { gte: from, lte: to },
-            OR: [{ courseId: { in: enrolledCourseIds } }, { courseId: null }],
-          },
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            dueAt: true,
-            course: { select: { title: true } },
-            teacher: { select: { name: true } },
-          },
-        }),
-      ]);
+    // Everyone (Admin, Teacher, Student) gets relevant exam and assignment deadlines on the calendar.
+    const [exams, assignments] = await Promise.all([
+      prisma.exam.findMany({
+        where: {
+          dueAt: { gte: from, lte: to },
+          ...(isAdmin
+            ? {}
+            : isTeacher
+            ? {
+                OR: [
+                  { teacherId: session.userId },
+                  { courseId: { in: relevantCourseIds } },
+                ],
+              }
+            : {
+                OR: [{ courseId: { in: relevantCourseIds } }, { courseId: null }],
+              }),
+        },
+        select: {
+          id: true,
+          title: true,
+          dueAt: true,
+          durationMins: true,
+          course: { select: { title: true } },
+        },
+      }),
+      prisma.assignment.findMany({
+        where: {
+          dueAt: { gte: from, lte: to },
+          ...(isAdmin
+            ? {}
+            : isTeacher
+            ? {
+                OR: [
+                  { teacherId: session.userId },
+                  { courseId: { in: relevantCourseIds } },
+                ],
+              }
+            : {
+                OR: [{ courseId: { in: relevantCourseIds } }, { courseId: null }],
+              }),
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          dueAt: true,
+          course: { select: { title: true } },
+          teacher: { select: { name: true } },
+        },
+      }),
+    ]);
 
-      for (const exam of exams) {
-        if (!exam.dueAt) continue;
-        events.push({
-          id: `exam-${exam.id}`,
-          type: 'EXAM',
-          title: exam.title,
-          description: `${exam.durationMins} minute exam`,
-          startsAt: exam.dueAt.toISOString(),
-          endsAt: null,
-          courseTitle: exam.course?.title ?? null,
-          teacherName: null,
-          roomId: null,
-          isLive: false,
-        });
-      }
+    for (const exam of exams) {
+      if (!exam.dueAt) continue;
+      events.push({
+        id: `exam-${exam.id}`,
+        type: 'EXAM',
+        title: exam.title,
+        description: `${exam.durationMins} minute exam`,
+        startsAt: exam.dueAt.toISOString(),
+        endsAt: null,
+        courseTitle: exam.course?.title ?? null,
+        teacherName: null,
+        roomId: null,
+        isLive: false,
+      });
+    }
 
-      for (const assignment of assignments) {
-        events.push({
-          id: `assignment-${assignment.id}`,
-          type: 'ASSIGNMENT',
-          title: assignment.title,
-          description: assignment.description,
-          startsAt: assignment.dueAt.toISOString(),
-          endsAt: null,
-          courseTitle: assignment.course?.title ?? null,
-          teacherName: assignment.teacher?.name ?? null,
-          roomId: null,
-          isLive: false,
-        });
-      }
+    for (const assignment of assignments) {
+      events.push({
+        id: `assignment-${assignment.id}`,
+        type: 'ASSIGNMENT',
+        title: assignment.title,
+        description: assignment.description,
+        startsAt: assignment.dueAt.toISOString(),
+        endsAt: null,
+        courseTitle: assignment.course?.title ?? null,
+        teacherName: assignment.teacher?.name ?? null,
+        roomId: null,
+        isLive: false,
+      });
     }
 
     events.sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
@@ -167,12 +203,12 @@ export async function POST(request: NextRequest) {
 
     const session = await verifyToken(token);
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (session.role !== 'TEACHER') {
+    if (session.role !== 'TEACHER' && session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    if (session.teacherStatus === 'PENDING') {
+    if (session.role === 'TEACHER' && session.teacherStatus !== 'APPROVED') {
       return NextResponse.json(
-        { error: 'Your teacher account is still awaiting approval.' },
+        { error: 'Your teacher account is still awaiting approval or has been rejected.' },
         { status: 403 }
       );
     }
@@ -204,12 +240,15 @@ export async function POST(request: NextRequest) {
     let course: { id: string; title: string; students: { id: string }[] } | null = null;
     if (courseId) {
       course = await prisma.course.findFirst({
-        where: { id: courseId, teacherId: session.userId },
+        where: {
+          id: courseId,
+          ...(session.role === 'ADMIN' ? {} : { teacherId: session.userId }),
+        },
         select: { id: true, title: true, students: { select: { id: true } } },
       });
       if (!course) {
         return NextResponse.json(
-          { error: 'Course not found, or you do not teach it.' },
+          { error: 'Course not found, or you do not have permission to schedule for it.' },
           { status: 404 }
         );
       }

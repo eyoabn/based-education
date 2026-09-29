@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         activeLiveRoom: c.liveRooms.length > 0 ? c.liveRooms[0] : null,
         isEnrolled: c.students.length > 0 || c.teacherId === session.userId,
         hasPendingRequest: c.requests.length > 0,
-        pendingRequests: isTeacherOrAdmin ? c.requests : [],
+        pendingRequests: (session.role === 'ADMIN' || c.teacherId === session.userId) ? c.requests : [],
       })),
     });
   } catch (error) {
@@ -100,6 +100,9 @@ export async function POST(request: NextRequest) {
     const session = await verifyToken(token);
     if (!session || (session.role !== 'TEACHER' && session.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Forbidden: Only teachers can create courses' }, { status: 403 });
+    }
+    if (session.role === 'TEACHER' && session.teacherStatus !== 'APPROVED') {
+      return NextResponse.json({ error: 'Your teacher account is not yet approved.' }, { status: 403 });
     }
 
     const body = await request.json();

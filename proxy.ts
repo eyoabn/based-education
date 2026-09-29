@@ -33,6 +33,18 @@ export async function proxy(request: NextRequest) {
 
   // Exact /dashboard root redirect to role portal
   if (url.pathname === '/dashboard' || url.pathname === '/dashboard/') {
+    if (role === 'TEACHER') {
+      if (teacherStatus === 'PENDING') {
+        url.pathname = '/pending-approval';
+        return NextResponse.redirect(url);
+      }
+      if (teacherStatus === 'REJECTED') {
+        url.pathname = '/login';
+        const response = NextResponse.redirect(url);
+        response.cookies.delete('token');
+        return response;
+      }
+    }
     url.pathname = `/dashboard/${role.toLowerCase()}`;
     return NextResponse.redirect(url);
   }
@@ -54,6 +66,12 @@ export async function proxy(request: NextRequest) {
     if (teacherStatus === 'PENDING') {
       url.pathname = '/pending-approval';
       return NextResponse.redirect(url);
+    }
+    if (teacherStatus === 'REJECTED') {
+      url.pathname = '/login';
+      const response = NextResponse.redirect(url);
+      response.cookies.delete('token');
+      return response;
     }
   }
 

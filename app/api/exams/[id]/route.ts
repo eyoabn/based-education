@@ -271,12 +271,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const session = await verifyToken(token);
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (session.role !== 'TEACHER') {
+    if (session.role !== 'TEACHER' && session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const exam = await prisma.exam.findFirst({
-      where: { id, teacherId: session.userId },
+      where: session.role === 'ADMIN' ? { id } : { id, teacherId: session.userId },
       select: { id: true },
     });
     if (!exam) {

@@ -122,7 +122,11 @@ export async function GET(request: NextRequest) {
 
       prisma.user.findMany({
         where: { role: 'TEACHER', teacherStatus: 'APPROVED', isBanned: false },
-        take: 25,
+        orderBy: [
+          { taughtCourses: { _count: 'desc' } },
+          { liveRooms: { _count: 'desc' } },
+        ],
+        take: 50,
         select: {
           id: true,
           name: true,

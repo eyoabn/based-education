@@ -47,8 +47,11 @@ export async function POST(request: NextRequest) {
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     const session = await verifyToken(token);
-    if (!session || session.role !== 'TEACHER') {
+    if (!session || (session.role !== 'TEACHER' && session.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (session.role === 'TEACHER' && session.teacherStatus !== 'APPROVED') {
+      return NextResponse.json({ error: 'Your teacher account is not yet approved.' }, { status: 403 });
     }
 
     const { content, mediaUrls } = await request.json();

@@ -10,12 +10,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     const session = await verifyToken(token);
-    if (!session || session.role !== 'TEACHER') {
+    if (!session || (session.role !== 'TEACHER' && session.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const post = await prisma.post.findUnique({ where: { id } });
-    if (!post || post.authorId !== session.userId) {
+    if (!post || (post.authorId !== session.userId && session.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Not Found or Forbidden' }, { status: 404 });
     }
 
@@ -42,12 +42,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     const session = await verifyToken(token);
-    if (!session || session.role !== 'TEACHER') {
+    if (!session || (session.role !== 'TEACHER' && session.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const post = await prisma.post.findUnique({ where: { id } });
-    if (!post || post.authorId !== session.userId) {
+    if (!post || (post.authorId !== session.userId && session.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Not Found or Forbidden' }, { status: 404 });
     }
 

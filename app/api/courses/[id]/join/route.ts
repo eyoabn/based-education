@@ -39,12 +39,20 @@ export async function POST(
     }
 
     if (course.accessMode === 'PUBLIC') {
-      await prisma.course.update({
-        where: { id: courseId },
-        data: {
-          students: { connect: { id: session.userId } },
-        },
-      });
+      await prisma.$transaction([
+        prisma.course.update({
+          where: { id: courseId },
+          data: {
+            students: { connect: { id: session.userId } },
+          },
+        }),
+        prisma.courseEnrollmentRequest.deleteMany({
+          where: {
+            courseId,
+            studentId: session.userId,
+          },
+        }),
+      ]);
 
       return NextResponse.json({
         message: 'Successfully enrolled in course!',

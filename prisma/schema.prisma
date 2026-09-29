@@ -202,7 +202,7 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
 
-  post   Post @relation(fields: [postId], references: [id])
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   author User @relation(fields: [authorId], references: [id])
 }
 

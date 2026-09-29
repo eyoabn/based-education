@@ -256,9 +256,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Cascade deletes all attendances associated with this room
-    await prisma.liveRoom.delete({
-      where: { id: roomId },
+    // Delete all attendance records associated with this room, preserving the room entity
+    await prisma.attendance.deleteMany({
+      where: { roomId },
     });
 
     return NextResponse.json({ success: true, message: 'Attendance record deleted' });

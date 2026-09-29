@@ -20,6 +20,9 @@ export default async function DashboardRootPage() {
       if (session.teacherStatus === "PENDING") {
         redirect("/pending-approval")
       }
+      if (session.teacherStatus === "REJECTED") {
+        redirect("/login")
+      }
       redirect("/dashboard/teacher")
     case "ADMIN":
       redirect("/dashboard/admin")

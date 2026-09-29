@@ -257,6 +257,7 @@ export async function PATCH(request: NextRequest) {
         maxScore: true,
         isFlagged: true,
         studentId: true,
+        gradedAt: true,
         exam: { select: { id: true, title: true, passingPct: true } },
       },
     });
@@ -308,7 +309,9 @@ export async function PATCH(request: NextRequest) {
     });
 
     const finalScore = totalAwarded(updatedAnswers);
-    const shouldRelease = release === true;
+    const wasAlreadyGraded = submission.status === 'GRADED';
+    const isNowGraded = release === true || wasAlreadyGraded;
+    const shouldNotify = release === true;
     const now = new Date();
 
     const updated = await prisma.submission.update({
@@ -317,10 +320,10 @@ export async function PATCH(request: NextRequest) {
         answers: updatedAnswers as unknown as object[],
         feedback:
           typeof feedback === 'string' ? feedback.trim().slice(0, 5_000) || null : undefined,
-        // A score stays invisible to the student until it is released.
-        score: shouldRelease ? finalScore : null,
-        status: shouldRelease ? 'GRADED' : 'SUBMITTED',
-        gradedAt: shouldRelease ? now : null,
+        // Keep score and GRADED status if already graded, or if releasing now
+        score: isNowGraded ? finalScore : null,
+        status: isNowGraded ? 'GRADED' : 'SUBMITTED',
+        gradedAt: isNowGraded ? (submission.gradedAt ?? now) : null,
         ...(clearFlag === true ? { isFlagged: false } : {}),
       },
       select: {
@@ -334,7 +337,7 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    if (shouldRelease) {
+    if (shouldNotify) {
       const pct = scorePct(finalScore, submission.maxScore);
       const passed = hasPassed(finalScore, submission.maxScore, submission.exam.passingPct);
 

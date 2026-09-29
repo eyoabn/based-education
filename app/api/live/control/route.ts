@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
 
     const targetRoom = dbLiveRoom?.id || decodedRoom;
 
-    // Verify moderator privileges: Instructor, Admin, or Room Representative (Co-Host)
-    const isTeacher = session.role === 'TEACHER' || session.role === 'ADMIN';
+    // Verify moderator privileges: Room Instructor, Admin, or Room Representative (Co-Host)
+    const isOwnerOrAdmin = session.role === 'ADMIN' || (session.role === 'TEACHER' && (!dbLiveRoom || dbLiveRoom.teacherId === session.userId));
     let isRepresentative = false;
-    if (!isTeacher) {
+    if (!isOwnerOrAdmin) {
       try {
         const rObj = await roomService.listRooms([targetRoom]).then(res => res[0]).catch(() => null);
         if (rObj?.metadata) {
@@ -58,17 +58,22 @@ export async function POST(request: NextRequest) {
       } catch (e) {}
     }
 
-    if (!isTeacher && !isRepresentative) {
+    if (!isOwnerOrAdmin && !isRepresentative) {
       return NextResponse.json({ error: 'Forbidden. Only instructors and co-hosts can perform moderation.' }, { status: 403 });
     }
 
     if (action === 'SHUTDOWN_ROOM' || action === 'TEACHER_LEFT') {
+      if (!isOwnerOrAdmin) {
+        return NextResponse.json({ error: 'Forbidden. Only the instructor or administrator can end the live session.' }, { status: 403 });
+      }
+
       // Mark database LiveRoom as no longer live
       await prisma.liveRoom.updateMany({
         where: {
           OR: [
             { id: decodedRoom },
-            { title: decodedRoom }
+            { title: decodedRoom },
+            ...(dbLiveRoom ? [{ id: dbLiveRoom.id }] : [])
           ]
         },
         data: {
@@ -282,13 +287,16 @@ export async function POST(request: NextRequest) {
       case 'TEACHER_LEFT':
         try {
           const encoder = new TextEncoder();
-          await roomService.sendData(
-            decodedRoom,
-            encoder.encode(JSON.stringify({ type: 'SESSION_ENDED' })),
-            0,
-            { topic: 'session-ended' }
-          ).catch(() => {});
-          await roomService.deleteRoom(decodedRoom).catch(() => {});
+          const roomsToClean = Array.from(new Set([targetRoom, decodedRoom].filter(Boolean)));
+          for (const r of roomsToClean) {
+            await roomService.sendData(
+              r,
+              encoder.encode(JSON.stringify({ type: 'SESSION_ENDED' })),
+              0,
+              { topic: 'session-ended' }
+            ).catch(() => {});
+            await roomService.deleteRoom(r).catch(() => {});
+          }
         } catch (e) {
           console.warn("LiveKit shutdown error:", e);
         }

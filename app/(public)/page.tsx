@@ -26,23 +26,6 @@ const FEATURES = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    name: 'Sarah Mitchell',
-    role: 'Community Member',
-    quote: 'These teachings transformed my relationship with God. I finally understand the depth of Scripture.',
-  },
-  {
-    name: 'David Okonkwo',
-    role: 'Student',
-    quote: 'Clear, powerful, and life-changing. Every session leaves me hungry for more of the Word.',
-  },
-  {
-    name: 'Maria Santos',
-    role: 'Community Member',
-    quote: "I've grown more spiritually in three months here than I had in years. Truly anointed teaching.",
-  },
-];
 
 export default function LandingPage() {
   return (
@@ -62,11 +45,11 @@ export default function LandingPage() {
 
         {/* Decorative line */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-10">
-          <div className="h-px w-10 sm:w-16" style={{ background: 'linear-gradient(to right, transparent, #C9A94A)' }} />
+         
           <span className="text-[10px] sm:text-xs uppercase tracking-[0.25em] sm:tracking-[0.3em]" style={{ color: '#C9A94A', fontFamily: 'var(--font-display)' }}>
             Walk In The Light
           </span>
-          <div className="h-px w-10 sm:w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A94A)' }} />
+          
         </div>
 
         <Image

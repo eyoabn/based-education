@@ -146,6 +146,8 @@ export async function PATCH(request: NextRequest) {
         rejectionReason: approved ? null : rejectionReason,
         reviewedAt: now,
         reviewedById: admin.userId,
+        // Invalidate previous sessions so rejected or changed accounts cannot continue with stale claims
+        sessionEpoch: { increment: 1 },
       },
       select: {
         id: true,

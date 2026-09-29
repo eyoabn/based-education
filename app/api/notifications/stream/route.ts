@@ -9,11 +9,23 @@ const clients = new Set<{ userId: string, controller: ReadableStreamDefaultContr
 
 // Simple function to push events to a specific user
 export function notifyUser(userId: string, data: any) {
+  const encoder = new TextEncoder();
+  const payload = encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
+  const deadClients: Array<{ userId: string; controller: ReadableStreamDefaultController }> = [];
+
   clients.forEach(client => {
     if (client.userId === userId) {
-      client.controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`));
+      try {
+        client.controller.enqueue(payload);
+      } catch {
+        deadClients.push(client);
+      }
     }
   });
+
+  for (const dead of deadClients) {
+    clients.delete(dead);
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -28,15 +40,27 @@ export async function GET(request: NextRequest) {
       const client = { userId: session.userId, controller };
       clients.add(client);
       
+      const encoder = new TextEncoder();
+      const heartbeat = encoder.encode(': heartbeat\n\n');
+
       // Keep-alive heartbeat every 15s to prevent timeouts
       const interval = setInterval(() => {
-        controller.enqueue(new TextEncoder().encode(': heartbeat\n\n'));
+        try {
+          controller.enqueue(heartbeat);
+        } catch {
+          clearInterval(interval);
+          clients.delete(client);
+        }
       }, 15000);
 
       request.signal.addEventListener('abort', () => {
         clearInterval(interval);
         clients.delete(client);
-        controller.close();
+        try {
+          controller.close();
+        } catch {
+          // Already closed
+        }
       });
     }
   });
