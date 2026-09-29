@@ -368,7 +368,7 @@ export async function PATCH(request: NextRequest) {
         feedback: updated.feedback,
       },
       answers: updatedAnswers,
-      released: shouldRelease,
+      released: isNowGraded,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to save the grade' }, { status: 500 });

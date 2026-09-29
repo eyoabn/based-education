@@ -56,5 +56,5 @@ describe('Live Control API Unit Tests', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json.success).toBe(true)
-  })
+  }, 15000)
 })

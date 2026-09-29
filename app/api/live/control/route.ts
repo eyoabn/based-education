@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // Verify moderator privileges: Room Instructor, Admin, or Room Representative (Co-Host)
     const isOwnerOrAdmin = session.role === 'ADMIN' || (session.role === 'TEACHER' && (!dbLiveRoom || dbLiveRoom.teacherId === session.userId));
     let isRepresentative = false;
-    if (!isOwnerOrAdmin) {
+    if (!isOwnerOrAdmin && dbLiveRoom && dbLiveRoom.isLive) {
       try {
         const rObj = await roomService.listRooms([targetRoom]).then(res => res[0]).catch(() => null);
         if (rObj?.metadata) {
