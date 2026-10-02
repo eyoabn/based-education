@@ -41,9 +41,9 @@ export default function TeacherLayoutClient({ children }: { children: ReactNode 
         <div className="px-5 mb-8">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-[0_4px_12px_rgba(79,70,229,0.4)]">
-              <span className="text-white font-bold text-sm">⚡</span>
+              <span className="text-white font-bold text-sm"></span>
             </div>
-            <span className="font-bold text-lg text-white tracking-tight">EduConnect</span>
+            <span className="font-bold text-lg text-white tracking-tight">BasedEducation</span>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export default function TeacherLayoutClient({ children }: { children: ReactNode 
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md">
                   <span className="text-white font-bold text-xs">⚡</span>
                 </div>
-                <span className="font-bold text-lg text-white tracking-tight">EduConnect</span>
+                <span className="font-bold text-lg text-white tracking-tight">BasedEducation</span>
               </div>
               <button 
                 onClick={() => setMobileDrawerOpen(false)}
@@ -153,7 +153,7 @@ export default function TeacherLayoutClient({ children }: { children: ReactNode 
             </button>
 
             {/* Mobile Brand Name */}
-            <span className="font-bold text-sm sm:hidden text-slate-800 shrink-0">EduConnect</span>
+            <span className="font-bold text-sm sm:hidden text-slate-800 shrink-0">BasedEducation</span>
 
             <div className="flex-1 relative hidden sm:block">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
