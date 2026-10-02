@@ -202,12 +202,18 @@ export async function POST(request: NextRequest) {
 
       case 'MUTE_ALL': {
         try {
-          const participants = await roomService.listParticipants(targetRoom).catch(() => []);
+          let participants = await roomService.listParticipants(targetRoom).catch(() => []);
+          if (participants.length === 0 && targetRoom !== decodedRoom) {
+            participants = await roomService.listParticipants(decodedRoom).catch(() => []);
+          }
           for (const p of participants) {
             if (p.identity !== session.userId) {
               const aTracks = p.tracks.filter(t => t.type === 0);
               for (const track of aTracks) {
                 await roomService.mutePublishedTrack(targetRoom, p.identity, track.sid, true).catch(() => {});
+                if (targetRoom !== decodedRoom) {
+                  await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true).catch(() => {});
+                }
               }
             }
           }
@@ -224,30 +230,56 @@ export async function POST(request: NextRequest) {
           const roomInfo = await roomService.listRooms([targetRoom]).then(res => res[0]).catch(() => null);
           let metaObj: any = {};
           try { metaObj = JSON.parse(roomInfo?.metadata || '{}'); } catch {}
-          await roomService.updateRoomMetadata(targetRoom, JSON.stringify({ ...metaObj, isAudioLocked: locked })).catch(() => {
-            if (targetRoom !== decodedRoom) {
-              return roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...metaObj, isAudioLocked: locked })).catch(() => {});
-            }
-          });
+          const newMeta = JSON.stringify({ ...metaObj, isAudioLocked: locked });
+          await roomService.updateRoomMetadata(targetRoom, newMeta).catch(() => {});
+          if (targetRoom !== decodedRoom) {
+            await roomService.updateRoomMetadata(decodedRoom, newMeta).catch(() => {});
+          }
         } catch (err: any) {
           console.warn("Update room metadata error in LOCK_MICS:", err);
         }
 
-        // If locking mics, force mute all attendee tracks on LiveKit server
-        if (locked) {
-          try {
-            const participants = await roomService.listParticipants(targetRoom).catch(() => []);
-            for (const p of participants) {
-              if (p.identity !== session.userId) {
+        // If locking mics, force mute and restrict publishing permissions for all attendees
+        try {
+          let participants = await roomService.listParticipants(targetRoom).catch(() => []);
+          if (participants.length === 0 && targetRoom !== decodedRoom) {
+            participants = await roomService.listParticipants(decodedRoom).catch(() => []);
+          }
+          for (const p of participants) {
+            if (p.identity !== session.userId) {
+              if (locked) {
+                // Force mute published audio tracks
                 const aTracks = p.tracks.filter(t => t.type === 0);
                 for (const track of aTracks) {
                   await roomService.mutePublishedTrack(targetRoom, p.identity, track.sid, true).catch(() => {});
+                  if (targetRoom !== decodedRoom) {
+                    await roomService.mutePublishedTrack(decodedRoom, p.identity, track.sid, true).catch(() => {});
+                  }
+                }
+                // Sever publishing permission at the server network layer
+                await roomService.updateParticipant(targetRoom, p.identity, {
+                  permission: { canPublish: false, canPublishData: true, canSubscribe: true }
+                }).catch(() => {});
+                if (targetRoom !== decodedRoom) {
+                  await roomService.updateParticipant(decodedRoom, p.identity, {
+                    permission: { canPublish: false, canPublishData: true, canSubscribe: true }
+                  }).catch(() => {});
+                }
+              } else {
+                // Unlocked: restore publishing permissions
+                await roomService.updateParticipant(targetRoom, p.identity, {
+                  permission: { canPublish: true, canPublishData: true, canSubscribe: true }
+                }).catch(() => {});
+                if (targetRoom !== decodedRoom) {
+                  await roomService.updateParticipant(decodedRoom, p.identity, {
+                    permission: { canPublish: true, canPublishData: true, canSubscribe: true }
+                  }).catch(() => {});
                 }
               }
             }
-          } catch (err) {
-            console.warn("Mute tracks error in LOCK_MICS:", err);
           }
+        } catch (err) {
+          console.warn("Mute/Permission update error in LOCK_MICS:", err);
         }
 
         await sendRoomData({ action: 'LOCK_MICS', isLocked: locked });
@@ -256,6 +288,19 @@ export async function POST(request: NextRequest) {
 
       case 'ALLOW_MIC': {
         if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
+        // Restore publishing permission for this specific student
+        try {
+          await roomService.updateParticipant(targetRoom, identity, {
+            permission: { canPublish: true, canPublishData: true, canSubscribe: true }
+          }).catch(() => {});
+          if (targetRoom !== decodedRoom) {
+            await roomService.updateParticipant(decodedRoom, identity, {
+              permission: { canPublish: true, canPublishData: true, canSubscribe: true }
+            }).catch(() => {});
+          }
+        } catch (e) {
+          console.warn("Error granting mic permission via SDK:", e);
+        }
         await sendRoomData({ action: 'ALLOW_MIC', identity });
         break;
       }

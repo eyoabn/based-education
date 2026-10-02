@@ -11,7 +11,8 @@ import ParticipantList from "@/components/live/ParticipantList"
 import LiveChat from "@/components/live/LiveChat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
 import FloatingReactions from "@/components/live/FloatingReactions"
-import { Wifi, Users, MessageSquare, Clock, LogOut, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X, Hand, Lock } from "lucide-react"
+import { Wifi, Users, MessageSquare, Clock, LogOut, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X, Hand, Lock, FileAudio } from "lucide-react"
+import RecordingsManagerModal from "@/components/live/RecordingsManagerModal"
 
 interface TeacherLivePageProps {
   params: Promise<{ roomId: string }>
@@ -49,6 +50,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const { metadata } = useRoomInfo()
   const [isChatDisabled, setIsChatDisabled] = useState(false)
   const [isAudioLocked, setIsAudioLocked] = useState(false)
+  const [showRecordingsModal, setShowRecordingsModal] = useState(false)
   const [representatives, setRepresentatives] = useState<string[]>([])
   const [mediaState, setMediaState] = useState<MediaState | null>(null)
 
@@ -204,7 +206,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ room: roomId, action: "LOCK_MICS", isLocked: nextLocked }),
+      body: JSON.stringify({ room: room.name || roomId, action: "LOCK_MICS", isLocked: nextLocked }),
     })
   }
 
@@ -219,7 +221,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ room: roomId, action: "MUTE_ALL" }),
+      body: JSON.stringify({ room: room.name || roomId, action: "MUTE_ALL" }),
     })
   }
 
@@ -234,7 +236,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ room: roomId, action: "DISABLE_CAMERAS_ALL" }),
+      body: JSON.stringify({ room: room.name || roomId, action: "DISABLE_CAMERAS_ALL" }),
     })
   }
 
@@ -251,7 +253,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ room: roomId, action: "TOGGLE_CHAT", chatDisabled: nextState }),
+      body: JSON.stringify({ room: room.name || roomId, action: "TOGGLE_CHAT", chatDisabled: nextState }),
     })
   }
 
@@ -339,6 +341,16 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                 isHostOrRep={true}
                 onUpdateMediaState={handleUpdateMediaState}
               />
+
+              {/* View Recordings Button */}
+              <button
+                onClick={() => setShowRecordingsModal(true)}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+                title="Manage & download class voice recordings"
+              >
+                <FileAudio className="w-3.5 h-3.5 text-primary" />
+                <span className="hidden md:inline">Recordings</span>
+              </button>
               
               {isAudioLocked && (
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-semibold shadow-sm">
@@ -580,6 +592,13 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             </div>
           </div>
       </div>
+
+      <RecordingsManagerModal
+        roomId={roomId}
+        isOpen={showRecordingsModal}
+        onClose={() => setShowRecordingsModal(false)}
+        isTeacher={true}
+      />
     </>
   )
 }

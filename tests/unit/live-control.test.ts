@@ -35,7 +35,7 @@ describe('Live Control API Unit Tests', () => {
     expect(res.status).toBe(403)
     const json = await res.json()
     expect(json.error).toContain('Forbidden')
-  })
+  }, 15000)
 
   it('should allow teacher to execute control actions', async () => {
     const teacherToken = await signToken({

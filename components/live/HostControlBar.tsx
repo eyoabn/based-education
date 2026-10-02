@@ -19,9 +19,15 @@ import {
   Unlock,
   PhoneOff,
   MoreVertical,
+  Disc,
+  CircleDot,
+  FileAudio,
 } from "lucide-react"
 import ShutdownModal from "./ShutdownModal"
 import { ReactionPicker } from "./FloatingReactions"
+import { useAudioRecorder } from "@/hooks/useAudioRecorder"
+import RecordingSaveModal from "./RecordingSaveModal"
+import RecordingsManagerModal from "./RecordingsManagerModal"
 
 interface HostControlBarProps {
   roomId: string
@@ -63,6 +69,53 @@ export default function HostControlBar({
   const [showHostMenu, setShowHostMenu] = useState(false)
   const [showShutdownModal, setShowShutdownModal] = useState(false)
   const [showReactions, setShowReactions] = useState(false)
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [showRecordingsList, setShowRecordingsList] = useState(false)
+
+  const {
+    isRecording,
+    durationSec: recDurationSec,
+    recordingResult,
+    startRecording,
+    stopRecording,
+    downloadRecording,
+    setRecordingResult,
+  } = useAudioRecorder()
+
+  const handleStartRec = async () => {
+    const ok = await startRecording()
+    if (ok && room) {
+      try {
+        const encoder = new TextEncoder()
+        await room.localParticipant.publishData(
+          encoder.encode(JSON.stringify({ action: "RECORDING_STATUS", isRecording: true })),
+          { topic: "participant-moderation" }
+        )
+      } catch {}
+    }
+  }
+
+  const handleStopRec = async () => {
+    const res = await stopRecording()
+    if (room) {
+      try {
+        const encoder = new TextEncoder()
+        await room.localParticipant.publishData(
+          encoder.encode(JSON.stringify({ action: "RECORDING_STATUS", isRecording: false })),
+          { topic: "participant-moderation" }
+        )
+      } catch {}
+    }
+    if (res) {
+      setShowSaveModal(true)
+    }
+  }
+
+  const formatRecTime = (secs: number) => {
+    const m = Math.floor(secs / 60)
+    const s = Math.floor(secs % 60)
+    return `${m}:${s < 10 ? "0" : ""}${s}`
+  }
 
   const handleMuteAll = () => {
     onMuteAll()
@@ -81,6 +134,19 @@ export default function HostControlBar({
 
   return (
     <>
+      {/* Mobile Floating Recording Indicator when recording */}
+      {isRecording && (
+        <div className="flex sm:hidden fixed bottom-18 inset-x-0 z-30 justify-center pointer-events-auto">
+          <button
+            onClick={handleStopRec}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-600 text-white text-xs font-bold shadow-lg shadow-red-600/50 animate-pulse cursor-pointer"
+          >
+            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+            <span>REC {formatRecTime(recDurationSec)} (Tap to Stop)</span>
+          </button>
+        </div>
+      )}
+
       {/* 1. Google Meet Mobile Bottom Control Dock (< sm screens) */}
       <div className="flex sm:hidden fixed bottom-3 inset-x-0 z-30 justify-center px-4 pointer-events-none">
         <div className="flex items-center justify-between w-full max-w-[360px] bg-[#141418]/92 backdrop-blur-2xl border border-white/15 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.85)] pointer-events-auto">
@@ -219,6 +285,29 @@ export default function HostControlBar({
             </span>
           </button>
 
+          {/* Audio Recording Button */}
+          <button
+            onClick={isRecording ? handleStopRec : handleStartRec}
+            className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all duration-200 cursor-pointer ${
+              isRecording
+                ? "bg-red-600/30 text-red-400 ring-2 ring-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse"
+                : "bg-white/5 hover:bg-white/10 text-white"
+            }`}
+            title={isRecording ? "Stop voice recording and review" : "Record voice lecture"}
+          >
+            <div className="relative">
+              {isRecording ? (
+                <CircleDot className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+              ) : (
+                <Disc className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
+              )}
+              {isRecording && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500 animate-ping" />}
+            </div>
+            <span className="text-[9px] sm:text-[10px] font-medium opacity-70">
+              {isRecording ? formatRecTime(recDurationSec) : "Record"}
+            </span>
+          </button>
+
           {/* Google Meet Live Reactions / Stickers Button */}
           <div className="relative">
             <button
@@ -328,6 +417,17 @@ export default function HostControlBar({
                     />
                     {isChatDisabled ? "Enable Chat" : "Disable Chat"}
                   </button>
+
+                  <button
+                    onClick={() => {
+                      setShowRecordingsList(true)
+                      setShowHostMenu(false)
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-slate-200 hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <FileAudio className="w-4 h-4 text-primary" />
+                    View Class Recordings
+                  </button>
                   <div className="my-1.5 h-px bg-white/5" />
                   <button
                     onClick={() => {
@@ -436,6 +536,39 @@ export default function HostControlBar({
                 <span>Mute All Seekers</span>
               </button>
 
+              {/* Record Voice Lecture */}
+              <button
+                onClick={() => {
+                  if (isRecording) handleStopRec()
+                  else handleStartRec()
+                  setShowHostMenu(false)
+                }}
+                className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-semibold cursor-pointer ${
+                  isRecording
+                    ? "bg-red-600/20 text-red-300 border border-red-500/30 animate-pulse"
+                    : "bg-white/5 text-slate-200 hover:bg-white/10"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {isRecording ? <CircleDot className="w-4 h-4 text-red-400" /> : <Disc className="w-4 h-4 text-red-400" />}
+                  <span>{isRecording ? `Recording (${formatRecTime(recDurationSec)}) - Tap to Stop` : "Record Voice Lecture"}</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white/10">
+                  {isRecording ? "Active" : "Ready"}
+                </span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowRecordingsList(true)
+                  setShowHostMenu(false)
+                }}
+                className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 text-slate-200 rounded-2xl text-xs font-semibold cursor-pointer"
+              >
+                <FileAudio className="w-4 h-4 text-primary" />
+                <span>View & Download Recordings</span>
+              </button>
+
               {/* Disable Cameras */}
               <button
                 onClick={handleDisableCameras}
@@ -479,6 +612,30 @@ export default function HostControlBar({
           onCancel={() => setShowShutdownModal(false)}
         />
       )}
+
+      {/* Recording Save, Download & Publish Modal */}
+      {showSaveModal && recordingResult && (
+        <RecordingSaveModal
+          roomId={roomId}
+          recordingResult={recordingResult}
+          onClose={() => {
+            setShowSaveModal(false)
+            setRecordingResult(null)
+          }}
+          onDownload={downloadRecording}
+          onSavedSuccess={() => {
+            setShowRecordingsList(true)
+          }}
+        />
+      )}
+
+      {/* Recordings Manager Modal (Listen, Download, Delete) */}
+      <RecordingsManagerModal
+        roomId={roomId}
+        isOpen={showRecordingsList}
+        onClose={() => setShowRecordingsList(false)}
+        isTeacher={true}
+      />
     </>
   )
 }

@@ -139,6 +139,7 @@ model User {
   liveRooms     LiveRoom[]
   attendances   Attendance[]
   submissions   Submission[]
+  recordings    LiveRecording[]
 
   // Phase 4: course membership drives "enrolled vs attended" and schedule fan-out
   taughtCourses Course[]     @relation("CourseTeacher")
@@ -277,6 +278,7 @@ model LiveRoom {
   teacher     User         @relation(fields: [teacherId], references: [id])
   course      Course?      @relation(fields: [courseId], references: [id])
   attendances Attendance[]
+  recordings  LiveRecording[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -538,4 +540,25 @@ model ChatMessage {
   @@index([conversationId, createdAt])
   @@index([senderId])
 }
+
+model LiveRecording {
+  id            String    @id @default(uuid())
+  roomId        String
+  recordedById  String
+  title         String
+  audioUrl      String
+  durationSec   Int       @default(0)
+  fileSizeBytes BigInt?
+  format        String    @default("audio/webm;codecs=opus")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  room          LiveRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  recordedBy    User      @relation(fields: [recordedById], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([recordedById])
+  @@index([createdAt])
+}
+
 

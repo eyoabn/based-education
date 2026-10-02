@@ -14,8 +14,9 @@ import FloatingReactions, { ReactionPicker } from "@/components/live/FloatingRea
 import {
   Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown,
   Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X, Smile, Lock,
-  PhoneOff, MoreVertical
+  PhoneOff, MoreVertical, FileAudio
 } from "lucide-react"
+import RecordingsManagerModal from "@/components/live/RecordingsManagerModal"
 
 interface StudentLivePageProps {
   params: Promise<{ roomId: string }>
@@ -87,6 +88,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const [handRaised, setHandRaised] = useState(false)
   const [showReactions, setShowReactions] = useState(false)
   const [showMobileMoreMenu, setShowMobileMoreMenu] = useState(false)
+  const [showRecordings, setShowRecordings] = useState(false)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
   const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
@@ -118,7 +120,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
     return () => document.removeEventListener("fullscreenchange", handleFsChange)
   }, [])
 
-  // Listen to remote track muted events on localParticipant
+  // Listen to track muted and unmuted events on localParticipant
   useEffect(() => {
     if (!localParticipant) return
     const onTrackMuted = (pub: any) => {
@@ -128,89 +130,136 @@ function StudentRoom({ roomId }: { roomId: string }) {
         setIsCamEnabled(false)
       }
     }
+    const onTrackUnmuted = (pub: any) => {
+      if (pub.source === Track.Source.Microphone) {
+        // If instructor has locked microphones, forcibly re-mute immediately!
+        if (isAudioLocked && !isRepresentative && !hasMicPermission) {
+          localParticipant.setMicrophoneEnabled(false).catch(() => {})
+          setIsMicEnabled(false)
+          setModerationNotice("Microphones are locked by the instructor. You cannot unmute.")
+        } else {
+          setIsMicEnabled(true)
+        }
+      } else if (pub.source === Track.Source.Camera) {
+        setIsCamEnabled(true)
+      }
+    }
     localParticipant.on("trackMuted", onTrackMuted)
+    localParticipant.on("trackUnmuted", onTrackUnmuted)
     return () => {
       localParticipant.off("trackMuted", onTrackMuted)
+      localParticipant.off("trackUnmuted", onTrackUnmuted)
     }
-  }, [localParticipant])
+  }, [localParticipant, isAudioLocked, isRepresentative, hasMicPermission])
 
+  // Sync Room Metadata directly from Room events as well as hook metadata
   useEffect(() => {
-    if (metadata) {
+    const applyMetadata = (rawMeta?: string | null) => {
+      if (!rawMeta) return
       try {
-        const parsed = JSON.parse(metadata)
-        setIsChatDisabled(!!parsed.chatDisabled)
+        const parsed = JSON.parse(rawMeta)
+        if (typeof parsed.chatDisabled === "boolean") {
+          setIsChatDisabled(parsed.chatDisabled)
+        }
         if (typeof parsed.isAudioLocked === "boolean") {
           setIsAudioLocked(parsed.isAudioLocked)
-          if (parsed.isAudioLocked) {
-            setHasMicPermission(false)
+          if (parsed.isAudioLocked && !isRepresentative && !hasMicPermission) {
+            localParticipant?.setMicrophoneEnabled(false).catch(() => {})
+            setIsMicEnabled(false)
           }
         }
-        setRepresentatives(parsed.representatives || [])
-        setMediaState(parsed.mediaState || null)
+        if (Array.isArray(parsed.representatives)) {
+          setRepresentatives(parsed.representatives)
+        }
+        if (parsed.mediaState) {
+          setMediaState(parsed.mediaState)
+        }
       } catch (e) {}
     }
-  }, [metadata])
+
+    applyMetadata(metadata)
+    applyMetadata(room.metadata)
+
+    const onRoomMetaChanged = (newMeta: string) => {
+      applyMetadata(newMeta)
+    }
+    room.on("roomMetadataChanged", onRoomMetaChanged)
+    return () => {
+      room.off("roomMetadataChanged", onRoomMetaChanged)
+    }
+  }, [metadata, room, isRepresentative, hasMicPermission, localParticipant])
 
   useEffect(() => {
     if (connectionState === ConnectionState.Connected) {
       hasConnectedRef.current = true
       
       const handleData = (payload: Uint8Array, participant?: any, kind?: any, topic?: string) => {
+        const text = new TextDecoder().decode(payload)
+
+        // 1. Raise hand
         if (topic === "raise-hand" && participant) {
-          const isRaised = new TextDecoder().decode(payload) === "true"
+          const isRaised = text === "true"
           setRaisedHands(prev => {
             const next = new Set(prev)
             if (isRaised) next.add(participant.identity)
             else next.delete(participant.identity)
             return next
           })
-        } else if (topic === "session-ended" || topic === "shutdown") {
-          setDisconnectReason("ended")
-        } else if (topic === "participant-moderation") {
-          try {
-            const data = JSON.parse(new TextDecoder().decode(payload))
-            if (data.action === "MUTE_ALL" || (data.identity === localParticipant?.identity && data.action === "MUTE_MIC")) {
-              localParticipant?.setMicrophoneEnabled(false)
-              setIsMicEnabled(false)
-              setModerationNotice("Your microphone was muted by the instructor.")
-            } else if (data.action === "LOCK_MICS") {
-              const locked = !!data.isLocked
-              setIsAudioLocked(locked)
-              if (locked) {
-                setHasMicPermission(false)
-                localParticipant?.setMicrophoneEnabled(false)
-                setIsMicEnabled(false)
-                setModerationNotice("Microphones have been locked by the instructor. You cannot unmute until permitted.")
-              } else {
-                setModerationNotice("Microphones have been unlocked by the instructor.")
-              }
-            } else if (data.action === "ALLOW_MIC" && data.identity === localParticipant?.identity) {
-              setHasMicPermission(true)
-              setModerationNotice("The instructor has granted you speaking permission! You may unmute your microphone.")
-            } else if (data.action === "DISABLE_CAMERAS_ALL" || (data.identity === localParticipant?.identity && data.action === "SHUT_CAMERA")) {
-              localParticipant?.setCameraEnabled(false)
-              setIsCamEnabled(false)
-              setModerationNotice("Your camera was turned off by the instructor.")
-            } else if (data.action === "KICK" && data.identity === localParticipant?.identity) {
-              setDisconnectReason("kicked")
-              room.disconnect()
-            } else if (data.action === "BAN" && data.identity === localParticipant?.identity) {
-              setDisconnectReason("banned")
-              room.disconnect()
-            } else if (data.action === "UPDATE_REPRESENTATIVES") {
-              if (Array.isArray(data.representatives)) {
-                setRepresentatives(data.representatives)
-              }
-            } else if (data.action === "LOWER_HAND") {
-              if (data.identity === localParticipant?.identity) {
-                setHandRaised(false)
-              }
-              setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
-            } else if (data.action === "UPDATE_MEDIA") {
-              setMediaState(data.mediaState || null)
-            }
-          } catch (e) {}
+          return
         }
+
+        // 2. Session shutdown
+        if (topic === "session-ended" || topic === "shutdown" || text === "shutdown" || text === "session-ended") {
+          setDisconnectReason("ended")
+          return
+        }
+
+        // 3. JSON Actions (Process regardless of whether topic was stripped or preserved)
+        try {
+          const data = JSON.parse(text)
+          if (!data || !data.action) return
+
+          if (data.action === "MUTE_ALL" || (data.identity === localParticipant?.identity && data.action === "MUTE_MIC")) {
+            localParticipant?.setMicrophoneEnabled(false).catch(() => {})
+            setIsMicEnabled(false)
+            setModerationNotice("Your microphone was muted by the instructor.")
+          } else if (data.action === "LOCK_MICS") {
+            const locked = !!data.isLocked
+            setIsAudioLocked(locked)
+            if (locked) {
+              setHasMicPermission(false)
+              localParticipant?.setMicrophoneEnabled(false).catch(() => {})
+              setIsMicEnabled(false)
+              setModerationNotice("Microphones have been locked by the instructor. You cannot unmute until permitted.")
+            } else {
+              setModerationNotice("Microphones have been unlocked by the instructor.")
+            }
+          } else if (data.action === "ALLOW_MIC" && data.identity === localParticipant?.identity) {
+            setHasMicPermission(true)
+            setModerationNotice("The instructor has granted you speaking permission! You may unmute your microphone.")
+          } else if (data.action === "DISABLE_CAMERAS_ALL" || (data.identity === localParticipant?.identity && data.action === "SHUT_CAMERA")) {
+            localParticipant?.setCameraEnabled(false).catch(() => {})
+            setIsCamEnabled(false)
+            setModerationNotice("Your camera was turned off by the instructor.")
+          } else if (data.action === "KICK" && data.identity === localParticipant?.identity) {
+            setDisconnectReason("kicked")
+            room.disconnect()
+          } else if (data.action === "BAN" && data.identity === localParticipant?.identity) {
+            setDisconnectReason("banned")
+            room.disconnect()
+          } else if (data.action === "UPDATE_REPRESENTATIVES") {
+            if (Array.isArray(data.representatives)) {
+              setRepresentatives(data.representatives)
+            }
+          } else if (data.action === "LOWER_HAND") {
+            if (data.identity === localParticipant?.identity) {
+              setHandRaised(false)
+            }
+            setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
+          } else if (data.action === "UPDATE_MEDIA") {
+            setMediaState(data.mediaState || null)
+          }
+        } catch (e) {}
       }
       
       room.on("dataReceived", handleData)
@@ -242,7 +291,9 @@ function StudentRoom({ roomId }: { roomId: string }) {
 
   const handleMicToggle = async () => {
     // If audio is locked and student is neither co-host nor granted permission:
-    if (isAudioLocked && !isRepresentative && !hasMicPermission && !isMicEnabled) {
+    if (isAudioLocked && !isRepresentative && !hasMicPermission) {
+      await localParticipant?.setMicrophoneEnabled(false).catch(() => {})
+      setIsMicEnabled(false)
       setModerationNotice("Microphones are locked by the instructor. Raise your hand ✋ to request speaking permission.")
       return
     }
@@ -394,6 +445,16 @@ function StudentRoom({ roomId }: { roomId: string }) {
                   })
                 }}
               />
+
+              {/* View Recordings Button */}
+              <button
+                onClick={() => setShowRecordings(true)}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+                title="Listen to and download class voice recordings"
+              >
+                <FileAudio className="w-3.5 h-3.5 text-primary" />
+                <span className="hidden md:inline">Recordings</span>
+              </button>
 
               <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 text-xs text-emerald-400">
                 <Wifi className="w-3.5 h-3.5" />
@@ -780,6 +841,23 @@ function StudentRoom({ roomId }: { roomId: string }) {
                     </p>
                   </div>
                 </button>
+
+                {/* Class Voice Recordings in Mobile Menu */}
+                <button
+                  onClick={() => {
+                    setShowMobileMoreMenu(false)
+                    setShowRecordings(true)
+                  }}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors cursor-pointer col-span-2"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                    <FileAudio className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold truncate">Class Recordings</p>
+                    <p className="text-[10px] text-slate-400 truncate">Listen to past voice lectures & download audio</p>
+                  </div>
+                </button>
               </div>
 
               {/* Status details banner */}
@@ -924,6 +1002,14 @@ function StudentRoom({ roomId }: { roomId: string }) {
             </div>
           </div>
       </div>
+
+      {/* Student Recordings Viewer & Downloader Modal */}
+      <RecordingsManagerModal
+        roomId={roomId}
+        isOpen={showRecordings}
+        onClose={() => setShowRecordings(false)}
+        isTeacher={false}
+      />
     </>
   )
 }
