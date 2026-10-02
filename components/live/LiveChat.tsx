@@ -19,11 +19,19 @@ export default function LiveChat({ isTeacher = false, isDisabled = false }: Live
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [chatMessages])
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
-    send(input)
+    if (!input.trim() || isDisabled) return
+    const msg = input.trim()
     setInput("")
+    try {
+      if (send) {
+        await send(msg)
+      }
+    } catch (err) {
+      console.error("Failed to send chat message:", err)
+      setInput(msg)
+    }
   }
 
   return (

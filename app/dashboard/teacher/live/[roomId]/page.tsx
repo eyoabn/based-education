@@ -51,6 +51,35 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const [representatives, setRepresentatives] = useState<string[]>([])
   const [mediaState, setMediaState] = useState<MediaState | null>(null)
 
+  const handleLowerHand = useCallback(async (identity: string) => {
+    setRaisedHands(prev => {
+      const next = new Set(prev)
+      next.delete(identity)
+      return next
+    })
+    setHandRaiseNotification(curr => curr?.identity === identity ? null : curr)
+
+    try {
+      const encoder = new TextEncoder()
+      await room.localParticipant.publishData(
+        encoder.encode(JSON.stringify({ action: "LOWER_HAND", identity })),
+        { reliable: true, topic: "participant-moderation" }
+      )
+    } catch (e) {
+      console.warn("Failed to broadcast LOWER_HAND via WebRTC:", e)
+    }
+
+    try {
+      await fetch("/api/live/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room: room.name || roomId, action: "LOWER_HAND", identity }),
+      })
+    } catch (e) {
+      console.warn("Failed to notify /api/live/control:", e)
+    }
+  }, [room, roomId])
+
   // Fullscreen change listener
   useEffect(() => {
     const handleFsChange = () => {
@@ -249,11 +278,8 @@ function TeacherRoom({ roomId }: { roomId: string }) {
           <span className="text-xl">✋</span>
           <span><strong>{handRaiseNotification.name}</strong> has raised their hand!</span>
           <button
-            onClick={() => {
-              setRaisedHands(prev => { const next = new Set(prev); next.delete(handRaiseNotification.identity); return next })
-              setHandRaiseNotification(null)
-            }}
-            className="ml-2 px-3 py-1 bg-black/15 hover:bg-black/25 rounded-lg text-xs font-bold transition-colors"
+            onClick={() => handleLowerHand(handRaiseNotification.identity)}
+            className="ml-2 px-3 py-1 bg-black/15 hover:bg-black/25 rounded-lg text-xs font-bold transition-colors cursor-pointer"
           >
             Lower Hand
           </button>
@@ -430,48 +456,34 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                   isTeacher
                   raisedHands={raisedHands}
                   representatives={representatives}
-                  onLowerHand={async (identity) => {
-                    setRaisedHands(prev => { const next = new Set(prev); next.delete(identity); return next })
-                    try {
-                      const encoder = new TextEncoder()
-                      await room.localParticipant.publishData(
-                        encoder.encode(JSON.stringify({ action: "LOWER_HAND", identity })),
-                        { topic: "participant-moderation" }
-                      )
-                    } catch {}
-                    await fetch("/api/live/control", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ room: roomId, action: "LOWER_HAND", identity }),
-                    })
-                  }}
+                  onLowerHand={handleLowerHand}
                   onMute={async (identity) => {
                     try {
                       const encoder = new TextEncoder()
                       await room.localParticipant.publishData(
                         encoder.encode(JSON.stringify({ action: "MUTE_MIC", identity })),
-                        { topic: "participant-moderation" }
+                        { reliable: true, topic: "participant-moderation" }
                       )
                     } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ room: roomId, action: "MUTE_PARTICIPANT", identity }),
-                    })
+                      body: JSON.stringify({ room: room.name || roomId, action: "MUTE_PARTICIPANT", identity }),
+                    }).catch(() => {})
                   }}
                   onShutCamera={async (identity) => {
                     try {
                       const encoder = new TextEncoder()
                       await room.localParticipant.publishData(
                         encoder.encode(JSON.stringify({ action: "SHUT_CAMERA", identity })),
-                        { topic: "participant-moderation" }
+                        { reliable: true, topic: "participant-moderation" }
                       )
                     } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ room: roomId, action: "SHUT_CAMERA_PARTICIPANT", identity }),
-                    })
+                      body: JSON.stringify({ room: room.name || roomId, action: "SHUT_CAMERA_PARTICIPANT", identity }),
+                    }).catch(() => {})
                   }}
                   onToggleRepresentative={async (identity) => {
                     const isRep = representatives.includes(identity)
@@ -481,42 +493,42 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                       const encoder = new TextEncoder()
                       await room.localParticipant.publishData(
                         encoder.encode(JSON.stringify({ action: "UPDATE_REPRESENTATIVES", representatives: nextReps, identity })),
-                        { topic: "participant-moderation" }
+                        { reliable: true, topic: "participant-moderation" }
                       )
                     } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ room: roomId, action: "TOGGLE_REPRESENTATIVE", identity }),
-                    })
+                      body: JSON.stringify({ room: room.name || roomId, action: "TOGGLE_REPRESENTATIVE", identity }),
+                    }).catch(() => {})
                   }}
                   onKick={async (identity) => {
                     try {
                       const encoder = new TextEncoder()
                       await room.localParticipant.publishData(
                         encoder.encode(JSON.stringify({ action: "KICK", identity })),
-                        { topic: "participant-moderation" }
+                        { reliable: true, topic: "participant-moderation" }
                       )
                     } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ room: roomId, action: "KICK_PARTICIPANT", identity }),
-                    })
+                      body: JSON.stringify({ room: room.name || roomId, action: "KICK_PARTICIPANT", identity }),
+                    }).catch(() => {})
                   }}
                   onBan={async (identity) => {
                     try {
                       const encoder = new TextEncoder()
                       await room.localParticipant.publishData(
                         encoder.encode(JSON.stringify({ action: "BAN", identity })),
-                        { topic: "participant-moderation" }
+                        { reliable: true, topic: "participant-moderation" }
                       )
                     } catch {}
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ room: roomId, action: "BAN_PARTICIPANT", identity }),
-                    })
+                      body: JSON.stringify({ room: room.name || roomId, action: "BAN_PARTICIPANT", identity }),
+                    }).catch(() => {})
                   }}
                 />
               </div>

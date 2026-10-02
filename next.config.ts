@@ -49,6 +49,8 @@ const SECURITY_HEADERS = [
       // WebSocket to LiveKit + Next.js HMR in dev.
       [
         "connect-src 'self'",
+        "https://*.livekit.cloud",
+        "wss://*.livekit.cloud",
         process.env.LIVEKIT_URL ?? 'wss://live.educonnect.com',
         (process.env.LIVEKIT_URL ?? 'wss://live.educonnect.com').replace('wss://', 'https://'),
         process.env.NEXT_PUBLIC_APP_URL ?? '',

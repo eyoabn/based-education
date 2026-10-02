@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { RoomServiceClient } from 'livekit-server-sdk';
+import { invalidateLiveStatusCache } from '../status/route';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,7 +41,11 @@ export async function POST(request: NextRequest) {
           { id: decodedRoom },
           { title: decodedRoom }
         ]
-      }
+      },
+      orderBy: [
+        { isLive: 'desc' },
+        { createdAt: 'desc' }
+      ]
     }).catch(() => null);
 
     const targetRoom = dbLiveRoom?.id || decodedRoom;
@@ -81,6 +86,9 @@ export async function POST(request: NextRequest) {
           endedAt: new Date(),
         }
       }).catch(() => {});
+
+      invalidateLiveStatusCache(decodedRoom);
+      if (dbLiveRoom) invalidateLiveStatusCache(dbLiveRoom.id);
     }
 
     const encoder = new TextEncoder();
@@ -90,10 +98,13 @@ export async function POST(request: NextRequest) {
       const data = encoder.encode(JSON.stringify(payload));
       try {
         await roomService.sendData(targetRoom, data, 0, { topic });
-      } catch {
-        if (targetRoom !== decodedRoom) {
-          await roomService.sendData(decodedRoom, data, 0, { topic }).catch(() => {});
-        }
+      } catch (err) {
+        // Fallback or retry
+      }
+      if (targetRoom !== decodedRoom) {
+        try {
+          await roomService.sendData(decodedRoom, data, 0, { topic });
+        } catch {}
       }
     };
 

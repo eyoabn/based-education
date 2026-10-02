@@ -253,6 +253,12 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
     const newState = !handRaised
     setHandRaised(newState)
     if (localParticipant) {
+      setRaisedHands(prev => {
+        const next = new Set(prev)
+        if (newState) next.add(localParticipant.identity)
+        else next.delete(localParticipant.identity)
+        return next
+      })
       const payload = new TextEncoder().encode(newState ? "true" : "false")
       await localParticipant.publishData(payload, { reliable: true, topic: "raise-hand" }).catch(() => {})
     }
@@ -643,12 +649,17 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
                   isTeacher={false}
                   raisedHands={raisedHands}
                   representatives={representatives}
+                  onLowerHand={(identity) => {
+                    if (identity === localParticipant?.identity) {
+                      toggleHand()
+                    }
+                  }}
                   onShutCamera={async (identity) => {
                     await fetch("/api/live/control", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ room: roomId, action: "SHUT_CAMERA_PARTICIPANT", identity }),
-                    })
+                      body: JSON.stringify({ room: room.name || roomId, action: "SHUT_CAMERA_PARTICIPANT", identity }),
+                    }).catch(() => {})
                   }}
                 />
               </div>

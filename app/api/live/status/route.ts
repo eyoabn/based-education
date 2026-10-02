@@ -3,6 +3,13 @@ import type { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
+// High-speed in-memory status cache to protect the database from concurrent polling
+const statusCache = new Map<string, { data: any; expiry: number }>();
+
+export function invalidateLiveStatusCache(room: string) {
+  statusCache.delete(room);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('token')?.value;
@@ -19,6 +26,13 @@ export async function GET(request: NextRequest) {
 
     const roomTitle = decodeURIComponent(roomParam);
 
+    // Fast-path: return cached response if fresh (TTL: 2.5s)
+    const now = Date.now();
+    const cached = statusCache.get(roomTitle);
+    if (cached && cached.expiry > now) {
+      return NextResponse.json(cached.data);
+    }
+
     const liveRoom = await prisma.liveRoom.findFirst({
       where: {
         OR: [
@@ -26,6 +40,10 @@ export async function GET(request: NextRequest) {
           { title: roomTitle },
         ],
       },
+      orderBy: [
+        { isLive: 'desc' },
+        { createdAt: 'desc' },
+      ],
       select: {
         id: true,
         title: true,
@@ -44,14 +62,16 @@ export async function GET(request: NextRequest) {
     });
 
     if (!liveRoom) {
-      return NextResponse.json({
+      const emptyResult = {
         exists: false,
         isLive: false,
         endedAt: null,
-      });
+      };
+      statusCache.set(roomTitle, { data: emptyResult, expiry: now + 2500 });
+      return NextResponse.json(emptyResult);
     }
 
-    return NextResponse.json({
+    const result = {
       exists: true,
       id: liveRoom.id,
       title: liveRoom.title,
@@ -59,7 +79,14 @@ export async function GET(request: NextRequest) {
       startedAt: liveRoom.startedAt?.toISOString() || null,
       endedAt: liveRoom.endedAt?.toISOString() || null,
       teacher: liveRoom.teacher,
-    });
+    };
+
+    statusCache.set(roomTitle, { data: result, expiry: now + 2500 });
+    if (liveRoom.id !== roomTitle) {
+      statusCache.set(liveRoom.id, { data: result, expiry: now + 2500 });
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("[GET /api/live/status]", error);
     return NextResponse.json({ error: 'Failed to fetch live session status' }, { status: 500 });

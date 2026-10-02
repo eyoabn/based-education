@@ -31,11 +31,14 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden: Not a participant' }, { status: 403 });
     }
 
-    // Mark as read
-    await prisma.conversationParticipant.update({
-      where: { id: participant.id },
-      data: { lastReadAt: new Date() },
-    });
+    // Mark as read only if it has not been updated in the last 30 seconds (avoids flooding DB with writes on polling)
+    const isStaleRead = !participant.lastReadAt || (Date.now() - new Date(participant.lastReadAt).getTime() > 30_000);
+    if (isStaleRead) {
+      await prisma.conversationParticipant.update({
+        where: { id: participant.id },
+        data: { lastReadAt: new Date() },
+      }).catch(() => {});
+    }
 
     // Fetch conversation details and messages
     const conversation = await prisma.conversation.findUnique({
