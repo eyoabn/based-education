@@ -171,9 +171,9 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
           </div>
         </div>
 
-        {/* Docked Filmstrip for Remaining Participants (Side on desktop, bottom ribbon on mobile) */}
+        {/* Docked Filmstrip for Remaining Participants (Side on desktop, compact bottom ribbon on mobile) */}
         {filmstripTracks.length > 0 && (
-          <div className="w-full lg:w-64 xl:w-72 h-28 sm:h-32 lg:h-full shrink-0 flex lg:flex-col flex-row gap-2 overflow-x-auto lg:overflow-y-auto no-scrollbar">
+          <div className="w-full lg:w-64 xl:w-72 h-20 sm:h-28 lg:h-full shrink-0 flex lg:flex-col flex-row gap-1.5 sm:gap-2 overflow-x-auto lg:overflow-y-auto no-scrollbar py-0.5">
             {filmstripTracks.map((trackRef) => {
               const participant = trackRef.participant as Participant
               const isSpeaking = participant.isSpeaking
@@ -183,7 +183,7 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
                 <div
                   key={trackKey}
                   onDoubleClick={() => setPinnedTrackId(trackKey)}
-                  className={`group relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#121216] shrink-0 w-36 sm:w-44 lg:w-full h-full lg:h-40 transition-all duration-300 border ${
+                  className={`group relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#121216] shrink-0 w-28 sm:w-40 lg:w-full h-full lg:h-40 transition-all duration-200 border ${
                     isSpeaking
                       ? "border-primary ring-2 ring-primary/40 shadow-[0_0_20px_rgba(212,175,55,0.25)] z-10"
                       : "border-white/10 hover:border-white/25"

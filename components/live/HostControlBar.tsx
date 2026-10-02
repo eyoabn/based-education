@@ -17,6 +17,8 @@ import {
   Smile,
   Lock,
   Unlock,
+  PhoneOff,
+  MoreVertical,
 } from "lucide-react"
 import ShutdownModal from "./ShutdownModal"
 import { ReactionPicker } from "./FloatingReactions"
@@ -79,8 +81,94 @@ export default function HostControlBar({
 
   return (
     <>
-      {/* Floating Control Bar */}
-      <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 w-max max-w-[96vw]">
+      {/* 1. Google Meet Mobile Bottom Control Dock (< sm screens) */}
+      <div className="flex sm:hidden fixed bottom-3 inset-x-0 z-30 justify-center px-4 pointer-events-none">
+        <div className="flex items-center justify-between w-full max-w-[360px] bg-[#141418]/92 backdrop-blur-2xl border border-white/15 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.85)] pointer-events-auto">
+          {/* Mic */}
+          <button
+            onClick={onMicToggle}
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+              isMicEnabled
+                ? "bg-white/10 text-white hover:bg-white/20"
+                : "bg-red-600 text-white shadow-red-600/40"
+            }`}
+            title={isMicEnabled ? "Mute" : "Unmute"}
+          >
+            {isMicEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+          </button>
+
+          {/* Camera */}
+          <button
+            onClick={onCamToggle}
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+              isCamEnabled
+                ? "bg-white/10 text-white hover:bg-white/20"
+                : "bg-red-600 text-white shadow-red-600/40"
+            }`}
+            title={isCamEnabled ? "Stop Camera" : "Start Camera"}
+          >
+            {isCamEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+          </button>
+
+          {/* Reactions */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowReactions(!showReactions)
+                setShowHostMenu(false)
+              }}
+              className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                showReactions
+                  ? "bg-primary text-black font-bold ring-2 ring-primary/50"
+                  : "bg-white/10 text-amber-400 hover:bg-white/20"
+              }`}
+              title="Send Stickers"
+            >
+              <Smile className="w-5 h-5" />
+            </button>
+
+            <ReactionPicker
+              room={room}
+              currentUserName={currentUserName}
+              isOpen={showReactions}
+              onClose={() => setShowReactions(false)}
+            />
+          </div>
+
+          {/* Host Settings & Moderation (Shield) */}
+          <button
+            onClick={() => {
+              setShowHostMenu(!showHostMenu)
+              setShowReactions(false)
+            }}
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer relative ${
+              showHostMenu || isAudioLocked
+                ? "bg-primary text-black font-bold ring-2 ring-primary/40"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+            title="Instructor Options"
+          >
+            <Shield className="w-5 h-5" />
+            {isAudioLocked && (
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-black flex items-center justify-center text-[8px] font-black text-black">
+                🔒
+              </span>
+            )}
+          </button>
+
+          {/* End Call (Red Phone) */}
+          <button
+            onClick={() => setShowShutdownModal(true)}
+            className="w-12 h-11 rounded-full bg-gradient-to-r from-red-600 to-red-700 active:scale-90 text-white flex items-center justify-center transition-all shadow-lg shadow-red-600/30 cursor-pointer"
+            title="End Session"
+          >
+            <PhoneOff className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Desktop & Tablet Floating Control Bar (>= sm screens) */}
+      <div className="hidden sm:block absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 w-max max-w-[96vw]">
         <div className="flex items-center gap-1 sm:gap-2 bg-black/85 backdrop-blur-3xl border border-white/10 rounded-3xl px-2 sm:px-4 py-1.5 sm:py-2.5 shadow-2xl shadow-black/80 overflow-x-auto no-scrollbar">
           {/* Mic */}
           <button
@@ -271,6 +359,116 @@ export default function HostControlBar({
           </button>
         </div>
       </div>
+
+      {/* 3. Mobile Host Actions Bottom Sheet Drawer */}
+      {showHostMenu && (
+        <div 
+          onClick={() => setShowHostMenu(false)}
+          className="fixed inset-0 z-50 flex sm:hidden flex-col justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full bg-[#121216] border-t border-white/15 rounded-t-3xl p-5 pb-8 shadow-2xl space-y-3 animate-in slide-in-from-bottom duration-250 cursor-default"
+          >
+            <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-1" />
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-primary" />
+                <span className="font-bold text-white text-sm">Instructor Controls</span>
+              </div>
+              <button
+                onClick={() => setShowHostMenu(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-white"
+              >
+                <ChevronUp className="w-4 h-4 rotate-180" />
+              </button>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              {/* Strict Mic Lock Toggle */}
+              <button
+                onClick={() => {
+                  if (onToggleLockMics) onToggleLockMics()
+                  setShowHostMenu(false)
+                }}
+                className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-semibold cursor-pointer ${
+                  isAudioLocked
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                    : "bg-white/5 text-slate-200 hover:bg-white/10"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {isAudioLocked ? <Lock className="w-4 h-4 text-amber-400" /> : <Unlock className="w-4 h-4 text-slate-400" />}
+                  <span>{isAudioLocked ? "Unlock Microphones" : "Lock All Microphones"}</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white/10">
+                  {isAudioLocked ? "Locked" : "Open"}
+                </span>
+              </button>
+
+              {/* Screen Share Toggle */}
+              <button
+                onClick={() => {
+                  onScreenShareToggle()
+                  setShowHostMenu(false)
+                }}
+                className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-semibold cursor-pointer ${
+                  isScreenSharing
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "bg-white/5 text-slate-200 hover:bg-white/10"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {isScreenSharing ? <MonitorOff className="w-4 h-4 text-primary" /> : <MonitorUp className="w-4 h-4 text-slate-400" />}
+                  <span>{isScreenSharing ? "Stop Sharing Screen" : "Share Screen"}</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white/10">
+                  {isScreenSharing ? "Active" : "Off"}
+                </span>
+              </button>
+
+              {/* Mute All */}
+              <button
+                onClick={handleMuteAll}
+                className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 text-slate-200 rounded-2xl text-xs font-semibold cursor-pointer"
+              >
+                <MicOff className="w-4 h-4 text-slate-400" />
+                <span>Mute All Seekers</span>
+              </button>
+
+              {/* Disable Cameras */}
+              <button
+                onClick={handleDisableCameras}
+                className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 text-slate-200 rounded-2xl text-xs font-semibold cursor-pointer"
+              >
+                <VideoOff className="w-4 h-4 text-slate-400" />
+                <span>Disable All Cameras</span>
+              </button>
+
+              {/* Disable Chat */}
+              <button
+                onClick={handleDisableChat}
+                className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 text-slate-200 rounded-2xl text-xs font-semibold cursor-pointer"
+              >
+                <MessageSquareOff className={`w-4 h-4 ${isChatDisabled ? "text-red-400" : "text-slate-400"}`} />
+                <span>{isChatDisabled ? "Enable Chat" : "Disable Chat"}</span>
+              </button>
+
+              {/* End Session */}
+              <button
+                onClick={() => {
+                  setShowHostMenu(false)
+                  setShowShutdownModal(true)
+                }}
+                className="w-full flex items-center gap-3 p-3 bg-red-600/20 hover:bg-red-600/30 text-red-300 rounded-2xl text-xs font-bold cursor-pointer border border-red-500/30 mt-2"
+              >
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span>End Session for All</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showShutdownModal && (
         <ShutdownModal

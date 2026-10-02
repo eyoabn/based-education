@@ -13,7 +13,8 @@ import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlay
 import FloatingReactions, { ReactionPicker } from "@/components/live/FloatingReactions"
 import {
   Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown,
-  Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X, Smile, Lock
+  Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X, Smile, Lock,
+  PhoneOff, MoreVertical
 } from "lucide-react"
 
 interface StudentLivePageProps {
@@ -85,6 +86,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const [showScreenSharePermissionModal, setShowScreenSharePermissionModal] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
   const [showReactions, setShowReactions] = useState(false)
+  const [showMobileMoreMenu, setShowMobileMoreMenu] = useState(false)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
   const [raisedHands, setRaisedHands] = useState<Set<string>>(new Set())
@@ -350,25 +352,26 @@ function StudentRoom({ roomId }: { roomId: string }) {
         {/* Main Stage (Google Meet Layout) */}
         <div className="flex-1 flex flex-col min-w-0 relative h-full">
           {/* Top Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-black/60 backdrop-blur-2xl border-b border-white/10 z-10">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-red-600/20 border border-red-500/30 rounded-full">
+          <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3 bg-black/60 backdrop-blur-2xl border-b border-white/10 z-10">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs font-bold text-red-400 uppercase tracking-wide">LIVE</span>
+                <span className="text-[11px] sm:text-xs font-bold text-red-400 uppercase tracking-wide">LIVE</span>
               </div>
-              <div>
-                <h1 className="font-bold text-white text-sm truncate max-w-[150px] sm:max-w-xs">{decodeURIComponent(roomId)}</h1>
-                <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                  <Clock className="w-3 h-3" />
+              <div className="min-w-0">
+                <h1 className="font-bold text-white text-xs sm:text-sm truncate max-w-[120px] sm:max-w-xs">{decodeURIComponent(roomId)}</h1>
+                <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-400">
+                  <Clock className="w-3 h-3 shrink-0" />
                   <LiveDuration />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {isRepresentative && (
-                <span className="hidden sm:flex items-center gap-1 text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-full">
-                  <Crown className="w-3.5 h-3.5" /> Co-Host
+                <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2 sm:px-2.5 py-1 rounded-full">
+                  <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline">Co-Host</span>
                 </span>
               )}
 
@@ -392,15 +395,15 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 }}
               />
 
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 text-xs text-emerald-400">
+              <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 text-xs text-emerald-400">
                 <Wifi className="w-3.5 h-3.5" />
                 <span className="font-semibold text-[11px]">HD</span>
               </div>
 
-              {/* Fullscreen Toggle Button */}
+              {/* Fullscreen Toggle Button - Desktop */}
               <button
                 onClick={toggleFullscreen}
-                className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/10 transition-colors"
+                className="hidden sm:flex p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/10 transition-colors cursor-pointer"
                 title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -409,7 +412,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
               {/* Toggle Chat Tab */}
               <button
                 onClick={() => toggleTab("chat")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   isPanelOpen && activeTab === "chat"
                     ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
                     : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
@@ -422,7 +425,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
               {/* Toggle People Tab */}
               <button
                 onClick={() => toggleTab("participants")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   isPanelOpen && activeTab === "participants"
                     ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
                     : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
@@ -432,18 +435,18 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 <span className="hidden sm:inline">People</span>
                 {raisedHands.size > 0 && (
                   <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-bold">
-                    {raisedHands.size}
+                    ✋ {raisedHands.size}
                   </span>
                 )}
               </button>
 
-              {/* Leave Button */}
+              {/* Leave Button - Desktop */}
               <button
                 onClick={handleLeave}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-xl text-red-400 text-xs font-semibold transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-xl text-red-400 text-xs font-semibold transition-colors cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Leave</span>
+                <span>Leave</span>
               </button>
             </div>
           </div>
@@ -454,8 +457,90 @@ function StudentRoom({ roomId }: { roomId: string }) {
             <LiveGrid isTeacher={false} />
             <FloatingReactions room={room} currentUserName={localParticipant?.name || "Student"} />
 
-            {/* Google Meet Style Floating Bottom Control Bar */}
-            <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 w-max max-w-[96vw]">
+            {/* 1. Google Meet Mobile Bottom Control Dock (< sm screens) */}
+            <div className="flex sm:hidden fixed bottom-3 inset-x-0 z-30 justify-center px-4 pointer-events-none pb-[env(safe-area-inset-bottom)]">
+              <div className="flex items-center justify-between w-full max-w-[360px] bg-[#141418]/92 backdrop-blur-2xl border border-white/15 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.85)] pointer-events-auto">
+                {/* Mic */}
+                <button
+                  onClick={handleMicToggle}
+                  className={`relative w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                    isMicEnabled
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : isAudioLocked && !isRepresentative && !hasMicPermission
+                      ? "bg-amber-950/60 text-amber-300 border border-amber-500/40"
+                      : "bg-red-600 text-white shadow-red-600/40"
+                  }`}
+                  title={
+                    isAudioLocked && !isRepresentative && !hasMicPermission
+                      ? "Microphones are locked by instructor"
+                      : isMicEnabled
+                      ? "Mute"
+                      : "Unmute"
+                  }
+                >
+                  {isMicEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                  {isAudioLocked && !isRepresentative && !hasMicPermission && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-black flex items-center justify-center text-[8px] font-black text-black">
+                      🔒
+                    </span>
+                  )}
+                </button>
+
+                {/* Camera */}
+                <button
+                  onClick={handleCamToggle}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                    isCamEnabled
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : "bg-red-600 text-white shadow-red-600/40"
+                  }`}
+                  title={isCamEnabled ? "Stop Camera" : "Start Camera"}
+                >
+                  {isCamEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                </button>
+
+                {/* Raise Hand (✋) */}
+                <button
+                  onClick={toggleHand}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                    handRaised
+                      ? "bg-amber-500 text-black font-bold ring-2 ring-amber-300 shadow-amber-500/40"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                  title={handRaised ? "Lower Hand" : "Raise Hand"}
+                >
+                  <Hand className={`w-5 h-5 ${handRaised ? "animate-bounce" : ""}`} />
+                </button>
+
+                {/* More Options (⋮) */}
+                <button
+                  onClick={() => {
+                    setShowMobileMoreMenu(!showMobileMoreMenu)
+                    setShowReactions(false)
+                  }}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                    showMobileMoreMenu
+                      ? "bg-primary text-black font-bold ring-2 ring-primary/40"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                  title="More options"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+
+                {/* Leave / End Call (Red Phone) */}
+                <button
+                  onClick={handleLeave}
+                  className="w-11 h-11 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition-transform active:scale-90 shadow-lg shadow-red-600/50 cursor-pointer"
+                  title="Leave Sanctuary"
+                >
+                  <PhoneOff className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Desktop Bottom Control Bar (>= sm screens) */}
+            <div className="hidden sm:flex absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-max max-w-[96vw]">
               <div className="flex items-center gap-1 sm:gap-2 bg-[#0c0c0f]/90 backdrop-blur-2xl border border-white/15 rounded-3xl p-1.5 sm:p-2 px-2.5 sm:px-4 shadow-2xl shadow-black">
                 {/* Mic */}
                 <button
@@ -596,6 +681,132 @@ function StudentRoom({ roomId }: { roomId: string }) {
             </div>
           </div>
         </div>
+
+        {/* Google Meet Style Mobile More Options Bottom Sheet */}
+        {showMobileMoreMenu && (
+          <>
+            <div
+              onClick={() => setShowMobileMoreMenu(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 sm:hidden cursor-pointer animate-in fade-in duration-200"
+            />
+            <div className="fixed inset-x-0 bottom-0 z-50 sm:hidden bg-[#121216]/98 backdrop-blur-2xl border-t border-white/15 rounded-t-3xl p-5 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-200 flex flex-col gap-4">
+              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
+              
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-bold text-sm tracking-wide">Meeting Controls & Actions</h3>
+                <button
+                  onClick={() => setShowMobileMoreMenu(false)}
+                  className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* In-Call Messages */}
+                <button
+                  onClick={() => {
+                    setShowMobileMoreMenu(false)
+                    toggleTab("chat")
+                  }}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                    <MessageSquare className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold truncate">In-call Chat</p>
+                    <p className="text-[10px] text-slate-400 truncate">Send messages</p>
+                  </div>
+                </button>
+
+                {/* People & Participants */}
+                <button
+                  onClick={() => {
+                    setShowMobileMoreMenu(false)
+                    toggleTab("participants")
+                  }}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold truncate">People</p>
+                    <p className="text-[10px] text-slate-400 truncate">
+                      {raisedHands.size > 0 ? `✋ ${raisedHands.size} raised` : "View attendees"}
+                    </p>
+                  </div>
+                </button>
+
+                {/* Stickers & Reactions */}
+                <button
+                  onClick={() => {
+                    setShowMobileMoreMenu(false)
+                    setShowReactions(true)
+                  }}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <Smile className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold truncate">Send Stickers</p>
+                    <p className="text-[10px] text-slate-400 truncate">React live</p>
+                  </div>
+                </button>
+
+                {/* Share Screen */}
+                <button
+                  onClick={() => {
+                    setShowMobileMoreMenu(false)
+                    handleScreenShareToggle()
+                  }}
+                  className={`flex items-center gap-3 p-3 rounded-2xl border text-left transition-colors cursor-pointer ${
+                    isScreenSharing
+                      ? "bg-primary/20 border-primary/40 text-primary"
+                      : "bg-white/5 hover:bg-white/10 border-white/10"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    {isScreenSharing ? <MonitorOff className="w-4 h-4" /> : <MonitorUp className="w-4 h-4" />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-bold truncate">
+                      {isScreenSharing ? "Stop Sharing" : "Share Screen"}
+                    </p>
+                    <p className="text-[10px] text-slate-400 truncate">
+                      {isRepresentative ? "Ready" : "Req. Co-Host"}
+                    </p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Status details banner */}
+              <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-slate-300 font-medium">Room Security</span>
+                </div>
+                <span className="text-slate-400 text-[11px]">
+                  {isAudioLocked ? "🔒 Host Locked Mics" : "🔓 Open Discussion"}
+                </span>
+              </div>
+
+              {/* Fullscreen toggle button in mobile sheet */}
+              <button
+                onClick={() => {
+                  toggleFullscreen()
+                  setShowMobileMoreMenu(false)
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                <span>{isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen Mode"}</span>
+              </button>
+            </div>
+          </>
+        )}
 
         {/* Permission Modal for Student Screen Share */}
         {showScreenSharePermissionModal && (
