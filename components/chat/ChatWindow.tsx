@@ -137,16 +137,46 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
       prev.map(c => (c.id === activeConvId ? { ...c, unreadCount: 0 } : c))
     )
 
-    // Set up polling every 3.5 seconds
+    // Real-time instant delivery via SSE (zero DB polling overhead)
+    const eventSource = new EventSource("/api/notifications/stream")
+
+    eventSource.onmessage = (event) => {
+      if (!event.data || event.data.startsWith(":")) return
+      try {
+        const payload = JSON.parse(event.data)
+        if (payload.type === "CHAT_MESSAGE") {
+          if (payload.conversationId === activeConvId && payload.message) {
+            setMessages(prev => {
+              if (prev.some(m => m.id === payload.message.id)) return prev
+              return [...prev, payload.message]
+            })
+            setTimeout(() => scrollToBottom(false), 50)
+          } else if (payload.conversationId) {
+            setConversations(prev =>
+              prev.map(c =>
+                c.id === payload.conversationId
+                  ? { ...c, unreadCount: (c.unreadCount || 0) + 1 }
+                  : c
+              )
+            )
+          }
+        }
+      } catch (err) {
+        console.error("Failed to parse SSE chat message:", err)
+      }
+    }
+
+    // Relaxed safety-net sync (every 45s) only if SSE drops
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
     pollIntervalRef.current = setInterval(() => {
       fetchMessages(activeConvId, true)
-    }, 3500)
+    }, 45000)
 
     return () => {
+      eventSource.close()
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
     }
-  }, [activeConvId, fetchMessages])
+  }, [activeConvId, fetchMessages, scrollToBottom])
 
   // Send message
   const handleSendMessage = async (e: React.FormEvent) => {

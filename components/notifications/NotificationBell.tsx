@@ -68,6 +68,7 @@ export default function NotificationBell() {
         return
       }
       if (!notification?.type) return
+      if ((notification as any).type === "CHAT_MESSAGE") return
 
       setUnreadCount(prev => prev + 1)
 

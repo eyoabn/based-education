@@ -159,10 +159,23 @@ export async function POST(
       select: { userId: true },
     });
 
+    const formattedMessage = {
+      id: message.id,
+      conversationId: message.conversationId,
+      senderId: message.senderId,
+      senderName: message.sender.name,
+      senderAvatar: message.sender.avatarUrl,
+      senderRole: message.sender.role,
+      content: message.content,
+      isMe: false,
+      createdAt: message.createdAt.toISOString(),
+    };
+
     for (const other of otherParticipants) {
       notifyUser(other.userId, {
         type: 'CHAT_MESSAGE',
         conversationId,
+        message: formattedMessage,
         senderName: session.name,
         content: content.trim().slice(0, 100),
         createdAt: now.toISOString(),

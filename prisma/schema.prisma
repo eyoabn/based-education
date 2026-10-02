@@ -283,6 +283,8 @@ model LiveRoom {
 
   @@index([teacherId, scheduledAt])
   @@index([courseId, scheduledAt])
+  @@index([isLive, endedAt])
+  @@index([title])
 }
 
 model Attendance {
