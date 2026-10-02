@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { room, action, identity, chatDisabled } = body;
+    const { room, action, identity, chatDisabled, isLocked } = body;
     if (!room || !action) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
@@ -215,6 +215,48 @@ export async function POST(request: NextRequest) {
           console.warn("Mute all error:", err);
         }
         await sendRoomData({ action: 'MUTE_ALL' });
+        break;
+      }
+
+      case 'LOCK_MICS': {
+        const locked = typeof isLocked === 'boolean' ? isLocked : true;
+        try {
+          const roomInfo = await roomService.listRooms([targetRoom]).then(res => res[0]).catch(() => null);
+          let metaObj: any = {};
+          try { metaObj = JSON.parse(roomInfo?.metadata || '{}'); } catch {}
+          await roomService.updateRoomMetadata(targetRoom, JSON.stringify({ ...metaObj, isAudioLocked: locked })).catch(() => {
+            if (targetRoom !== decodedRoom) {
+              return roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...metaObj, isAudioLocked: locked })).catch(() => {});
+            }
+          });
+        } catch (err: any) {
+          console.warn("Update room metadata error in LOCK_MICS:", err);
+        }
+
+        // If locking mics, force mute all attendee tracks on LiveKit server
+        if (locked) {
+          try {
+            const participants = await roomService.listParticipants(targetRoom).catch(() => []);
+            for (const p of participants) {
+              if (p.identity !== session.userId) {
+                const aTracks = p.tracks.filter(t => t.type === 0);
+                for (const track of aTracks) {
+                  await roomService.mutePublishedTrack(targetRoom, p.identity, track.sid, true).catch(() => {});
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Mute tracks error in LOCK_MICS:", err);
+          }
+        }
+
+        await sendRoomData({ action: 'LOCK_MICS', isLocked: locked });
+        break;
+      }
+
+      case 'ALLOW_MIC': {
+        if (!identity) return NextResponse.json({ error: 'Missing identity' }, { status: 400 });
+        await sendRoomData({ action: 'ALLOW_MIC', identity });
         break;
       }
 

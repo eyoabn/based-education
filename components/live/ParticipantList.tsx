@@ -27,6 +27,7 @@ interface ParticipantListProps {
   onToggleRepresentative?: (identity: string) => void
   onShutCamera?: (identity: string) => void
   onMute?: (identity: string) => void
+  onAllowMic?: (identity: string) => void
   onKick?: (identity: string) => void
   onBan?: (identity: string) => void
 }
@@ -40,6 +41,7 @@ export default function ParticipantList({
   onToggleRepresentative,
   onShutCamera,
   onMute,
+  onAllowMic,
   onKick,
   onBan,
 }: ParticipantListProps) {
@@ -126,6 +128,24 @@ export default function ParticipantList({
     showNotice(`Turned off camera for ${name}.`)
   }
 
+  const handleAllowMicOne = async (identity: string, name: string) => {
+    setMutedOverride(prev => {
+      const next = new Set(prev)
+      next.delete(identity)
+      return next
+    })
+    if (onAllowMic) {
+      onAllowMic(identity)
+    } else {
+      await fetch("/api/live/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room: roomId, action: "ALLOW_MIC", identity }),
+      })
+    }
+    showNotice(`Granted speaking permission to ${name}.`)
+  }
+
   const handleToggleRep = async (identity: string, name: string, isCurrentlyRep: boolean) => {
     if (onToggleRepresentative) {
       onToggleRepresentative(identity)
@@ -197,6 +217,7 @@ export default function ParticipantList({
                   isForceCamOff={isCamOff}
                   onOpenActions={() => setSelectedStudentForAction({ identity: p.identity, name })}
                   onMute={() => handleMuteOne(p.identity, name)}
+                  onAllowMic={() => handleAllowMicOne(p.identity, name)}
                   onShutCamera={() => handleShutCameraOne(p.identity, name)}
                   onToggleRep={() => handleToggleRep(p.identity, name, isRep)}
                   onLowerHand={onLowerHand}
@@ -316,6 +337,7 @@ function ParticipantRow({
   isForceCamOff,
   onOpenActions,
   onMute,
+  onAllowMic,
   onShutCamera,
   onToggleRep,
   onLowerHand,
@@ -330,6 +352,7 @@ function ParticipantRow({
   isForceCamOff?: boolean
   onOpenActions: () => void
   onMute: () => void
+  onAllowMic?: () => void
   onShutCamera: () => void
   onToggleRep: () => void
   onLowerHand?: (identity: string) => void
@@ -433,13 +456,27 @@ function ParticipantRow({
         </div>
       )}
 
-      {isRaisedHand && onLowerHand && (
-        <button
-          onClick={() => onLowerHand(p.identity)}
-          className="text-[10px] text-amber-400 hover:text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
-        >
-          Lower
-        </button>
+      {isRaisedHand && (
+        <div className="flex items-center gap-1.5">
+          {canModerate && onAllowMic && (
+            <button
+              onClick={onAllowMic}
+              className="text-[10px] font-bold text-black bg-emerald-400 hover:bg-emerald-300 px-2.5 py-0.5 rounded-full transition-colors cursor-pointer shadow-sm flex items-center gap-1"
+              title="Grant speaking permission to student"
+            >
+              <Mic className="w-2.5 h-2.5" />
+              <span>Allow Mic</span>
+            </button>
+          )}
+          {onLowerHand && (
+            <button
+              onClick={() => onLowerHand(p.identity)}
+              className="text-[10px] text-amber-400 hover:text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+            >
+              Lower
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

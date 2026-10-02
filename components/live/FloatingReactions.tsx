@@ -81,6 +81,24 @@ export default function FloatingReactions({ room, currentUserName }: FloatingRea
     }
   }, [room, spawnReaction])
 
+  // Listen to local triggers (when local student or teacher clicks a sticker)
+  useEffect(() => {
+    const handleLocalReaction = (e: Event) => {
+      const customEvent = e as CustomEvent<{ emoji: string; senderName?: string }>
+      if (customEvent.detail?.emoji) {
+        spawnReaction(
+          customEvent.detail.emoji,
+          customEvent.detail.senderName || currentUserName || "You"
+        )
+      }
+    }
+
+    window.addEventListener("local-live-reaction", handleLocalReaction)
+    return () => {
+      window.removeEventListener("local-live-reaction", handleLocalReaction)
+    }
+  }, [spawnReaction, currentUserName])
+
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden select-none">
       {reactions.map((reaction) => (
@@ -102,7 +120,9 @@ export default function FloatingReactions({ room, currentUserName }: FloatingRea
 
           {/* Sender Name Pill (Google Meet Style) */}
           <div className="mt-1 px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-[11px] font-medium text-slate-200 shadow-lg whitespace-nowrap">
-            {reaction.senderName === currentUserName ? "You" : reaction.senderName}
+            {reaction.senderName === currentUserName || reaction.senderName === "You"
+              ? "You"
+              : reaction.senderName}
           </div>
         </div>
       ))}
@@ -121,10 +141,25 @@ interface ReactionPickerProps {
 }
 
 export function ReactionPicker({ room, currentUserName, isOpen, onClose }: ReactionPickerProps) {
+  const [lastSentEmoji, setLastSentEmoji] = useState<string | null>(null)
+
   if (!isOpen) return null
 
   const handleSendEmoji = async (emoji: string) => {
-    // 1. Send via WebRTC to everyone in room
+    // 1. Immediate visual pop feedback on the button itself
+    setLastSentEmoji(emoji)
+    setTimeout(() => setLastSentEmoji(null), 500)
+
+    // 2. Dispatch local reaction so sender immediately sees their sticker floating up with "You"
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("local-live-reaction", {
+          detail: { emoji, senderName: currentUserName || "You" },
+        })
+      )
+    }
+
+    // 3. Send via WebRTC to everyone in room
     if (room && room.localParticipant) {
       try {
         const encoder = new TextEncoder()
@@ -146,19 +181,29 @@ export function ReactionPicker({ room, currentUserName, isOpen, onClose }: React
   return (
     <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in-95 duration-150">
       <div className="flex items-center gap-1 sm:gap-1.5 bg-black/90 backdrop-blur-2xl border border-white/20 px-2 sm:px-3 py-2 rounded-2xl sm:rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.8)]">
-        {MEET_STICKERS.map((sticker) => (
-          <button
-            key={sticker.emoji}
-            onClick={() => handleSendEmoji(sticker.emoji)}
-            title={sticker.label}
-            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl hover:scale-130 active:scale-95 hover:-translate-y-1 transition-all duration-150 rounded-full hover:bg-white/15 cursor-pointer"
-          >
-            {sticker.emoji}
-          </button>
-        ))}
+        {MEET_STICKERS.map((sticker) => {
+          const isSelected = lastSentEmoji === sticker.emoji
+          return (
+            <button
+              key={sticker.emoji}
+              onClick={() => handleSendEmoji(sticker.emoji)}
+              title={sticker.label}
+              className={`relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl rounded-full transition-all duration-150 cursor-pointer ${
+                isSelected
+                  ? "scale-130 bg-amber-400/30 ring-2 ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.6)]"
+                  : "hover:scale-130 active:scale-95 hover:-translate-y-1 hover:bg-white/15"
+              }`}
+            >
+              {sticker.emoji}
+              {isSelected && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              )}
+            </button>
+          )
+        })}
         <button
           onClick={onClose}
-          className="ml-1 p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
+          className="ml-1 p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10 cursor-pointer"
           title="Close reactions"
         >
           <X className="w-3.5 h-3.5" />

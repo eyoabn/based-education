@@ -13,7 +13,7 @@ import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlay
 import FloatingReactions, { ReactionPicker } from "@/components/live/FloatingReactions"
 import {
   Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown,
-  Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X, Smile
+  Maximize2, Minimize2, PanelRightClose, PanelRightOpen, MonitorUp, MonitorOff, ShieldAlert, X, Smile, Lock
 } from "lucide-react"
 
 interface StudentLivePageProps {
@@ -70,14 +70,17 @@ function LiveDuration() {
   return <span className="font-mono">{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}</span>
 }
 
-function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, initialMediaEnabled?: boolean }) {
+function StudentRoom({ roomId }: { roomId: string }) {
   const router = useRouter()
   const connectionState = useConnectionState()
   const hasConnectedRef = useRef(false)
   const { localParticipant } = useLocalParticipant()
 
-  const [isMicEnabled, setIsMicEnabled] = useState(initialMediaEnabled)
-  const [isCamEnabled, setIsCamEnabled] = useState(initialMediaEnabled)
+  // Students join muted and with camera off by default
+  const [isMicEnabled, setIsMicEnabled] = useState(false)
+  const [isCamEnabled, setIsCamEnabled] = useState(false)
+  const [isAudioLocked, setIsAudioLocked] = useState(false)
+  const [hasMicPermission, setHasMicPermission] = useState(false)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [showScreenSharePermissionModal, setShowScreenSharePermissionModal] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
@@ -134,6 +137,12 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
       try {
         const parsed = JSON.parse(metadata)
         setIsChatDisabled(!!parsed.chatDisabled)
+        if (typeof parsed.isAudioLocked === "boolean") {
+          setIsAudioLocked(parsed.isAudioLocked)
+          if (parsed.isAudioLocked) {
+            setHasMicPermission(false)
+          }
+        }
         setRepresentatives(parsed.representatives || [])
         setMediaState(parsed.mediaState || null)
       } catch (e) {}
@@ -162,6 +171,20 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
               localParticipant?.setMicrophoneEnabled(false)
               setIsMicEnabled(false)
               setModerationNotice("Your microphone was muted by the instructor.")
+            } else if (data.action === "LOCK_MICS") {
+              const locked = !!data.isLocked
+              setIsAudioLocked(locked)
+              if (locked) {
+                setHasMicPermission(false)
+                localParticipant?.setMicrophoneEnabled(false)
+                setIsMicEnabled(false)
+                setModerationNotice("Microphones have been locked by the instructor. You cannot unmute until permitted.")
+              } else {
+                setModerationNotice("Microphones have been unlocked by the instructor.")
+              }
+            } else if (data.action === "ALLOW_MIC" && data.identity === localParticipant?.identity) {
+              setHasMicPermission(true)
+              setModerationNotice("The instructor has granted you speaking permission! You may unmute your microphone.")
             } else if (data.action === "DISABLE_CAMERAS_ALL" || (data.identity === localParticipant?.identity && data.action === "SHUT_CAMERA")) {
               localParticipant?.setCameraEnabled(false)
               setIsCamEnabled(false)
@@ -216,6 +239,11 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
   }, [roomId, disconnectReason])
 
   const handleMicToggle = async () => {
+    // If audio is locked and student is neither co-host nor granted permission:
+    if (isAudioLocked && !isRepresentative && !hasMicPermission && !isMicEnabled) {
+      setModerationNotice("Microphones are locked by the instructor. Raise your hand ✋ to request speaking permission.")
+      return
+    }
     try {
       const next = !isMicEnabled
       await localParticipant?.setMicrophoneEnabled(next)
@@ -432,15 +460,34 @@ function StudentRoom({ roomId, initialMediaEnabled = true }: { roomId: string, i
                 {/* Mic */}
                 <button
                   onClick={handleMicToggle}
-                  className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
+                  className={`relative flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
                     isMicEnabled
                       ? "bg-white/10 hover:bg-white/20 text-white"
+                      : isAudioLocked && !isRepresentative && !hasMicPermission
+                      ? "bg-amber-950/40 text-amber-300 border border-amber-500/40"
                       : "bg-red-600 text-white shadow-lg shadow-red-600/40"
                   }`}
-                  title={isMicEnabled ? "Mute microphone" : "Unmute microphone"}
+                  title={
+                    isAudioLocked && !isRepresentative && !hasMicPermission
+                      ? "Microphones are locked by instructor. Raise your hand to speak."
+                      : isMicEnabled
+                      ? "Mute microphone"
+                      : "Unmute microphone"
+                  }
                 >
-                  {isMicEnabled ? <Mic className="w-4 h-4 sm:w-5 sm:h-5" /> : <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />}
-                  <span className="text-[9px] sm:text-[10px] font-bold">{isMicEnabled ? "Mute" : "Unmute"}</span>
+                  <div className="relative">
+                    {isMicEnabled ? <Mic className="w-4 h-4 sm:w-5 sm:h-5" /> : <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />}
+                    {isAudioLocked && !isRepresentative && !hasMicPermission && (
+                      <span className="absolute -top-1 -right-1.5 text-[9px]">🔒</span>
+                    )}
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-bold">
+                    {isAudioLocked && !isRepresentative && !hasMicPermission
+                      ? "Locked"
+                      : isMicEnabled
+                      ? "Mute"
+                      : "Unmute"}
+                  </span>
                 </button>
 
                 {/* Camera */}
@@ -727,15 +774,13 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
     )
   }
 
-  const initialMediaEnabled = participantCount < 10;
-
   return (
     <LiveKitRoom
       token={token}
       serverUrl={livekitUrl}
       connect={!token.includes("mock")}
-      video={initialMediaEnabled}
-      audio={initialMediaEnabled}
+      video={false}
+      audio={false}
       options={{ 
         adaptiveStream: true, 
         dynacast: true,
@@ -746,7 +791,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
         }
       }}
     >
-      <StudentRoom roomId={roomId} initialMediaEnabled={initialMediaEnabled} />
+      <StudentRoom roomId={roomId} />
     </LiveKitRoom>
   )
 }

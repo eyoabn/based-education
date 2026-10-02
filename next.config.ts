@@ -59,12 +59,12 @@ const SECURITY_HEADERS = [
       ]
         .filter(Boolean)
         .join(' '),
-      // Camera & microphone for WebRTC.
-      "media-src 'self' blob: mediastream:",
+      // Camera & microphone for WebRTC + audio preset streams.
+      "media-src 'self' blob: mediastream: https://cdn.pixabay.com https://*.pixabay.com",
       // Web Workers used by LiveKit's Opus/VP8 encoders.
       "worker-src 'self' blob:",
-      // Frame sources — only same origin (no third-party iframes).
-      "frame-src 'self'",
+      // Frame sources — same origin and YouTube embeds for shared media playback.
+      "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
     ].join('; '),
   },
 ]

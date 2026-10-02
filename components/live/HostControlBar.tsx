@@ -15,6 +15,8 @@ import {
   Users,
   MessageSquareOff,
   Smile,
+  Lock,
+  Unlock,
 } from "lucide-react"
 import ShutdownModal from "./ShutdownModal"
 import { ReactionPicker } from "./FloatingReactions"
@@ -26,6 +28,8 @@ interface HostControlBarProps {
   isMicEnabled: boolean
   isCamEnabled: boolean
   isScreenSharing: boolean
+  isAudioLocked?: boolean
+  onToggleLockMics?: () => void
   onMicToggle: () => void
   onCamToggle: () => void
   onScreenShareToggle: () => void
@@ -43,6 +47,8 @@ export default function HostControlBar({
   isMicEnabled,
   isCamEnabled,
   isScreenSharing,
+  isAudioLocked = false,
+  onToggleLockMics,
   onMicToggle,
   onCamToggle,
   onScreenShareToggle,
@@ -161,35 +167,73 @@ export default function HostControlBar({
                 setShowReactions(false)
               }}
               className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all duration-200 cursor-pointer ${
-                showHostMenu
+                showHostMenu || isAudioLocked
                   ? "bg-primary/20 text-primary ring-1 ring-primary/40 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
                   : "bg-white/5 hover:bg-white/10 text-white"
               }`}
             >
-              <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[9px] sm:text-[10px] font-medium opacity-70">Host</span>
+              <div className="relative">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+                {isAudioLocked && (
+                  <span className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full bg-amber-400 border border-black flex items-center justify-center text-[8px] font-black text-black">
+                    🔒
+                  </span>
+                )}
+              </div>
+              <span className="text-[9px] sm:text-[10px] font-medium opacity-70">
+                {isAudioLocked ? "Locked" : "Host"}
+              </span>
             </button>
 
             {showHostMenu && (
-              <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-56 bg-[#0A0A0A]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden">
-                <div className="p-1.5">
+              <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-64 bg-[#0A0A0A]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                <div className="p-1.5 space-y-0.5">
+                  {/* Strict Mic Lock Toggle */}
+                  <button
+                    onClick={() => {
+                      if (onToggleLockMics) onToggleLockMics()
+                      setShowHostMenu(false)
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-xs sm:text-sm rounded-xl transition-colors cursor-pointer ${
+                      isAudioLocked
+                        ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30"
+                        : "text-slate-200 hover:bg-white/5"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {isAudioLocked ? (
+                        <Lock className="w-4 h-4 text-amber-400" />
+                      ) : (
+                        <Unlock className="w-4 h-4 text-slate-400" />
+                      )}
+                      <span className="font-semibold">
+                        {isAudioLocked ? "Unlock Microphones" : "Lock Microphones"}
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      isAudioLocked ? "bg-amber-400/30 text-amber-200" : "bg-white/10 text-slate-400"
+                    }`}>
+                      {isAudioLocked ? "Muted" : "Open"}
+                    </span>
+                  </button>
+
                   <button
                     onClick={handleMuteAll}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-xs sm:text-sm text-slate-200 hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-slate-200 hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
                   >
                     <MicOff className="w-4 h-4 text-slate-400" />
                     Mute All Seekers
                   </button>
                   <button
                     onClick={handleDisableCameras}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-xs sm:text-sm text-slate-200 hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-slate-200 hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
                   >
                     <VideoOff className="w-4 h-4 text-slate-400" />
                     Disable All Cameras
                   </button>
                   <button
                     onClick={handleDisableChat}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-xs sm:text-sm text-slate-200 hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-slate-200 hover:bg-white/5 rounded-xl transition-colors cursor-pointer"
                   >
                     <MessageSquareOff
                       className={`w-4 h-4 ${isChatDisabled ? "text-red-400" : "text-slate-400"}`}
@@ -202,7 +246,7 @@ export default function HostControlBar({
                       setShowHostMenu(false)
                       setShowShutdownModal(true)
                     }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-xs sm:text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors font-bold cursor-pointer"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors font-bold cursor-pointer"
                   >
                     <AlertTriangle className="w-4 h-4" />
                     End Session for All

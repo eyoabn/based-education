@@ -11,7 +11,7 @@ import ParticipantList from "@/components/live/ParticipantList"
 import LiveChat from "@/components/live/LiveChat"
 import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
 import FloatingReactions from "@/components/live/FloatingReactions"
-import { Wifi, Users, MessageSquare, Clock, LogOut, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X, Hand } from "lucide-react"
+import { Wifi, Users, MessageSquare, Clock, LogOut, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X, Hand, Lock } from "lucide-react"
 
 interface TeacherLivePageProps {
   params: Promise<{ roomId: string }>
@@ -48,6 +48,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const room = useRoomContext()
   const { metadata } = useRoomInfo()
   const [isChatDisabled, setIsChatDisabled] = useState(false)
+  const [isAudioLocked, setIsAudioLocked] = useState(false)
   const [representatives, setRepresentatives] = useState<string[]>([])
   const [mediaState, setMediaState] = useState<MediaState | null>(null)
 
@@ -112,6 +113,9 @@ function TeacherRoom({ roomId }: { roomId: string }) {
       try {
         const parsed = JSON.parse(metadata)
         setIsChatDisabled(!!parsed.chatDisabled)
+        if (typeof parsed.isAudioLocked === "boolean") {
+          setIsAudioLocked(parsed.isAudioLocked)
+        }
         setRepresentatives(parsed.representatives || [])
         setMediaState(parsed.mediaState || null)
       } catch (e) {}
@@ -187,12 +191,29 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     }
   }
 
+  const handleToggleLockMics = async () => {
+    const nextLocked = !isAudioLocked
+    setIsAudioLocked(nextLocked)
+    try {
+      const encoder = new TextEncoder()
+      await room.localParticipant.publishData(
+        encoder.encode(JSON.stringify({ action: "LOCK_MICS", isLocked: nextLocked })),
+        { reliable: true, topic: "participant-moderation" }
+      )
+    } catch {}
+    await fetch("/api/live/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ room: roomId, action: "LOCK_MICS", isLocked: nextLocked }),
+    })
+  }
+
   const handleMuteAll = async () => {
     try {
       const encoder = new TextEncoder()
       await room.localParticipant.publishData(
         encoder.encode(JSON.stringify({ action: "MUTE_ALL" })),
-        { topic: "participant-moderation" }
+        { reliable: true, topic: "participant-moderation" }
       )
     } catch {}
     await fetch("/api/live/control", {
@@ -318,6 +339,13 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                 onUpdateMediaState={handleUpdateMediaState}
               />
               
+              {isAudioLocked && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-semibold shadow-sm">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Mics Locked</span>
+                </div>
+              )}
+
               <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 text-xs text-emerald-400">
                 <Wifi className="w-3.5 h-3.5" />
                 <span className="font-semibold text-[11px]">HD</span>
@@ -326,7 +354,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
               {/* Fullscreen Button */}
               <button
                 onClick={toggleFullscreen}
-                className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/10 transition-colors"
+                className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/10 transition-colors cursor-pointer"
                 title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -335,7 +363,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
               {/* Toggle People Button */}
               <button
                 onClick={() => toggleTab("participants")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   isPanelOpen && activeTab === "participants"
                     ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
                     : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
@@ -353,7 +381,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
               {/* Toggle Chat Button */}
               <button
                 onClick={() => toggleTab("chat")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   isPanelOpen && activeTab === "chat"
                     ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
                     : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
@@ -366,7 +394,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
               {/* End Stream */}
               <button
                 onClick={handleShutdown}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-xl text-red-400 text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-xl text-red-400 text-xs font-semibold transition-colors cursor-pointer"
                 title="Leave and End Stream for all students"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -387,6 +415,8 @@ function TeacherRoom({ roomId }: { roomId: string }) {
               isMicEnabled={isMicEnabled}
               isCamEnabled={isCamEnabled}
               isScreenSharing={isScreenSharing}
+              isAudioLocked={isAudioLocked}
+              onToggleLockMics={handleToggleLockMics}
               onMicToggle={handleMicToggle}
               onCamToggle={handleCamToggle}
               onScreenShareToggle={handleScreenShare}
@@ -457,6 +487,20 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                   raisedHands={raisedHands}
                   representatives={representatives}
                   onLowerHand={handleLowerHand}
+                  onAllowMic={async (identity) => {
+                    try {
+                      const encoder = new TextEncoder()
+                      await room.localParticipant.publishData(
+                        encoder.encode(JSON.stringify({ action: "ALLOW_MIC", identity })),
+                        { reliable: true, topic: "participant-moderation" }
+                      )
+                    } catch {}
+                    await fetch("/api/live/control", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ room: room.name || roomId, action: "ALLOW_MIC", identity }),
+                    }).catch(() => {})
+                  }}
                   onMute={async (identity) => {
                     try {
                       const encoder = new TextEncoder()
