@@ -5,7 +5,7 @@ import { verifyToken } from '@/lib/auth';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; studentId: string } }
+  { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
   try {
     const token = request.cookies.get('token')?.value;
@@ -16,7 +16,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id: courseId, studentId } = params;
+    const { id: courseId, studentId } = await params;
 
     const course = await prisma.course.findUnique({
       where: { id: courseId }
