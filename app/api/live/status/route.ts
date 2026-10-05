@@ -39,6 +39,8 @@ export async function GET(request: NextRequest) {
         OR: [
           { id: roomTitle },
           { title: roomTitle },
+          { courseId: roomTitle },
+          { course: { title: roomTitle } },
         ],
       },
       orderBy: [

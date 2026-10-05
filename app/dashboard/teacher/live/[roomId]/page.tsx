@@ -92,23 +92,9 @@ function TeacherRoom({ roomId }: { roomId: string }) {
     return () => document.removeEventListener("fullscreenchange", handleFsChange)
   }, [])
 
-  // Unload / pagehide safeguard: if teacher closes tab or navigates away, shut down the live room
-  useEffect(() => {
-    const handleUnload = () => {
-      navigator.sendBeacon?.(
-        "/api/live/control",
-        new Blob([JSON.stringify({ room: roomId, action: "SHUTDOWN_ROOM" })], {
-          type: "application/json",
-        })
-      )
-    }
-    window.addEventListener("pagehide", handleUnload)
-    window.addEventListener("beforeunload", handleUnload)
-    return () => {
-      window.removeEventListener("pagehide", handleUnload)
-      window.removeEventListener("beforeunload", handleUnload)
-    }
-  }, [roomId])
+  // Note: Live rooms are only shut down when the teacher explicitly confirms "End Stream" via handleShutdown().
+  // We intentionally do NOT shut down the room on pagehide/beforeunload so a network glitch or page refresh
+  // allows the instructor to return to the active live session with their students intact.
 
   useEffect(() => {
     if (metadata) {
@@ -689,6 +675,7 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [livekitUrl, setLivekitUrl] = useState<string | null>(null)
+  const [canonicalRoomId, setCanonicalRoomId] = useState<string>(roomId)
 
   useEffect(() => {
     fetch(`/api/live/token?room=${encodeURIComponent(roomId)}`)
@@ -698,6 +685,14 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
         else {
           setToken(data.token)
           setLivekitUrl(data.livekitUrl || process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud")
+          if (data.roomId) {
+            setCanonicalRoomId(data.roomId)
+            // Synchronize the browser URL to the canonical room ID without triggering a page reload
+            // This ensures if the teacher presses browser refresh, they reload the exact active room URL
+            if (typeof window !== "undefined" && data.roomId !== roomId) {
+              window.history.replaceState(null, "", `/dashboard/teacher/live/${encodeURIComponent(data.roomId)}`)
+            }
+          }
         }
       })
       .catch(() => setError("Failed to connect to the live session."))
@@ -749,7 +744,7 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
         }
       }}
     >
-      <TeacherRoom roomId={roomId} />
+      <TeacherRoom roomId={canonicalRoomId} />
     </LiveKitRoom>
   )
 }

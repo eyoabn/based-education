@@ -3,6 +3,15 @@ import { POST } from '@/app/api/live/control/route'
 import { NextRequest } from 'next/server'
 import { signToken } from '@/lib/auth'
 
+vi.mock('@/lib/prisma', () => ({
+  default: {
+    liveRoom: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    },
+  },
+}))
+
 describe('Live Control API Unit Tests', () => {
   it('should return 401 Unauthorized if no token cookie is provided', async () => {
     const req = new NextRequest('http://localhost:3000/api/live/control', {
