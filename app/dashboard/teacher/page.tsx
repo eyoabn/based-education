@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BookOpen, Users, Plus, Lock, Unlock, Check, X, Radio, Image as ImageIcon, ShieldCheck, MessageSquare, AlertCircle, Loader2 } from "lucide-react"
+import { BookOpen, Users, Plus, Lock, Unlock, Check, X, Radio, Image as ImageIcon, ShieldCheck, MessageSquare, AlertCircle, Loader2, Trash2, Edit, UserX, MoreVertical } from "lucide-react"
 import Link from "next/link"
 
 interface Course {
@@ -37,6 +37,13 @@ export default function TeacherDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  // Course Management State
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null)
+  const [managingStudentsCourse, setManagingStudentsCourse] = useState<Course | null>(null)
+  const [courseStudents, setCourseStudents] = useState<any[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [activeMenuCourseId, setActiveMenuCourseId] = useState<string | null>(null)
 
   // Form State
   const [title, setTitle] = useState("")
@@ -140,6 +147,108 @@ export default function TeacherDashboardPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleUpdateCourse = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingCourse) return
+    if (!title.trim()) {
+      setError("Course title is required")
+      return
+    }
+
+    setSubmitting(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/courses/${editingCourse.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          logoUrl,
+          accessMode,
+        }),
+      })
+
+      if (res.ok) {
+        setSuccessMsg("Course updated successfully!")
+        setEditingCourse(null)
+        fetchTeacherData()
+      } else {
+        const data = await res.json()
+        setError(data.error || "Failed to update course")
+      }
+    } catch {
+      setError("An unexpected error occurred")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!confirm("Are you sure you want to delete this course? This action cannot be undone.")) return
+    
+    try {
+      const res = await fetch(`/api/courses/${courseId}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        setSuccessMsg("Course deleted successfully!")
+        fetchTeacherData()
+      } else {
+        const data = await res.json()
+        alert(data.error || "Failed to delete course")
+      }
+    } catch {
+      alert("Failed to delete course")
+    }
+  }
+
+  const openManageStudents = async (course: Course) => {
+    setManagingStudentsCourse(course)
+    setLoadingStudents(true)
+    try {
+      const res = await fetch(`/api/courses/${course.id}/students`)
+      if (res.ok) {
+        const data = await res.json()
+        setCourseStudents(data.students || [])
+      }
+    } catch {
+      alert("Failed to fetch students")
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  const handleRemoveStudent = async (studentId: string) => {
+    if (!managingStudentsCourse) return
+    if (!confirm("Are you sure you want to remove this student from the course?")) return
+
+    try {
+      const res = await fetch(`/api/courses/${managingStudentsCourse.id}/students/${studentId}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        setCourseStudents(prev => prev.filter(s => s.id !== studentId))
+        setSuccessMsg("Student removed successfully")
+        fetchTeacherData()
+      } else {
+        alert("Failed to remove student")
+      }
+    } catch {
+      alert("An error occurred")
+    }
+  }
+
+  const openEditCourse = (course: Course) => {
+    setEditingCourse(course)
+    setTitle(course.title)
+    setCode(course.code)
+    setDescription(course.description || "")
+    setLogoUrl(course.logoUrl || "")
+    setAccessMode(course.accessMode)
+    setError(null)
   }
 
   const handleApproveOrReject = async (courseId: string, requestId: string, status: "APPROVED" | "REJECTED") => {
@@ -376,6 +485,31 @@ export default function TeacherDashboardPage() {
                       </Link>
                     </div>
                   </div>
+                  
+                  {/* Teacher Management Controls */}
+                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button
+                      onClick={() => openManageStudents(course)}
+                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                      title="Manage Students"
+                    >
+                      <Users className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => openEditCourse(course)}
+                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                      title="Edit Course"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCourse(course.id)}
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Delete Course"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -532,6 +666,197 @@ export default function TeacherDashboardPage() {
                 {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {submitting ? "Publishing Course..." : "Publish Course"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Course Modal */}
+      {editingCourse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0e0e13] border border-indigo-500/30 rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.9)] animate-in zoom-in-95 duration-200 text-white overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/10 p-6 pb-4 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                  <Edit className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white tracking-tight">Edit Course</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Update course details.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingCourse(null)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto p-6 pt-4 space-y-4 flex-1">
+              {error && (
+                <div className="p-3.5 bg-red-950/50 border border-red-500/30 text-red-200 text-xs font-semibold rounded-xl flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form id="edit-course-form" onSubmit={handleUpdateCourse} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Course Name <span className="text-indigo-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#17171e] border border-white/15 text-white placeholder:text-slate-500 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Course Logo URL <span className="text-slate-500 font-normal normal-case">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <ImageIcon className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="url"
+                      value={logoUrl}
+                      onChange={e => setLogoUrl(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#17171e] border border-white/15 text-white placeholder:text-slate-500 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#17171e] border border-white/15 text-white placeholder:text-slate-500 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                    Student Join Permission Mode
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setAccessMode("PUBLIC")}
+                      className={`p-3.5 rounded-xl border text-left flex flex-col gap-1.5 transition-all ${
+                        accessMode === "PUBLIC"
+                          ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-200 ring-2 ring-emerald-500/30 shadow-md"
+                          : "border-white/10 bg-[#17171e] text-slate-400 hover:text-white hover:border-white/20"
+                      }`}
+                    >
+                      <span className="font-bold text-xs flex items-center gap-1.5">
+                        <Unlock className="w-3.5 h-3.5 text-emerald-400" /> Public (Open)
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAccessMode("PERMISSION_REQUIRED")}
+                      className={`p-3.5 rounded-xl border text-left flex flex-col gap-1.5 transition-all ${
+                        accessMode === "PERMISSION_REQUIRED"
+                          ? "border-amber-500/60 bg-amber-950/40 text-amber-200 ring-2 ring-amber-500/30 shadow-md"
+                          : "border-white/10 bg-[#17171e] text-slate-400 hover:text-white hover:border-white/20"
+                      }`}
+                    >
+                      <span className="font-bold text-xs flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-amber-400" /> Restricted
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="p-5 border-t border-white/10 flex items-center justify-end gap-3 shrink-0 bg-[#0a0a0f]">
+              <button
+                type="button"
+                onClick={() => setEditingCourse(null)}
+                className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="edit-course-form"
+                disabled={submitting}
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Students Modal */}
+      {managingStudentsCourse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                  <Users className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">Manage Students</h2>
+                  <p className="text-sm text-slate-500 mt-0.5">{managingStudentsCourse.title}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setManagingStudentsCourse(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto p-0 flex-1">
+              {loadingStudents ? (
+                <div className="p-12 flex justify-center text-slate-400">
+                  <Loader2 className="w-8 h-8 animate-spin" />
+                </div>
+              ) : courseStudents.length === 0 ? (
+                <div className="p-12 text-center text-slate-500 text-sm">
+                  No students enrolled in this course yet.
+                </div>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {courseStudents.map(student => (
+                    <li key={student.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {student.avatarUrl ? (
+                          <img src={student.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center shrink-0">
+                            {student.name.substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-900 truncate">{student.name}</p>
+                          <p className="text-xs text-slate-500 truncate">{student.email}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveStudent(student.id)}
+                        className="px-3 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors shrink-0"
+                      >
+                        <UserX className="w-3.5 h-3.5" /> Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>
