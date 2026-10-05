@@ -6,14 +6,14 @@
  */
 
 /** How often the in-room heartbeat fires. Must match AttendanceHeartbeat.tsx. */
-export const PING_INTERVAL_SEC = 30
+export const PING_INTERVAL_SEC = 15
 
 /**
  * A student is considered disconnected once we have not heard a ping for
- * longer than this. Four missed pings' worth of slack keeps a brief network
+ * longer than this. Three missed pings' worth of slack keeps a brief network
  * blip from flipping someone to "offline".
  */
-export const STALE_AFTER_SEC = 120
+export const STALE_AFTER_SEC = 45
 
 /** Joining later than this many minutes after the scheduled start is "Late". */
 export const LATE_GRACE_MIN = 5
@@ -136,22 +136,25 @@ export const STATUS_STYLE: Record<AttendanceStatus, string> = {
   ABSENT: 'bg-red-50 text-red-700 ring-red-600/20',
 }
 
-/** `3720` -> `"1h 02m"`, `2700` -> `"45m 00s"`. */
+/** `3720` -> `"1h 02m 00s"`, `2700` -> `"45m 00s"`, `45` -> `"45s"`. */
 export function formatDuration(totalSec: number): string {
-  if (!totalSec || totalSec < 0) return '—'
+  if (totalSec === undefined || totalSec === null || totalSec < 0) return '—'
+  if (totalSec === 0) return '0s'
   const h = Math.floor(totalSec / 3600)
   const m = Math.floor((totalSec % 3600) / 60)
   const s = Math.floor(totalSec % 60)
-  if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`
-  return `${m}m ${String(s).padStart(2, '0')}s`
+  if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`
+  if (m > 0) return `${m}m ${String(s).padStart(2, '0')}s`
+  return `${s}s`
 }
 
-/** Local-time clock, e.g. `"09:04 AM"`. Returns an em dash for null. */
-export function formatClock(iso: string | null): string {
+/** Local-time clock with seconds, e.g. `"09:04:15 AM"`. Returns an em dash for null. */
+export function formatClock(iso: string | null, includeSeconds = true): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleTimeString(undefined, {
     hour: '2-digit',
     minute: '2-digit',
+    second: includeSeconds ? '2-digit' : undefined,
   })
 }
 

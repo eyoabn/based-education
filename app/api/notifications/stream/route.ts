@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
-// In a real production environment, you'd use Redis Pub/Sub, a message queue, 
-// or a dedicated real-time service (Pusher, Socket.io, Supabase Realtime).
-// This is a simple in-memory mock for Phase 2 demonstration.
-const clients = new Set<{ userId: string, controller: ReadableStreamDefaultController }>();
+type SseClient = { userId: string; controller: ReadableStreamDefaultController };
+
+declare global {
+  var __sseClients: Set<SseClient> | undefined;
+}
+
+const clients: Set<SseClient> = globalThis.__sseClients || new Set();
+globalThis.__sseClients = clients;
 
 // Simple function to push events to a specific user
 export function notifyUser(userId: string, data: any) {

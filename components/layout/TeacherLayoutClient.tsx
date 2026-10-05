@@ -7,6 +7,7 @@ import { Search, LayoutDashboard, Rss, Video, Calendar, Users, FileText, Graduat
 import NotificationBell from "@/components/notifications/NotificationBell"
 import LogoutButton from "@/components/auth/LogoutButton"
 import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
+import GlobalSearchBar from "./GlobalSearchBar"
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, href: '/dashboard/teacher' },
@@ -155,14 +156,7 @@ export default function TeacherLayoutClient({ children }: { children: ReactNode 
             {/* Mobile Brand Name */}
             <span className="font-bold text-sm sm:hidden text-slate-800 shrink-0">BasedEducation</span>
 
-            <div className="flex-1 relative hidden sm:block">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text"
-                placeholder="Search students, resources..."
-                className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-100 border-none rounded-lg text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-shadow"
-              />
-            </div>
+            <GlobalSearchBar role="teacher" placeholder="Search courses, live rooms, students..." />
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">

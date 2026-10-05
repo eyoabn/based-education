@@ -60,9 +60,12 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date();
+    const canonicalRoomId = room.id;
+    const isClosing = request.nextUrl.searchParams.get('close') === '1' || body?.close === true;
+    const effectiveIsActive = isClosing ? false : isActive;
 
     const existing = await prisma.attendance.findUnique({
-      where: { roomId_studentId: { roomId, studentId: session.userId } },
+      where: { roomId_studentId: { roomId: canonicalRoomId, studentId: session.userId } },
       select: { id: true, durationSec: true, activeSec: true, lastPingAt: true },
     });
 
@@ -70,14 +73,14 @@ export async function POST(request: NextRequest) {
     if (!existing) {
       const created = await prisma.attendance.create({
         data: {
-          roomId,
+          roomId: canonicalRoomId,
           studentId: session.userId,
           joinedAt: now,
           leftAt: now,
           lastPingAt: now,
           durationSec: 0,
           activeSec: 0,
-          isActive,
+          isActive: effectiveIsActive,
         },
         select: { durationSec: true, activeSec: true },
       });
@@ -90,22 +93,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Elapsed since the previous ping, clamped so a long disconnect (laptop
-    // closed, tab suspended) is not credited as attendance time.
+    // Elapsed since previous ping. If gap is longer than STALE_AFTER_SEC,
+    // the student was disconnected/away, so credit 0 for that disconnected window.
     const elapsedSec = existing.lastPingAt
       ? Math.round((now.getTime() - existing.lastPingAt.getTime()) / 1000)
       : PING_INTERVAL_SEC;
-    const creditedSec = Math.max(0, Math.min(elapsedSec, STALE_AFTER_SEC));
+    const creditedSec = elapsedSec <= STALE_AFTER_SEC ? Math.max(0, elapsedSec) : 0;
 
     const updated = await prisma.attendance.update({
-      where: { roomId_studentId: { roomId, studentId: session.userId } },
+      where: { roomId_studentId: { roomId: canonicalRoomId, studentId: session.userId } },
       data: {
         durationSec: existing.durationSec + creditedSec,
         // Attention time only accrues while the tab is actually visible.
-        activeSec: existing.activeSec + (isActive ? creditedSec : 0),
+        activeSec: existing.activeSec + (effectiveIsActive ? creditedSec : 0),
         leftAt: now,
         lastPingAt: now,
-        isActive,
+        isActive: effectiveIsActive,
       },
       select: { durationSec: true, activeSec: true },
     });
@@ -123,7 +126,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Sent on unload (via `navigator.sendBeacon`) or when the student clicks
- * Leave — closes the record immediately instead of waiting for it to go stale.
+ * Leave — closes the record immediately with exact leave timestamp.
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -137,8 +140,17 @@ export async function DELETE(request: NextRequest) {
     const roomId = searchParams.get('roomId');
     if (!roomId) return NextResponse.json({ error: 'Missing roomId' }, { status: 400 });
 
+    const room = await prisma.liveRoom.findFirst({
+      where: {
+        OR: [{ id: roomId }, { title: roomId }],
+      },
+      select: { id: true },
+    });
+
+    const targetRoomId = room?.id ?? roomId;
+
     await prisma.attendance.updateMany({
-      where: { roomId, studentId: session.userId },
+      where: { roomId: targetRoomId, studentId: session.userId },
       data: { leftAt: new Date(), isActive: false },
     });
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { ArrowUpDown, Search, UserX } from "lucide-react"
+import { ArrowUpDown, Search, UserX, Clock } from "lucide-react"
 import {
   formatClock,
   formatDuration,
@@ -208,20 +208,36 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
                 </td>
 
                 {/* Join / Leave */}
-                <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">
-                  {formatClock(row.joinedAt)}
-                </td>
-                <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">
-                  {isLive && row.isActive ? (
-                    <span className="text-emerald-600 font-semibold">In room</span>
+                <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap" title={row.joinedAt ? `Exact Joined: ${new Date(row.joinedAt).toLocaleString()}` : undefined}>
+                  {row.joinedAt ? (
+                    <span className="font-semibold text-slate-700">{formatClock(row.joinedAt, true)}</span>
                   ) : (
-                    formatClock(row.leftAt)
+                    <span className="text-slate-400">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap" title={row.leftAt ? `Last Seen / Left: ${new Date(row.leftAt).toLocaleString()}` : undefined}>
+                  {isLive && row.isActive ? (
+                    <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      In Room Now
+                    </span>
+                  ) : row.leftAt ? (
+                    <span className="text-slate-600">{formatClock(row.leftAt, true)}</span>
+                  ) : (
+                    <span className="text-slate-400">—</span>
                   )}
                 </td>
 
                 {/* Duration */}
-                <td className="px-4 py-3 text-slate-700 font-medium whitespace-nowrap">
-                  {row.joinedAt ? formatDuration(row.durationSec) : "—"}
+                <td className="px-4 py-3 font-medium whitespace-nowrap">
+                  {row.joinedAt ? (
+                    <span className="inline-flex items-center gap-1 text-slate-800 font-mono text-xs font-bold bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                      <Clock className="w-3 h-3 text-slate-500" />
+                      {formatDuration(row.durationSec)}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
                 </td>
 
                 {/* Attention */}

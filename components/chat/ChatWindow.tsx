@@ -110,6 +110,26 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
     fetchConversations()
   }, [fetchConversations])
 
+// Web Audio chime for incoming messages (synthesized, zero dependencies)
+function playMessageChime() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextClass) return
+    const ctx = new AudioContextClass()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = "sine"
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08) // A5
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.16)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.16)
+  } catch {}
+}
+
   // Fetch messages for active conversation
   const fetchMessages = useCallback(async (convId: string, isSilent = false) => {
     if (!isSilent) setMessagesLoading(true)
@@ -117,7 +137,19 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
       const res = await fetch(`/api/messages/${convId}`, { cache: "no-store" })
       if (res.ok) {
         const data = await res.json()
-        setMessages(data.messages || [])
+        const incoming: ChatMessageItem[] = data.messages || []
+        setMessages(prev => {
+          // If silent poll detected new incoming message from the other party
+          if (isSilent && incoming.length > prev.length) {
+            const newOnes = incoming.slice(prev.length)
+            const hasFromOther = newOnes.some(m => !m.isMe)
+            if (hasFromOther) {
+              playMessageChime()
+              setTimeout(() => scrollToBottom(true), 50)
+            }
+          }
+          return incoming
+        })
         if (!isSilent) setTimeout(() => scrollToBottom(false), 50)
       }
     } catch (err) {
@@ -137,46 +169,77 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
       prev.map(c => (c.id === activeConvId ? { ...c, unreadCount: 0 } : c))
     )
 
-    // Real-time instant delivery via SSE (zero DB polling overhead)
-    const eventSource = new EventSource("/api/notifications/stream")
-
-    eventSource.onmessage = (event) => {
-      if (!event.data || event.data.startsWith(":")) return
-      try {
-        const payload = JSON.parse(event.data)
-        if (payload.type === "CHAT_MESSAGE") {
-          if (payload.conversationId === activeConvId && payload.message) {
+    // 1. Cross-tab instant sync via BroadcastChannel (0ms latency across tabs)
+    let channel: BroadcastChannel | null = null
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        channel = new BroadcastChannel("app-chat-sync")
+        channel.onmessage = (event) => {
+          const payload = event.data
+          if (payload?.type === "NEW_MESSAGE" && payload.conversationId === activeConvId && payload.message) {
             setMessages(prev => {
               if (prev.some(m => m.id === payload.message.id)) return prev
+              if (!payload.message.isMe) playMessageChime()
               return [...prev, payload.message]
             })
-            setTimeout(() => scrollToBottom(false), 50)
-          } else if (payload.conversationId) {
-            setConversations(prev =>
-              prev.map(c =>
-                c.id === payload.conversationId
-                  ? { ...c, unreadCount: (c.unreadCount || 0) + 1 }
-                  : c
-              )
-            )
+            setTimeout(() => scrollToBottom(true), 40)
+            fetchConversations()
           }
         }
-      } catch (err) {
-        console.error("Failed to parse SSE chat message:", err)
       }
-    }
+    } catch {}
 
-    // Relaxed safety-net sync (every 45s) only if SSE drops
+    // 2. Real-time instant delivery via SSE
+    let eventSource: EventSource | null = null
+    try {
+      eventSource = new EventSource("/api/notifications/stream")
+      eventSource.onmessage = (event) => {
+        if (!event.data || event.data.startsWith(":")) return
+        try {
+          const payload = JSON.parse(event.data)
+          if (payload.type === "CHAT_MESSAGE") {
+            if (payload.conversationId === activeConvId && payload.message) {
+              setMessages(prev => {
+                if (prev.some(m => m.id === payload.message.id)) return prev
+                if (!payload.message.isMe) playMessageChime()
+                return [...prev, payload.message]
+              })
+              setTimeout(() => scrollToBottom(true), 40)
+              fetchConversations()
+            } else if (payload.conversationId) {
+              setConversations(prev =>
+                prev.map(c =>
+                  c.id === payload.conversationId
+                    ? { ...c, unreadCount: (c.unreadCount || 0) + 1 }
+                    : c
+                )
+              )
+            }
+          }
+        } catch (err) {
+          console.error("Failed to parse SSE chat message:", err)
+        }
+      }
+    } catch {}
+
+    // 3. Fast high-frequency silent polling (every 2.5s) to guarantee zero message delay
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
     pollIntervalRef.current = setInterval(() => {
       fetchMessages(activeConvId, true)
-    }, 45000)
+    }, 2500)
+
+    // Also sync conversation snippets and unread counters every 6s
+    const convInterval = setInterval(() => {
+      fetchConversations()
+    }, 6000)
 
     return () => {
-      eventSource.close()
+      if (channel) channel.close()
+      if (eventSource) eventSource.close()
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+      clearInterval(convInterval)
     }
-  }, [activeConvId, fetchMessages, scrollToBottom])
+  }, [activeConvId, fetchMessages, fetchConversations, scrollToBottom])
 
   // Send message
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -211,10 +274,24 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
 
       if (res.ok) {
         const data = await res.json()
+        const realMsg = data.message
         // Replace temp with real
         setMessages(prev =>
-          prev.map(m => (m.id === tempMessage.id ? data.message : m))
+          prev.map(m => (m.id === tempMessage.id ? realMsg : m))
         )
+        // Broadcast to other open tabs on this browser instantly
+        try {
+          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            const ch = new BroadcastChannel("app-chat-sync")
+            ch.postMessage({
+              type: "NEW_MESSAGE",
+              conversationId: activeConvId,
+              message: { ...realMsg, isMe: false },
+            })
+            ch.close()
+          }
+        } catch {}
+
         // Refresh conversations list to update snippet
         fetchConversations()
       }
