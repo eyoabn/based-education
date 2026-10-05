@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const session = token ? await verifyToken(token) : null;
 
     const posts = await prisma.post.findMany({
+      take: 50,
       orderBy: { createdAt: 'desc' },
       include: {
         author: {

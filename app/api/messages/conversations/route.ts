@@ -119,46 +119,59 @@ export async function GET(request: NextRequest) {
       orderBy: { conversation: { updatedAt: 'desc' } },
     });
 
-    // Compute unread count for each conversation
-    const conversations = await Promise.all(
-      allMemberships.map(async m => {
-        const lastRead = m.lastReadAt;
-        const unreadCount = await prisma.chatMessage.count({
-          where: {
-            conversationId: m.conversationId,
-            senderId: { not: session.userId },
-            createdAt: { gt: lastRead },
-          },
-        });
-
-        const lastMsg = m.conversation.messages[0] || null;
-        const otherParticipants = m.conversation.participants
-          .filter(p => p.userId !== session.userId)
-          .map(p => p.user);
-
-        return {
-          id: m.conversation.id,
-          isDirect: m.conversation.isDirect,
-          courseId: m.conversation.courseId,
-          course: m.conversation.course,
-          title: m.conversation.isDirect
-            ? otherParticipants[0]?.name || 'Direct Message'
-            : m.conversation.course?.title || 'Class Channel',
-          participants: otherParticipants,
-          lastMessage: lastMsg
-            ? {
-                id: lastMsg.id,
-                content: lastMsg.content,
-                senderName: lastMsg.sender.name,
-                senderId: lastMsg.sender.id,
-                createdAt: lastMsg.createdAt.toISOString(),
-              }
-            : null,
-          unreadCount,
-          updatedAt: m.conversation.updatedAt.toISOString(),
-        };
-      })
+    // Batch compute unread counts for all conversations in one query to avoid N+1 issue
+    const oldestLastRead = allMemberships.reduce(
+      (min, m) => (m.lastReadAt < min ? m.lastReadAt : min),
+      new Date()
     );
+
+    const recentMessages = await prisma.chatMessage.findMany({
+      where: {
+        conversationId: { in: allMemberships.map(m => m.conversationId) },
+        senderId: { not: session.userId },
+        createdAt: { gt: oldestLastRead },
+      },
+      select: { conversationId: true, createdAt: true },
+    });
+
+    const unreadMap = new Map<string, number>();
+    for (const msg of recentMessages) {
+      const membership = allMemberships.find(m => m.conversationId === msg.conversationId);
+      if (membership && msg.createdAt > membership.lastReadAt) {
+        unreadMap.set(msg.conversationId, (unreadMap.get(msg.conversationId) || 0) + 1);
+      }
+    }
+
+    const conversations = allMemberships.map(m => {
+      const unreadCount = unreadMap.get(m.conversationId) || 0;
+
+      const lastMsg = m.conversation.messages[0] || null;
+      const otherParticipants = m.conversation.participants
+        .filter(p => p.userId !== session.userId)
+        .map(p => p.user);
+
+      return {
+        id: m.conversation.id,
+        isDirect: m.conversation.isDirect,
+        courseId: m.conversation.courseId,
+        course: m.conversation.course,
+        title: m.conversation.isDirect
+          ? otherParticipants[0]?.name || 'Direct Message'
+          : m.conversation.course?.title || 'Class Channel',
+        participants: otherParticipants,
+        lastMessage: lastMsg
+          ? {
+              id: lastMsg.id,
+              content: lastMsg.content,
+              senderName: lastMsg.sender.name,
+              senderId: lastMsg.sender.id,
+              createdAt: lastMsg.createdAt.toISOString(),
+            }
+          : null,
+        unreadCount,
+        updatedAt: m.conversation.updatedAt.toISOString(),
+      };
+    });
 
     return NextResponse.json({ conversations });
   } catch (error) {

@@ -180,7 +180,7 @@ export function ReactionPicker({ room, currentUserName, isOpen, onClose }: React
 
   return (
     <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in-95 duration-150">
-      <div className="flex items-center gap-1 sm:gap-1.5 bg-black/90 backdrop-blur-2xl border border-white/20 px-2 sm:px-3 py-2 rounded-2xl sm:rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.8)]">
+      <div className="flex items-center gap-1 sm:gap-1.5 bg-black/90 backdrop-blur-2xl border border-white/20 px-2 sm:px-3 py-2 rounded-2xl sm:rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.8)] overflow-x-auto max-w-[90vw] scrollbar-hide flex-wrap justify-center sm:flex-nowrap">
         {MEET_STICKERS.map((sticker) => {
           const isSelected = lastSentEmoji === sticker.emoji
           return (
@@ -188,7 +188,7 @@ export function ReactionPicker({ room, currentUserName, isOpen, onClose }: React
               key={sticker.emoji}
               onClick={() => handleSendEmoji(sticker.emoji)}
               title={sticker.label}
-              className={`relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl rounded-full transition-all duration-150 cursor-pointer ${
+              className={`relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl rounded-full transition-all duration-150 cursor-pointer flex-shrink-0 ${
                 isSelected
                   ? "scale-130 bg-amber-400/30 ring-2 ring-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.6)]"
                   : "hover:scale-130 active:scale-95 hover:-translate-y-1 hover:bg-white/15"
@@ -203,7 +203,7 @@ export function ReactionPicker({ room, currentUserName, isOpen, onClose }: React
         })}
         <button
           onClick={onClose}
-          className="ml-1 p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10 cursor-pointer"
+          className="ml-1 p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10 cursor-pointer flex-shrink-0"
           title="Close reactions"
         >
           <X className="w-3.5 h-3.5" />
