@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { getRoomMediaState } from '@/lib/liveMediaState';
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('token')?.value;
@@ -226,11 +227,15 @@ export async function GET(request: NextRequest) {
       roomCreate: isTeacher,
     });
 
+    const targetRoomId = liveRoom?.id || roomTitle;
+    const currentMedia = getRoomMediaState(targetRoomId) || getRoomMediaState(roomTitle) || null;
+
     return NextResponse.json({ 
       token: await at.toJwt(),
-      roomId: liveRoom?.id || roomTitle,
+      roomId: targetRoomId,
       livekitUrl: livekitWsUrl,
-      participantCount
+      participantCount,
+      mediaState: currentMedia,
     });
   } catch (error) {
     console.error("[GET /api/live/token]", error);

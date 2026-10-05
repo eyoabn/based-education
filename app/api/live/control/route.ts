@@ -4,6 +4,7 @@ import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { invalidateLiveStatusCache } from '../status/route';
+import { setRoomMediaState, clearRoomMediaState } from '@/lib/liveMediaState';
 
 export async function POST(request: NextRequest) {
   try {
@@ -364,13 +365,26 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case 'UPDATE_MEDIA':
+      case 'UPDATE_MEDIA': {
         const { mediaState } = body;
+        const normalizedMedia = mediaState
+          ? {
+              ...mediaState,
+              startedAt: mediaState.isPlaying ? (mediaState.startedAt || Date.now()) : undefined,
+            }
+          : null;
+
+        // Cache in memory for instant delivery to latecomers
+        setRoomMediaState(decodedRoom, normalizedMedia);
+        if (targetRoom && targetRoom !== decodedRoom) {
+          setRoomMediaState(targetRoom, normalizedMedia);
+        }
+
         try {
           const rObj = await roomService.listRooms([decodedRoom]).then(res => res[0]).catch(() => null);
           let rMeta: any = {};
           try { rMeta = JSON.parse(rObj?.metadata || '{}'); } catch {}
-          await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...rMeta, mediaState }));
+          await roomService.updateRoomMetadata(decodedRoom, JSON.stringify({ ...rMeta, mediaState: normalizedMedia }));
         } catch (err: any) {
           if (err?.status === 404 || err?.code === 'not_found' || err?.message?.includes('not exist')) {
             console.warn(`[LiveControl] Room ${decodedRoom} does not exist on LiveKit during UPDATE_MEDIA`);
@@ -378,11 +392,14 @@ export async function POST(request: NextRequest) {
             throw err;
           }
         }
-        await sendRoomData({ action: 'UPDATE_MEDIA', mediaState });
+        await sendRoomData({ action: 'UPDATE_MEDIA', mediaState: normalizedMedia });
         break;
+      }
 
       case 'SHUTDOWN_ROOM':
-      case 'TEACHER_LEFT':
+      case 'TEACHER_LEFT': {
+        clearRoomMediaState(decodedRoom);
+        if (targetRoom) clearRoomMediaState(targetRoom);
         try {
           const encoder = new TextEncoder();
           const roomsToClean = Array.from(new Set([targetRoom, decodedRoom].filter(Boolean)));
@@ -399,6 +416,7 @@ export async function POST(request: NextRequest) {
           console.warn("LiveKit shutdown error:", e);
         }
         break;
+      }
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

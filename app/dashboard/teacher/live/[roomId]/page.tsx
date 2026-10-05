@@ -9,7 +9,7 @@ import LiveGrid from "@/components/live/LiveGrid"
 import HostControlBar from "@/components/live/HostControlBar"
 import ParticipantList from "@/components/live/ParticipantList"
 import LiveChat from "@/components/live/LiveChat"
-import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
+import SharedMediaPlayer, { MediaState, getEstimatedCurrentTime } from "@/components/live/SharedMediaPlayer"
 import FloatingReactions from "@/components/live/FloatingReactions"
 import { Wifi, Users, MessageSquare, Clock, LogOut, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X, Hand, Lock, FileAudio } from "lucide-react"
 import RecordingsManagerModal from "@/components/live/RecordingsManagerModal"
@@ -126,6 +126,11 @@ function TeacherRoom({ roomId }: { roomId: string }) {
 
   useEffect(() => {
     const handleData = (payload: Uint8Array, participant?: any, kind?: any, topic?: string) => {
+      let data: any = null
+      try {
+        data = JSON.parse(new TextDecoder().decode(payload))
+      } catch {}
+
       if (topic === "raise-hand" && participant) {
         const isRaised = new TextDecoder().decode(payload) === "true"
         setRaisedHands(prev => {
@@ -140,20 +145,90 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             name: participant.name || participant.identity || "Student"
           })
         }
-      } else if (topic === "participant-moderation") {
-        try {
-          const data = JSON.parse(new TextDecoder().decode(payload))
-          if (data.action === "LOWER_HAND") {
-            setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
-          } else if (data.action === "UPDATE_MEDIA") {
-            setMediaState(data.mediaState || null)
+      } else if (data) {
+        if (data.action === "LOWER_HAND") {
+          setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
+        } else if (data.action === "UPDATE_MEDIA") {
+          setMediaState(data.mediaState || null)
+        } else if (data.action === "REQUEST_MEDIA_SYNC") {
+          // Latecomer requesting the current synchronized music state
+          if (mediaState) {
+            const currentOffset = getEstimatedCurrentTime(mediaState)
+            const syncPayload = {
+              action: "SYNC_MEDIA_STATE",
+              mediaState: {
+                ...mediaState,
+                currentTime: currentOffset,
+                startedAt: mediaState.isPlaying ? Date.now() : undefined,
+              }
+            }
+            try {
+              room.localParticipant?.publishData(
+                new TextEncoder().encode(JSON.stringify(syncPayload)),
+                { reliable: true, topic: "participant-moderation" }
+              )
+            } catch {}
           }
-        } catch (e) {}
+        }
       }
     }
     room.on("dataReceived", handleData)
     return () => { room.off("dataReceived", handleData) }
-  }, [room])
+  }, [room, mediaState])
+
+  // Automatically broadcast current music state when any attendee joins the room
+  useEffect(() => {
+    if (!room) return
+    const onParticipantJoined = () => {
+      if (mediaState) {
+        const currentOffset = getEstimatedCurrentTime(mediaState)
+        const syncPayload = {
+          action: "UPDATE_MEDIA",
+          mediaState: {
+            ...mediaState,
+            currentTime: currentOffset,
+            startedAt: mediaState.isPlaying ? Date.now() : undefined,
+          }
+        }
+        try {
+          room.localParticipant?.publishData(
+            new TextEncoder().encode(JSON.stringify(syncPayload)),
+            { reliable: true, topic: "participant-moderation" }
+          )
+        } catch {}
+      }
+    }
+
+    room.on("participantConnected", onParticipantJoined)
+    return () => {
+      room.off("participantConnected", onParticipantJoined)
+    }
+  }, [room, mediaState])
+
+  // Periodic heartbeat sync (every 4 seconds) to ensure zero drift across all participants
+  useEffect(() => {
+    if (!room || !mediaState || !mediaState.isPlaying) return
+
+    const syncInterval = setInterval(() => {
+      const currentOffset = getEstimatedCurrentTime(mediaState)
+      const syncPayload = {
+        action: "SYNC_MEDIA_TIME",
+        mediaState: {
+          ...mediaState,
+          currentTime: currentOffset,
+          startedAt: Date.now(),
+        }
+      }
+      try {
+        room.localParticipant?.publishData(
+          new TextEncoder().encode(JSON.stringify(syncPayload)),
+          { reliable: false, topic: "participant-moderation" }
+        )
+      } catch {}
+    }, 4000)
+
+    return () => clearInterval(syncInterval)
+  }, [room, mediaState])
 
   const handleMicToggle = useCallback(async () => {
     try {
@@ -258,18 +333,24 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   }
 
   const handleUpdateMediaState = async (newMediaState: MediaState | null) => {
-    setMediaState(newMediaState)
+    const normalized = newMediaState
+      ? {
+          ...newMediaState,
+          startedAt: newMediaState.isPlaying ? (newMediaState.startedAt || Date.now()) : undefined,
+        }
+      : null
+    setMediaState(normalized)
     try {
       const encoder = new TextEncoder()
       await room.localParticipant.publishData(
-        encoder.encode(JSON.stringify({ action: "UPDATE_MEDIA", mediaState: newMediaState })),
-        { topic: "participant-moderation" }
+        encoder.encode(JSON.stringify({ action: "UPDATE_MEDIA", mediaState: normalized })),
+        { reliable: true, topic: "participant-moderation" }
       )
     } catch {}
     await fetch("/api/live/control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ room: roomId, action: "UPDATE_MEDIA", mediaState: newMediaState }),
+      body: JSON.stringify({ room: roomId, action: "UPDATE_MEDIA", mediaState: normalized }),
     })
   }
 

@@ -107,7 +107,7 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
       })
 
     return (
-      <div className="w-full h-full min-w-0 min-h-0 flex flex-col lg:flex-row gap-3 p-2 sm:p-3 overflow-hidden bg-black select-none">
+      <div className="w-full h-full min-w-0 min-h-0 flex flex-col lg:flex-row gap-2 sm:gap-3 p-2 sm:p-3 pb-20 sm:pb-3 overflow-hidden bg-black select-none">
         {/* Main Stage (Pinned / Spotlighted) */}
         <div
           onDoubleClick={() => {
@@ -242,7 +242,7 @@ export default function LiveGrid({ isTeacher = false }: LiveGridProps) {
   }
 
   return (
-    <div className="w-full h-full min-w-0 min-h-0 flex flex-col relative overflow-hidden bg-black p-2 sm:p-3 select-none">
+    <div className="w-full h-full min-w-0 min-h-0 flex flex-col relative overflow-hidden bg-black p-2 sm:p-3 pb-20 sm:pb-3 select-none">
       <div className={`grid ${gridClass} gap-2 sm:gap-3 flex-1 min-h-0 min-w-0 w-full h-full`}>
         {visibleTracks.map((trackRef) => {
           const participant = trackRef.participant as Participant

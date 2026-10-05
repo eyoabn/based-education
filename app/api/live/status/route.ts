@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { getRoomMediaState } from '@/lib/liveMediaState';
 
 // High-speed in-memory status cache to protect the database from concurrent polling
 const statusCache = new Map<string, { data: any; expiry: number }>();
@@ -71,6 +72,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(emptyResult);
     }
 
+    const currentMedia = getRoomMediaState(liveRoom.id) || getRoomMediaState(roomTitle) || null;
+
     const result = {
       exists: true,
       id: liveRoom.id,
@@ -79,6 +82,7 @@ export async function GET(request: NextRequest) {
       startedAt: liveRoom.startedAt?.toISOString() || null,
       endedAt: liveRoom.endedAt?.toISOString() || null,
       teacher: liveRoom.teacher,
+      mediaState: currentMedia,
     };
 
     statusCache.set(roomTitle, { data: result, expiry: now + 2500 });

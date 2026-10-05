@@ -9,7 +9,7 @@ import LiveGrid from "@/components/live/LiveGrid"
 import LiveChat from "@/components/live/LiveChat"
 import ParticipantList from "@/components/live/ParticipantList"
 import AttendanceHeartbeat from "@/components/live/AttendanceHeartbeat"
-import SharedMediaPlayer, { MediaState } from "@/components/live/SharedMediaPlayer"
+import SharedMediaPlayer, { MediaState, getEstimatedCurrentTime } from "@/components/live/SharedMediaPlayer"
 import FloatingReactions, { ReactionPicker } from "@/components/live/FloatingReactions"
 import {
   Mic, MicOff, Video, VideoOff, Hand, MessageSquare, Users, LogOut, Clock, Wifi, Crown,
@@ -72,7 +72,13 @@ function LiveDuration() {
   return <span className="font-mono">{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}</span>
 }
 
-function StudentRoom({ roomId }: { roomId: string }) {
+function StudentRoom({
+  roomId,
+  initialMediaState,
+}: {
+  roomId: string
+  initialMediaState?: MediaState | null
+}) {
   const router = useRouter()
   const connectionState = useConnectionState()
   const hasConnectedRef = useRef(false)
@@ -99,7 +105,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
   const { metadata } = useRoomInfo()
   const [isChatDisabled, setIsChatDisabled] = useState(false)
   const [representatives, setRepresentatives] = useState<string[]>([])
-  const [mediaState, setMediaState] = useState<MediaState | null>(null)
+  const [mediaState, setMediaState] = useState<MediaState | null>(initialMediaState || null)
 
   const isRepresentative = localParticipant ? representatives.includes(localParticipant.identity) : false
 
@@ -193,6 +199,15 @@ function StudentRoom({ roomId }: { roomId: string }) {
     if (connectionState === ConnectionState.Connected) {
       hasConnectedRef.current = true
       
+      // Request active music sync from host/co-host upon connection
+      try {
+        const encoder = new TextEncoder()
+        room.localParticipant?.publishData(
+          encoder.encode(JSON.stringify({ action: "REQUEST_MEDIA_SYNC" })),
+          { reliable: true, topic: "participant-moderation" }
+        )
+      } catch {}
+
       const handleData = (payload: Uint8Array, participant?: any, kind?: any, topic?: string) => {
         const text = new TextDecoder().decode(payload)
 
@@ -256,7 +271,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
               setHandRaised(false)
             }
             setRaisedHands(prev => { const next = new Set(prev); next.delete(data.identity); return next })
-          } else if (data.action === "UPDATE_MEDIA") {
+          } else if (data.action === "UPDATE_MEDIA" || data.action === "SYNC_MEDIA_STATE" || data.action === "SYNC_MEDIA_TIME") {
             setMediaState(data.mediaState || null)
           }
         } catch (e) {}
@@ -269,7 +284,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
     }
   }, [connectionState, disconnectReason, room, localParticipant])
 
-  // Active status poller: periodically check if instructor ended the stream
+  // Active status poller: periodically check if instructor ended the stream or changed media
   useEffect(() => {
     if (disconnectReason) return
 
@@ -280,6 +295,8 @@ function StudentRoom({ roomId }: { roomId: string }) {
           const data = await res.json()
           if (!data.isLive) {
             setDisconnectReason("ended")
+          } else if (data.mediaState !== undefined) {
+            setMediaState(prev => data.mediaState || null)
           }
         }
       } catch {}
@@ -430,18 +447,24 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 mediaState={mediaState}
                 isHostOrRep={isRepresentative}
                 onUpdateMediaState={async (newState) => {
-                  setMediaState(newState)
+                  const normalized = newState
+                    ? {
+                        ...newState,
+                        startedAt: newState.isPlaying ? (newState.startedAt || Date.now()) : undefined,
+                      }
+                    : null
+                  setMediaState(normalized)
                   try {
                     const encoder = new TextEncoder()
                     await room.localParticipant.publishData(
-                      encoder.encode(JSON.stringify({ action: "UPDATE_MEDIA", mediaState: newState })),
+                      encoder.encode(JSON.stringify({ action: "UPDATE_MEDIA", mediaState: normalized })),
                       { topic: "participant-moderation" }
                     )
                   } catch {}
                   await fetch("/api/live/control", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ room: roomId, action: "UPDATE_MEDIA", mediaState: newState }),
+                    body: JSON.stringify({ room: roomId, action: "UPDATE_MEDIA", mediaState: normalized }),
                   })
                 }}
               />
@@ -449,7 +472,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
               {/* View Recordings Button */}
               <button
                 onClick={() => setShowRecordings(true)}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer shrink-0"
                 title="Listen to and download class voice recordings"
               >
                 <FileAudio className="w-3.5 h-3.5 text-primary" />
@@ -470,30 +493,30 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
 
-              {/* Toggle Chat Tab */}
+              {/* Toggle Chat Tab - Desktop only on header, mobile has it in dock */}
               <button
                 onClick={() => toggleTab("chat")}
-                className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                className={`hidden sm:flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   isPanelOpen && activeTab === "chat"
                     ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
                     : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
                 }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Chat</span>
+                <span>Chat</span>
               </button>
 
-              {/* Toggle People Tab */}
+              {/* Toggle People Tab - Desktop only */}
               <button
                 onClick={() => toggleTab("participants")}
-                className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                className={`hidden sm:flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   isPanelOpen && activeTab === "participants"
                     ? "bg-primary text-black border-primary font-bold shadow-lg shadow-primary/20"
                     : "bg-white/5 text-slate-300 hover:bg-white/10 border-white/10"
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">People</span>
+                <span>People</span>
                 {raisedHands.size > 0 && (
                   <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-bold">
                     ✋ {raisedHands.size}
@@ -518,13 +541,21 @@ function StudentRoom({ roomId }: { roomId: string }) {
             <LiveGrid isTeacher={false} />
             <FloatingReactions room={room} currentUserName={localParticipant?.name || "Student"} />
 
+            {/* Reaction Picker floating layer (Accessible on both Mobile & Desktop) */}
+            <ReactionPicker
+              room={room}
+              currentUserName={localParticipant?.name || "Student"}
+              isOpen={showReactions}
+              onClose={() => setShowReactions(false)}
+            />
+
             {/* 1. Google Meet Mobile Bottom Control Dock (< sm screens) */}
-            <div className="flex sm:hidden fixed bottom-3 inset-x-0 z-30 justify-center px-4 pointer-events-none pb-[env(safe-area-inset-bottom)]">
-              <div className="flex items-center justify-between w-full max-w-[360px] bg-[#141418]/92 backdrop-blur-2xl border border-white/15 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.85)] pointer-events-auto">
-                {/* Mic */}
+            <div className="flex sm:hidden fixed bottom-3 inset-x-0 z-30 justify-center px-2 pointer-events-none pb-[env(safe-area-inset-bottom)]">
+              <div className="flex items-center justify-between w-full max-w-[370px] bg-[#141418]/94 backdrop-blur-2xl border border-white/15 rounded-full px-2 py-1.5 shadow-[0_12px_45px_rgba(0,0,0,0.88)] pointer-events-auto gap-1">
+                {/* 1. Mic */}
                 <button
                   onClick={handleMicToggle}
-                  className={`relative w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                  className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer shrink-0 ${
                     isMicEnabled
                       ? "bg-white/10 text-white hover:bg-white/20"
                       : isAudioLocked && !isRepresentative && !hasMicPermission
@@ -539,7 +570,7 @@ function StudentRoom({ roomId }: { roomId: string }) {
                       : "Unmute"
                   }
                 >
-                  {isMicEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                  {isMicEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
                   {isAudioLocked && !isRepresentative && !hasMicPermission && (
                     <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-black flex items-center justify-center text-[8px] font-black text-black">
                       🔒
@@ -547,55 +578,84 @@ function StudentRoom({ roomId }: { roomId: string }) {
                   )}
                 </button>
 
-                {/* Camera */}
+                {/* 2. Camera */}
                 <button
                   onClick={handleCamToggle}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer shrink-0 ${
                     isCamEnabled
                       ? "bg-white/10 text-white hover:bg-white/20"
                       : "bg-red-600 text-white shadow-red-600/40"
                   }`}
                   title={isCamEnabled ? "Stop Camera" : "Start Camera"}
                 >
-                  {isCamEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                  {isCamEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
                 </button>
 
-                {/* Raise Hand (✋) */}
+                {/* 3. Send Stickers / Reactions */}
+                <button
+                  onClick={() => {
+                    setShowReactions(!showReactions)
+                    setShowMobileMoreMenu(false)
+                  }}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer shrink-0 ${
+                    showReactions
+                      ? "bg-primary text-black font-bold ring-2 ring-primary/50 shadow-primary/30"
+                      : "bg-white/10 text-amber-400 hover:bg-white/20"
+                  }`}
+                  title="Send Live Stickers & Reactions"
+                >
+                  <Smile className="w-4 h-4" />
+                </button>
+
+                {/* 4. Raise Hand (✋) */}
                 <button
                   onClick={toggleHand}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer shrink-0 ${
                     handRaised
                       ? "bg-amber-500 text-black font-bold ring-2 ring-amber-300 shadow-amber-500/40"
                       : "bg-white/10 text-white hover:bg-white/20"
                   }`}
                   title={handRaised ? "Lower Hand" : "Raise Hand"}
                 >
-                  <Hand className={`w-5 h-5 ${handRaised ? "animate-bounce" : ""}`} />
+                  <Hand className={`w-4 h-4 ${handRaised ? "animate-bounce" : ""}`} />
                 </button>
 
-                {/* More Options (⋮) */}
+                {/* 5. In-Call Chat (💬) */}
+                <button
+                  onClick={() => toggleTab("chat")}
+                  className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer shrink-0 ${
+                    isPanelOpen && activeTab === "chat"
+                      ? "bg-primary text-black font-bold ring-2 ring-primary/50"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                  title="In-call Chat"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
+
+                {/* 6. More Options (⋮) */}
                 <button
                   onClick={() => {
                     setShowMobileMoreMenu(!showMobileMoreMenu)
                     setShowReactions(false)
                   }}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md cursor-pointer shrink-0 ${
                     showMobileMoreMenu
-                      ? "bg-primary text-black font-bold ring-2 ring-primary/40"
+                      ? "bg-white/25 text-white ring-2 ring-white/30"
                       : "bg-white/10 text-white hover:bg-white/20"
                   }`}
-                  title="More options"
+                  title="More Options"
                 >
-                  <MoreVertical className="w-5 h-5" />
+                  <MoreVertical className="w-4 h-4" />
                 </button>
 
-                {/* Leave / End Call (Red Phone) */}
+                {/* 7. Leave / End Call (Red Phone) */}
                 <button
                   onClick={handleLeave}
-                  className="w-11 h-11 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition-transform active:scale-90 shadow-lg shadow-red-600/50 cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition-transform active:scale-90 shadow-lg shadow-red-600/50 cursor-pointer shrink-0"
                   title="Leave Sanctuary"
                 >
-                  <PhoneOff className="w-5 h-5" />
+                  <PhoneOff className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -675,27 +735,18 @@ function StudentRoom({ roomId }: { roomId: string }) {
                 </button>
 
                 {/* Google Meet Live Reactions / Stickers Button */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowReactions(!showReactions)}
-                    className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
-                      showReactions
-                        ? "bg-primary/20 text-primary ring-1 ring-primary/40"
-                        : "bg-white/10 hover:bg-white/20 text-white"
-                    }`}
-                    title="Send live stickers and reactions"
-                  >
-                    <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
-                    <span className="text-[9px] sm:text-[10px] font-bold">React</span>
-                  </button>
-
-                  <ReactionPicker
-                    room={room}
-                    currentUserName={localParticipant?.name || "Student"}
-                    isOpen={showReactions}
-                    onClose={() => setShowReactions(false)}
-                  />
-                </div>
+                <button
+                  onClick={() => setShowReactions(!showReactions)}
+                  className={`flex flex-col items-center gap-1 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
+                    showReactions
+                      ? "bg-primary/20 text-primary ring-1 ring-primary/40"
+                      : "bg-white/10 hover:bg-white/20 text-white"
+                  }`}
+                  title="Send live stickers and reactions"
+                >
+                  <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+                  <span className="text-[9px] sm:text-[10px] font-bold">React</span>
+                </button>
 
                 <div className="w-px h-8 sm:h-10 bg-white/10 mx-0.5 sm:mx-1" />
 
@@ -1021,6 +1072,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
   const [error, setError] = useState<string | null>(null)
   const [livekitUrl, setLivekitUrl] = useState<string | null>(null)
   const [participantCount, setParticipantCount] = useState<number>(0)
+  const [initialMediaState, setInitialMediaState] = useState<MediaState | null>(null)
 
   useEffect(() => {
     fetch(`/api/live/token?room=${encodeURIComponent(roomId)}`)
@@ -1031,6 +1083,9 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
           setToken(data.token)
           setLivekitUrl(data.livekitUrl || process.env.NEXT_PUBLIC_LIVEKIT_URL || "wss://placeholder.livekit.cloud")
           setParticipantCount(data.participantCount || 0)
+          if (data.mediaState) {
+            setInitialMediaState(data.mediaState)
+          }
         }
       })
       .catch(() => setError("Failed to connect to the live session."))
@@ -1088,7 +1143,7 @@ export default function StudentLivePage({ params }: StudentLivePageProps) {
         }
       }}
     >
-      <StudentRoom roomId={roomId} />
+      <StudentRoom roomId={roomId} initialMediaState={initialMediaState} />
     </LiveKitRoom>
   )
 }
