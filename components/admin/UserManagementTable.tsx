@@ -11,6 +11,7 @@ import {
   Copy,
   KeyRound,
   Loader2,
+  Mail,
   MoreHorizontal,
   RefreshCw,
   Search,
@@ -37,7 +38,7 @@ import {
 } from "@/lib/admin"
 
 type RoleFilter = "ALL" | Role
-type StatusFilter = "ALL" | AccountStatus
+type StatusFilter = "ALL" | AccountStatus | "RESET_REQUESTED"
 
 const ROLE_OPTIONS: { id: RoleFilter; label: string }[] = [
   { id: "ALL", label: "All Roles" },
@@ -48,6 +49,7 @@ const ROLE_OPTIONS: { id: RoleFilter; label: string }[] = [
 
 const STATUS_OPTIONS: { id: StatusFilter; label: string }[] = [
   { id: "ALL", label: "All Statuses" },
+  { id: "RESET_REQUESTED", label: "🔑 Reset Requested" },
   { id: "ACTIVE", label: "Active" },
   { id: "PENDING", label: "Pending" },
   { id: "REJECTED", label: "Rejected" },
@@ -96,7 +98,7 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
   const [reason, setReason] = useState("")
   const [working, setWorking] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
-  const [resetLink, setResetLink] = useState<{ url: string; name: string } | null>(null)
+  const [resetLink, setResetLink] = useState<{ url: string; name: string; email?: string } | null>(null)
   const [copied, setCopied] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -183,7 +185,7 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
       case "CHANGE_ROLE":
         return `Make ${ROLE_LABEL[pending.role].toLowerCase()}`
       case "RESET_PASSWORD":
-        return "Generate reset link"
+        return pending.user.hasPendingReset ? "Approve & Send Reset Link" : "Generate reset link"
       default:
         return "Confirm"
     }
@@ -215,7 +217,7 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
 
       switch (pending.kind) {
         case "RESET_PASSWORD":
-          setResetLink({ url: payload.resetUrl, name: pending.user.name })
+          setResetLink({ url: payload.resetUrl, name: pending.user.name, email: payload.email || pending.user.email })
           break
         case "BAN":
           setToast(`${pending.user.name} suspended — active sessions revoked.`)
@@ -292,6 +294,32 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
             </option>
           ))}
         </select>
+
+        {Boolean(data?.counts?.resetRequests && data.counts.resetRequests > 0) && (
+          <button
+            type="button"
+            onClick={() => {
+              setStatus(prev => (prev === "RESET_REQUESTED" ? "ALL" : "RESET_REQUESTED"))
+              setPage(1)
+            }}
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              status === "RESET_REQUESTED"
+                ? "bg-amber-600 text-white shadow-xs ring-2 ring-amber-500/20"
+                : "bg-amber-50 border border-amber-300 text-amber-900 hover:bg-amber-100"
+            }`}
+            title="Filter by users with pending password reset requests"
+          >
+            <KeyRound className="w-4 h-4 text-amber-500" />
+            <span>Reset Requests</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-xs font-bold ${
+                status === "RESET_REQUESTED" ? "bg-amber-700 text-white" : "bg-amber-200 text-amber-900"
+              }`}
+            >
+              {data?.counts?.resetRequests}
+            </span>
+          </button>
+        )}
 
         <button
           onClick={() => void load()}
@@ -403,6 +431,12 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
                         <div className="min-w-0">
                           <div className="font-semibold text-slate-800 truncate">{user.name}</div>
                           <div className="text-xs text-slate-400 truncate">{user.email}</div>
+                          {user.hasPendingReset && (
+                            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-800">
+                              <KeyRound className="w-3 h-3 text-amber-600" />
+                              Reset Requested
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -443,16 +477,31 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
 
                     {/* Actions */}
                     <td className="px-5 py-3 text-right relative">
-                      <button
-                        onClick={event => {
-                          event.stopPropagation()
-                          setMenuFor(prev => (prev === user.id ? null : user.id))
-                        }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                        aria-label={`Actions for ${user.name}`}
-                      >
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <div className="inline-flex items-center gap-1.5 justify-end">
+                        {user.hasPendingReset && (
+                          <button
+                            onClick={() => {
+                              setActionError(null)
+                              setPending({ kind: "RESET_PASSWORD", user })
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-xs transition-colors"
+                            title="Generate and send reset link"
+                          >
+                            <KeyRound className="w-3.5 h-3.5" />
+                            <span>Send Link</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={event => {
+                            event.stopPropagation()
+                            setMenuFor(prev => (prev === user.id ? null : user.id))
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                          aria-label={`Actions for ${user.name}`}
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </div>
 
                       {menuFor === user.id && (
                         <div
@@ -611,7 +660,9 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
               {pending.kind === "UNBAN" &&
                 "Their account becomes active again and they can sign in straight away."}
               {pending.kind === "RESET_PASSWORD" &&
-                "This generates a single-use link valid for one hour. Their current password keeps working until they use it."}
+                (pending.user.hasPendingReset
+                  ? `They requested a password reset. Approving will generate a 1-hour secure link, notify them in the portal, and give you a direct email shortcut to send it to ${pending.user.email}.`
+                  : "This generates a single-use link valid for one hour. Their current password keeps working until they use it.")}
               {pending.kind === "CHANGE_ROLE" &&
                 `Their permissions change immediately and their current sessions are revoked, so they will need to sign in again.${
                   pending.role === "ADMIN" ? " Admins have full access to this portal." : ""
@@ -684,17 +735,18 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
           />
 
           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 animate-fade-up">
-            <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
               <KeyRound className="w-6 h-6" />
             </div>
 
             <h2 className="text-lg font-bold text-slate-900 mb-1.5">Reset link for {resetLink.name}</h2>
             <p className="text-sm text-slate-500 leading-relaxed mb-4">
-              Valid for one hour and usable once. Send it to them over a channel you trust — anyone
-              holding this link can set their password.
+              Valid for one hour and single-use. Send it to{" "}
+              <span className="font-semibold text-slate-700">{resetLink.email || "the user"}</span>{" "}
+              via email or copy the link below.
             </p>
 
-            <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg mb-5">
+            <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4">
               <code className="flex-1 text-xs text-slate-600 break-all font-mono">
                 {resetLink.url}
               </code>
@@ -710,6 +762,18 @@ export default function UserManagementTable({ onCountsChange }: UserManagementTa
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
+
+            {resetLink.email && (
+              <a
+                href={`mailto:${encodeURIComponent(resetLink.email)}?subject=${encodeURIComponent("Your Password Reset Link - Based Education")}&body=${encodeURIComponent(
+                  `Hello ${resetLink.name},\n\nAn administrator has approved your password reset request. Please click or open the link below to set your new password:\n\n${resetLink.url}\n\nThis link is valid for 1 hour.\n\nBest regards,\nBased Education Team`
+                )}`}
+                className="w-full mb-3 py-2.5 px-4 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm transition-colors inline-flex items-center justify-center gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Open Email Client to Send Link to {resetLink.email}</span>
+              </a>
+            )}
 
             <button
               onClick={() => setResetLink(null)}

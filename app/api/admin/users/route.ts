@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
     const dir = searchParams.get('dir') === 'asc' ? 'asc' : 'desc';
 
     const role = ROLES.includes(roleParam as Role) ? (roleParam as Role) : null;
+    const isResetRequestedFilter = statusParam === 'RESET_REQUESTED' || searchParams.get('resetRequested') === 'true';
     const status = STATUSES.includes(statusParam as AccountStatus)
       ? (statusParam as AccountStatus)
       : null;
@@ -95,7 +96,9 @@ export async function GET(request: NextRequest) {
 
     const where: Prisma.UserWhereInput = {
       ...(role ? { role } : {}),
-      ...statusFilter(status),
+      ...(isResetRequestedFilter
+        ? { passwordResetToken: { startsWith: 'REQUESTED_' } }
+        : statusFilter(status)),
       ...(q
         ? {
             OR: [
@@ -109,7 +112,7 @@ export async function GET(request: NextRequest) {
     // A search term and an ACTIVE filter both want the `OR` key. Nest them
     // under AND so neither silently overwrites the other.
     const finalWhere: Prisma.UserWhereInput =
-      q && status === 'ACTIVE'
+      q && status === 'ACTIVE' && !isResetRequestedFilter
         ? {
             role: role ?? undefined,
             isBanned: false,
@@ -130,7 +133,7 @@ export async function GET(request: NextRequest) {
           }
         : where;
 
-    const [total, rows, students, teachers, admins, banned, pending] = await Promise.all([
+    const [total, rows, students, teachers, admins, banned, pending, resetRequests] = await Promise.all([
       prisma.user.count({ where: finalWhere }),
       prisma.user.findMany({
         where: finalWhere,
@@ -149,6 +152,8 @@ export async function GET(request: NextRequest) {
           bannedAt: true,
           createdAt: true,
           lastLoginAt: true,
+          passwordResetToken: true,
+          passwordResetExpires: true,
           _count: { select: { posts: true, submissions: true, liveRooms: true } },
         },
       }),
@@ -157,11 +162,13 @@ export async function GET(request: NextRequest) {
       prisma.user.count({ where: { role: 'ADMIN' } }),
       prisma.user.count({ where: { isBanned: true } }),
       prisma.user.count({ where: { role: 'TEACHER', teacherStatus: 'PENDING' } }),
+      prisma.user.count({ where: { passwordResetToken: { startsWith: 'REQUESTED_' } } }),
     ]);
 
     const users: AdminUserRow[] = rows.map(row => {
       const role = row.role as Role;
       const teacherStatus = (row.teacherStatus ?? null) as TeacherStatus | null;
+      const hasPendingReset = Boolean(row.passwordResetToken?.startsWith('REQUESTED_'));
 
       return {
         id: row.id,
@@ -177,6 +184,10 @@ export async function GET(request: NextRequest) {
         joinedAt: row.createdAt.toISOString(),
         lastLoginAt: row.lastLoginAt ? row.lastLoginAt.toISOString() : null,
         activityCount: row._count.posts + row._count.submissions + row._count.liveRooms,
+        hasPendingReset,
+        resetRequestedAt: hasPendingReset && row.passwordResetExpires
+          ? new Date(row.passwordResetExpires.getTime() - 24 * 60 * 60 * 1000).toISOString()
+          : null,
       };
     });
 
@@ -195,6 +206,7 @@ export async function GET(request: NextRequest) {
         admins,
         banned,
         pending,
+        resetRequests,
       },
     };
 
@@ -425,12 +437,26 @@ export async function PATCH(request: NextRequest) {
         });
 
         const origin = new URL(request.url).origin;
+        const resetUrl = `${origin}/reset-password?token=${token}`;
 
-        // The raw link goes to the admin, who hands it over out-of-band. The
+        // Also deliver an in-app notification directly to the user with the reset link
+        await prisma.notification.create({
+          data: {
+            userId: target.id,
+            type: 'PLATFORM_BROADCAST',
+            title: '🔑 Password Reset Link Ready',
+            message: 'Your administrator has issued your password reset link. Click to set a new password.',
+            link: `/reset-password?token=${token}`,
+          },
+        }).catch(() => {});
+
+        // The raw link goes to the admin, who can email it or copy it. The
         // token itself is single-use and expires in an hour.
         return NextResponse.json({
-          resetUrl: `${origin}/reset-password?token=${token}`,
+          resetUrl,
           expiresAt: expires.toISOString(),
+          email: target.email,
+          user: { id: target.id, name: target.name, email: target.email },
         });
       }
 

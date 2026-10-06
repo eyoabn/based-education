@@ -25,6 +25,9 @@ export default function AdminUsersPage() {
         { label: "Admins", value: counts.admins, tone: "text-slate-700" },
         { label: "Pending", value: counts.pending, tone: "text-amber-700" },
         { label: "Suspended", value: counts.banned, tone: "text-red-700" },
+        ...(typeof counts.resetRequests === "number" && counts.resetRequests > 0
+          ? [{ label: "Reset Requests", value: counts.resetRequests, tone: "text-amber-600 font-extrabold animate-pulse" }]
+          : []),
       ]
     : []
 
@@ -41,7 +44,7 @@ export default function AdminUsersPage() {
       </div>
 
       {counts && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
           {summary.map(item => (
             <div
               key={item.label}
@@ -55,6 +58,23 @@ export default function AdminUsersPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Password reset requests alert */}
+      {counts && typeof counts.resetRequests === "number" && counts.resetRequests > 0 && (
+        <div className="flex items-start justify-between gap-3 px-4 py-3.5 bg-amber-50 border border-amber-300 rounded-xl shadow-xs">
+          <div className="flex items-start gap-3">
+            <span className="text-lg">🔑</span>
+            <div>
+              <p className="text-sm font-bold text-amber-900">
+                {counts.resetRequests} Pending Password Reset Request{counts.resetRequests > 1 ? "s" : ""}
+              </p>
+              <p className="text-xs text-amber-800 mt-0.5">
+                Users have requested password resets. You can review and issue single-use secure links to send to their email.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

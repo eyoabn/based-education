@@ -10,6 +10,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ valid: false, error: 'Reset token is required.' }, { status: 400 });
     }
 
+    if (token.startsWith('REQUESTED_')) {
+      return NextResponse.json(
+        { valid: false, error: 'Your password reset request is awaiting administrator approval. The administrator will send your reset link to your email.' },
+        { status: 400 }
+      );
+    }
+
     const user = await prisma.user.findUnique({
       where: { passwordResetToken: token },
       select: { id: true, email: true, passwordResetExpires: true },
@@ -39,6 +46,13 @@ export async function POST(request: NextRequest) {
 
     if (!token) {
       return NextResponse.json({ error: 'Reset token is required.' }, { status: 400 });
+    }
+
+    if (token.startsWith('REQUESTED_')) {
+      return NextResponse.json(
+        { error: 'Your password reset request is awaiting administrator approval. Please wait for the link to be sent to your email.' },
+        { status: 400 }
+      );
     }
 
     if (!password || password.length < 8 || password.length > 128) {

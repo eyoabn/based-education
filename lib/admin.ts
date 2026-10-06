@@ -170,6 +170,9 @@ export interface AdminUserRow {
   lastLoginAt: string | null
   /** Posts + submissions + rooms hosted — a cheap "is this account real" cue. */
   activityCount: number
+  /** True when the user submitted a "Forgot Password" request awaiting admin action. */
+  hasPendingReset?: boolean
+  resetRequestedAt?: string | null
 }
 
 export interface Pagination {
@@ -189,6 +192,7 @@ export interface AdminUserListResponse {
     admins: number
     banned: number
     pending: number
+    resetRequests?: number
   }
 }
 

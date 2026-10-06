@@ -19,9 +19,13 @@ function ResetPasswordContent() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const [requestEmail, setRequestEmail] = useState("");
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [requestSuccess, setRequestSuccess] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!token) {
-      setTokenError("No reset token provided. Please click the link sent by your administrator.");
       setIsValidatingToken(false);
       return;
     }
@@ -55,6 +59,31 @@ function ResetPasswordContent() {
       isMounted = false;
     };
   }, [token]);
+
+  const handleRequestReset = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsRequesting(true);
+    setRequestError(null);
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: requestEmail }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit request.");
+      }
+
+      setRequestSuccess(true);
+    } catch (err: any) {
+      setRequestError(err?.message || "An unexpected error occurred.");
+    } finally {
+      setIsRequesting(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -113,13 +142,81 @@ function ResetPasswordContent() {
         <div className="inline-flex p-3 rounded-2xl bg-[#C9A94A]/10 border border-[#C9A94A]/20 text-[#C9A94A] mb-3">
           <KeyRound className="w-6 h-6" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Reset Your Password</h2>
+        <h2 className="text-2xl font-bold text-white mb-2">
+          {!token ? "Forgot Your Password?" : "Reset Your Password"}
+        </h2>
         <p className="text-[#C9A94A] text-sm font-medium">
-          {targetEmail ? `Setting a new password for ${targetEmail}` : "Enter your new password below"}
+          {!token
+            ? "Enter your email to request a reset link from the administrator"
+            : targetEmail
+              ? `Setting a new password for ${targetEmail}`
+              : "Enter your new password below"}
         </p>
       </div>
 
-      {isValidatingToken ? (
+      {!token ? (
+        requestSuccess ? (
+          <div className="text-center space-y-4 py-2">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-white">Request Submitted!</h3>
+            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mx-auto">
+              An administrator has been notified of your password reset request for <span className="font-semibold text-[#C9A94A]">{requestEmail}</span>.
+            </p>
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs text-left leading-relaxed">
+              The link that will allow you to enter your new password will be sent to your email once reviewed by the administrator.
+            </div>
+            <Link
+              href="/login"
+              className="w-full inline-flex items-center justify-center py-3 bg-[#C9A94A] hover:bg-[#b5953e] text-black font-bold rounded-xl transition-all shadow-lg shadow-[#C9A94A]/25 mt-2"
+            >
+              Return to Sign In
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleRequestReset} className="space-y-4">
+            {requestError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{requestError}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                Your Email Address
+              </label>
+              <input
+                type="email"
+                required
+                autoFocus
+                value={requestEmail}
+                onChange={e => setRequestEmail(e.target.value)}
+                placeholder="name@example.com"
+                className="w-full bg-[#16161B] border border-white/15 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A94A] focus:border-transparent transition-all"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Link
+                href="/login"
+                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-semibold transition-colors border border-white/10 text-center"
+              >
+                Sign In
+              </Link>
+              <button
+                type="submit"
+                disabled={isRequesting}
+                className="flex-1 py-2.5 rounded-xl bg-[#C9A94A] hover:bg-[#b5953e] disabled:opacity-60 text-black text-sm font-bold shadow-lg shadow-[#C9A94A]/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isRequesting && <Loader2 className="w-4 h-4 animate-spin text-black" />}
+                <span>{isRequesting ? "Submitting..." : "Submit Request"}</span>
+              </button>
+            </div>
+          </form>
+        )
+      ) : isValidatingToken ? (
         <div className="flex flex-col items-center justify-center py-10 space-y-3">
           <Loader2 className="w-8 h-8 text-[#C9A94A] animate-spin" />
           <p className="text-sm text-neutral-400">Verifying reset authorization...</p>
@@ -133,13 +230,23 @@ function ResetPasswordContent() {
               <p className="text-xs text-red-300 leading-relaxed">{tokenError}</p>
             </div>
           </div>
-          <Link
-            href="/login"
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-all border border-white/10"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Return to Sign In
-          </Link>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => {
+                router.push("/reset-password");
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#C9A94A] hover:bg-[#b5953e] text-black font-bold text-sm transition-all text-center cursor-pointer"
+            >
+              Request a New Reset Link
+            </button>
+            <Link
+              href="/login"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-all border border-white/10"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Return to Sign In
+            </Link>
+          </div>
         </div>
       ) : isSuccess ? (
         <div className="text-center space-y-6 py-4">
