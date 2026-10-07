@@ -284,10 +284,38 @@ export async function DELETE(request: NextRequest) {
 
     if (!id || !type) return NextResponse.json({ error: 'ID and type required' }, { status: 400 });
 
+    if (type === 'user' && id === session.userId) {
+      return NextResponse.json({ error: 'You cannot delete your own admin account.' }, { status: 400 });
+    }
+
     if (type === 'course') {
-      await prisma.course.delete({ where: { id } });
+      await prisma.$transaction([
+        prisma.liveRoom.updateMany({ where: { courseId: id }, data: { courseId: null } }),
+        prisma.exam.updateMany({ where: { courseId: id }, data: { courseId: null } }),
+        prisma.assignment.deleteMany({ where: { courseId: id } }),
+        prisma.course.delete({ where: { id } }),
+      ]);
     } else if (type === 'user') {
-      await prisma.user.delete({ where: { id } });
+      await prisma.$transaction(async (tx) => {
+        await tx.comment.deleteMany({ where: { authorId: id } });
+        await tx.postLike.deleteMany({ where: { userId: id } });
+        await tx.post.deleteMany({ where: { authorId: id } });
+        await tx.notification.deleteMany({ where: { userId: id } });
+        await tx.attendance.deleteMany({ where: { studentId: id } });
+        await tx.submission.deleteMany({ where: { studentId: id } });
+        await (tx as any).liveRecording.deleteMany({ where: { recordedById: id } });
+        await tx.courseEnrollmentRequest.deleteMany({ where: { studentId: id } });
+        await tx.chatMessage.deleteMany({ where: { senderId: id } });
+        await tx.conversationParticipant.deleteMany({ where: { userId: id } });
+        await tx.payment.deleteMany({ where: { userId: id } });
+        await tx.assignment.deleteMany({ where: { teacherId: id } });
+        await tx.exam.deleteMany({ where: { teacherId: id } });
+        await tx.liveRoom.deleteMany({ where: { teacherId: id } });
+        await tx.user.updateMany({ where: { reviewedById: id }, data: { reviewedById: null } });
+        await tx.auditLog.deleteMany({ where: { targetUserId: id } });
+        await tx.course.deleteMany({ where: { teacherId: id } });
+        await tx.user.delete({ where: { id } });
+      });
     } else if (type === 'liveRoom') {
       await prisma.liveRoom.delete({ where: { id } });
     } else if (type === 'exam') {
@@ -306,8 +334,10 @@ export async function DELETE(request: NextRequest) {
     await prisma.auditLog.create({
       data: {
         adminId: session.userId,
-        action: 'USER_BANNED',
+        targetUserId: type === 'user' ? id : null,
+        action: type === 'user' ? 'USER_BANNED' : 'USER_ROLE_CHANGED',
         summary: `Admin deleted ${type} record ID: ${id}`,
+        metadata: { deletedType: type, deletedId: id },
       },
     }).catch(() => {});
 

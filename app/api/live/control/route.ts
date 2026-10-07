@@ -43,16 +43,15 @@ export async function POST(request: NextRequest) {
     const isOwnerOrAdmin = session.role === 'ADMIN' || (session.role === 'TEACHER' && (!dbLiveRoom || dbLiveRoom.teacherId === session.userId));
     let isRepresentative = false;
 
-    if (!isOwnerOrAdmin && !isRepresentative) {
-      return NextResponse.json({ error: 'Forbidden. Only instructors and co-hosts can perform moderation.' }, { status: 403 });
-    }
-
     const rawUrl = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL;
     const apiUrl = rawUrl ? rawUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:') : undefined;
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
 
     if (!apiUrl || !apiKey || !apiSecret) {
+      if (!isOwnerOrAdmin) {
+        return NextResponse.json({ error: 'Forbidden. Only instructors and co-hosts can perform moderation.' }, { status: 403 });
+      }
       console.warn("LiveKit Env Vars missing. Mocking room control action:", action);
       return NextResponse.json({ success: true, mocked: true });
     }
@@ -67,6 +66,10 @@ export async function POST(request: NextRequest) {
           isRepresentative = Array.isArray(meta.representatives) && meta.representatives.includes(session.userId);
         }
       } catch (e) {}
+    }
+
+    if (!isOwnerOrAdmin && !isRepresentative) {
+      return NextResponse.json({ error: 'Forbidden. Only instructors and co-hosts can perform moderation.' }, { status: 403 });
     }
 
     if (action === 'SHUTDOWN_ROOM' || action === 'TEACHER_LEFT') {

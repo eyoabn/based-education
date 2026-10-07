@@ -101,7 +101,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only instructors and administrators can publish recordings.' }, { status: 403 });
     }
 
-    const targetRoomId = liveRoom?.id || decodedRoom;
+    // Ensure a backing LiveRoom record exists so foreign key constraint is satisfied
+    let activeRoom = liveRoom;
+    if (!activeRoom) {
+      activeRoom = await prisma.liveRoom.create({
+        data: {
+          title: decodedRoom,
+          teacherId: session.userId,
+          isLive: false,
+          scheduledAt: new Date(),
+          startedAt: new Date(),
+          endedAt: new Date(),
+        }
+      });
+    }
+
+    const targetRoomId = activeRoom.id;
 
     // Save audio file locally to public/recordings
     const recordingsDir = path.join(process.cwd(), 'public', 'recordings');

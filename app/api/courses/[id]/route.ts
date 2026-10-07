@@ -63,9 +63,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await prisma.course.delete({
-      where: { id: courseId }
-    });
+    await prisma.$transaction([
+      prisma.liveRoom.updateMany({ where: { courseId }, data: { courseId: null } }),
+      prisma.exam.updateMany({ where: { courseId }, data: { courseId: null } }),
+      prisma.assignment.deleteMany({ where: { courseId } }),
+      prisma.course.delete({ where: { id: courseId } }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error) {

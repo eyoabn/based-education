@@ -105,8 +105,8 @@ export async function GET(request: NextRequest) {
           }
         });
       } else {
-        // No current active session — create a fresh LiveRoom session
-        let course = await prisma.course.findFirst({
+        // Match course only if this room specifically corresponds to the course
+        const course = await prisma.course.findFirst({
           where: {
             teacherId: session.userId,
             OR: [
@@ -116,12 +116,6 @@ export async function GET(request: NextRequest) {
           },
           select: { id: true, title: true }
         });
-        if (!course) {
-          course = await prisma.course.findFirst({
-            where: { teacherId: session.userId },
-            select: { id: true, title: true }
-          });
-        }
 
         liveRoom = await prisma.liveRoom.create({
           data: {

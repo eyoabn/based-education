@@ -3,7 +3,7 @@
 import { type ReactNode, useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, LayoutDashboard, UserCheck, Users, CreditCard, Menu, X } from "lucide-react"
+import { Search, LayoutDashboard, UserCheck, Users, CreditCard, Database, Menu, X } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import LogoutButton from "@/components/auth/LogoutButton"
 import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { id: 'approvals', label: 'Pending Approvals', icon: UserCheck, href: '/dashboard/admin/approvals' },
   { id: 'users', label: 'User Management', icon: Users, href: '/dashboard/admin/users' },
   { id: 'monetization', label: 'Monetization', icon: CreditCard, href: '/dashboard/admin/monetization' },
+  { id: 'database', label: 'Database & Storage', icon: Database, href: '/dashboard/admin/database' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

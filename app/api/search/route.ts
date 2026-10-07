@@ -6,7 +6,10 @@ import { verifyToken } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('token')?.value;
-    const session = token ? await verifyToken(token) : null;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const session = await verifyToken(token);
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const q = (searchParams.get('q') || '').trim();
@@ -22,7 +25,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const isTeacher = session?.role === 'TEACHER' || session?.role === 'ADMIN';
+    const isTeacher = session.role === 'TEACHER' || session.role === 'ADMIN';
 
     // 1. Search Courses
     const courses = await prisma.course.findMany({
@@ -62,23 +65,32 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // 3. Search Users (Students / Teachers)
-    const people = await prisma.user.findMany({
+    // 3. Search Users (Students / Teachers) with role-based privacy protection
+    const rawPeople = await prisma.user.findMany({
       where: {
+        isBanned: false,
         OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { email: { contains: q, mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' as const } },
+          ...(isTeacher ? [{ email: { contains: q, mode: 'insensitive' as const } }] : []),
         ],
       },
       take: 5,
       select: {
         id: true,
         name: true,
-        email: true,
+        email: isTeacher,
         role: true,
         avatarUrl: true,
       },
     });
+
+    const people = rawPeople.map(p => ({
+      id: p.id,
+      name: p.name,
+      email: isTeacher ? (p.email ?? '') : '',
+      role: p.role,
+      avatarUrl: p.avatarUrl,
+    }));
 
     // 4. Quick Navigation Shortcuts based on role and query
     const navItems = [
