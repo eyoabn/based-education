@@ -22,6 +22,13 @@ export async function GET(request: NextRequest) {
           { author: { role: 'ADMIN' } }
         ]
       };
+    } else if (session?.role === 'TEACHER') {
+      whereClause = {
+        OR: [
+          { authorId: session.userId },
+          { author: { role: 'ADMIN' } }
+        ]
+      };
     }
 
     const posts = await prisma.post.findMany({

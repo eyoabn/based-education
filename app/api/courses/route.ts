@@ -14,13 +14,19 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const scope = searchParams.get('scope'); // 'all' or 'my'
 
-    let whereClause = {};
-    if (scope === 'my') {
-      whereClause = session.role === 'TEACHER'
-        ? { teacherId: session.userId }
-        : session.role === 'ADMIN'
-          ? {}
-          : { students: { some: { id: session.userId } } };
+    let whereClause: any = {};
+    if (session.role === 'TEACHER') {
+      // Teachers only access courses they created
+      whereClause = { teacherId: session.userId };
+    } else if (session.role === 'ADMIN') {
+      whereClause = {};
+    } else {
+      // Student
+      if (scope === 'my') {
+        whereClause = { students: { some: { id: session.userId } } };
+      } else {
+        whereClause = {};
+      }
     }
 
     const isTeacherOrAdmin = session.role === 'TEACHER' || session.role === 'ADMIN';

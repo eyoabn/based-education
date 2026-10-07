@@ -121,17 +121,20 @@ function GradingSuite() {
 
   // Keep the table and the open drawer pointing at the same object.
   const handleSaved = useCallback((updated: SubmissionRow) => {
-    setSubmissions(prev => prev.map(s => (s.id === updated.id ? updated : s)))
+    setSubmissions(prev => {
+      // Find the previous version of this submission to compute the correct delta.
+      const previous = prev.find(s => s.id === updated.id)
+      const wasGraded = previous?.status === "GRADED"
+      const isNowGraded = updated.status === "GRADED"
+      // Only adjust summary counters when the status actually changes.
+      if (!wasGraded && isNowGraded) {
+        setSummary(s =>
+          s ? { ...s, awaitingReview: s.awaitingReview - 1, graded: s.graded + 1 } : s
+        )
+      }
+      return prev.map(s => (s.id === updated.id ? updated : s))
+    })
     setSelected(prev => (prev && prev.id === updated.id ? updated : prev))
-    setSummary(prev =>
-      prev
-        ? {
-            ...prev,
-            awaitingReview: prev.awaitingReview + (updated.status === "GRADED" ? -1 : 0),
-            graded: prev.graded + (updated.status === "GRADED" ? 1 : 0),
-          }
-        : prev
-    )
   }, [])
 
   const examTitle = examIdFilter ? submissions[0]?.examTitle : null

@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Copy,
   Eye,
@@ -148,9 +149,8 @@ export default function SecureExamPage() {
     setStarting(true)
     setError(null)
 
-    // Fullscreen must be requested inside the click handler — browsers reject
-    // it from an async continuation, so it happens before the network call.
-    if (exam.config.forceFullscreen) {
+    // Fullscreen is only for timed exams with fullscreen enabled
+    if (exam.type !== "ASSIGNMENT" && exam.config.forceFullscreen) {
       try {
         await document.documentElement.requestFullscreen()
       } catch {
@@ -398,33 +398,52 @@ export default function SecureExamPage() {
   // --- Pre-exam instructions ------------------------------------------------
 
   if (stage === "instructions") {
-    const rules = [
-      {
-        icon: Timer,
-        title: `You have ${exam.durationMins} minutes`,
-        body: "The clock starts the moment you press begin and keeps running even if you close this tab. At 00:00 your paper is submitted automatically.",
-      },
-      exam.config.forceFullscreen && {
-        icon: Maximize,
-        title: "Full-screen is required",
-        body: "Your browser will go full-screen. Leaving full-screen is logged and flagged to your teacher.",
-      },
-      exam.config.trackTabSwitches && {
-        icon: Eye,
-        title: `Tab switches are counted (limit ${exam.config.maxTabSwitches})`,
-        body: "Once started, switching tabs or leaving full-screen will be logged and flagged to your teacher.",
-      },
-      exam.config.blockCopyPaste && {
-        icon: Copy,
-        title: "Copy, paste and right-click are disabled",
-        body: "Text selection outside the answer boxes, the context menu and developer shortcuts are blocked for the duration.",
-      },
-      exam.config.randomizeOrder && {
-        icon: FileText,
-        title: "Your question order is unique",
-        body: "Questions and choices are shuffled for you specifically, so comparing with a classmate will not help.",
-      },
-    ].filter(Boolean) as { icon: typeof Timer; title: string; body: string }[]
+    const isAssignment = exam.type === "ASSIGNMENT"
+    const rules = isAssignment
+      ? ([
+          {
+            icon: BookOpen,
+            title: "Untimed Assignment",
+            body: "Work at your own pace. There is no countdown clock, no session limit, and no auto-expiration.",
+          },
+          {
+            icon: FileText,
+            title: "Free Open Submission",
+            body: "You can consult your course materials, take breaks, and review your answers freely before handing them in.",
+          },
+          exam.dueAt && {
+            icon: Target,
+            title: "Submission Deadline",
+            body: `Deliver your work before ${formatWhen(exam.dueAt)} to be graded on time.`,
+          },
+        ].filter(Boolean) as { icon: typeof Timer; title: string; body: string }[])
+      : ([
+          {
+            icon: Timer,
+            title: `You have ${exam.durationMins} minutes`,
+            body: "The clock starts the moment you press begin and keeps running even if you close this tab. At 00:00 your paper is submitted automatically.",
+          },
+          exam.config.forceFullscreen && {
+            icon: Maximize,
+            title: "Full-screen is required",
+            body: "Your browser will go full-screen. Leaving full-screen is logged and flagged to your teacher.",
+          },
+          exam.config.trackTabSwitches && {
+            icon: Eye,
+            title: `Tab switches are counted (limit ${exam.config.maxTabSwitches})`,
+            body: "Once started, switching tabs or leaving full-screen will be logged and flagged to your teacher.",
+          },
+          exam.config.blockCopyPaste && {
+            icon: Copy,
+            title: "Copy, paste and right-click are disabled",
+            body: "Text selection outside the answer boxes, the context menu and developer shortcuts are blocked for the duration.",
+          },
+          exam.config.randomizeOrder && {
+            icon: FileText,
+            title: "Your question order is unique",
+            body: "Questions and choices are shuffled for you specifically, so comparing with a classmate will not help.",
+          },
+        ].filter(Boolean) as { icon: typeof Timer; title: string; body: string }[])
 
     return (
       <div className="max-w-3xl mx-auto py-8 space-y-6">
@@ -440,12 +459,16 @@ export default function SecureExamPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="bg-slate-900 px-7 py-6 text-white">
             <div className="flex items-center gap-2 mb-3">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-[11px] font-bold uppercase tracking-wide ring-1 ring-inset ring-emerald-400/30">
-                <ShieldCheck className="w-3 h-3" />
-                Secure Guard
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ring-1 ring-inset ${
+                isAssignment
+                  ? "bg-emerald-500/20 text-emerald-300 ring-emerald-400/40"
+                  : "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30"
+              }`}>
+                {isAssignment ? <BookOpen className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                {isAssignment ? "Open Assignment" : "Secure Guard"}
               </span>
               <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
-                {exam.type === "EXAM" ? "Exam" : "Assignment"}
+                {isAssignment ? "Assignment" : "Exam"}
               </span>
             </div>
 
@@ -462,7 +485,10 @@ export default function SecureExamPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100 border-b border-slate-100">
             {[
               { label: "Questions", value: String(exam.questions.length || "—") },
-              { label: "Duration", value: `${exam.durationMins} min` },
+              {
+                label: isAssignment ? "Time Limit" : "Duration",
+                value: isAssignment ? "Untimed (Free)" : `${exam.durationMins} min`,
+              },
               { label: "Total Points", value: String(exam.totalPoints) },
               { label: "Pass Mark", value: `${exam.passingPct}%` },
             ].map(stat => (
@@ -478,8 +504,8 @@ export default function SecureExamPage() {
           {/* Rules */}
           <div className="p-7">
             <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500 mb-4">
-              <Lock className="w-4 h-4" />
-              Before you begin
+              {isAssignment ? <BookOpen className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+              {isAssignment ? "Assignment Guidelines" : "Before you begin"}
             </h2>
 
             <div className="space-y-3">
@@ -521,17 +547,19 @@ export default function SecureExamPage() {
               {starting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Securing your session…
+                  {isAssignment ? "Opening assignment…" : "Securing your session…"}
                 </>
               ) : (
                 <>
-                  <Lock className="w-5 h-5" />
-                  Start Exam Now
+                  {isAssignment ? <BookOpen className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                  {isAssignment ? "Open Assignment" : "Start Exam Now"}
                 </>
               )}
             </button>
             <p className="text-center text-xs text-slate-400 mt-3">
-              You get one attempt. The timer cannot be paused.
+              {isAssignment
+                ? "Untimed open submission. Submit anytime before the deadline."
+                : "You get one attempt. The timer cannot be paused."}
             </p>
           </div>
         </div>
@@ -539,28 +567,38 @@ export default function SecureExamPage() {
     )
   }
 
-  // --- Locked exam surface --------------------------------------------------
+  // --- Exam / Assignment surface --------------------------------------------
 
   const question = questions[current]
-  const overBudget = exam.config.trackTabSwitches && tabSwitches > exam.config.maxTabSwitches
+  const isAssignment = exam.type === "ASSIGNMENT"
+  const overBudget = !isAssignment && exam.config.trackTabSwitches && tabSwitches > exam.config.maxTabSwitches
 
   return (
-    <div className="fixed inset-0 z-40 bg-slate-100 overflow-y-auto select-none">
-      <AntiCheatGuard
-        config={exam.config}
-        active={stage === "active" && !submitting}
-        onViolation={handleViolation}
-        tabSwitches={tabSwitches}
-      />
+    <div className={`fixed inset-0 z-40 bg-slate-100 overflow-y-auto ${isAssignment ? "" : "select-none"}`}>
+      {!isAssignment && (
+        <AntiCheatGuard
+          config={exam.config}
+          active={stage === "active" && !submitting}
+          onViolation={handleViolation}
+          tabSwitches={tabSwitches}
+        />
+      )}
 
-      {/* Locked header */}
+      {/* Header */}
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold ring-1 ring-inset ring-emerald-600/20 whitespace-nowrap">
-              <Lock className="w-3.5 h-3.5" />
-              Secure Guard Active
-            </span>
+            {isAssignment ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold ring-1 ring-inset ring-emerald-600/20 whitespace-nowrap">
+                <BookOpen className="w-3.5 h-3.5" />
+                Assignment (Untimed & Free)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold ring-1 ring-inset ring-emerald-600/20 whitespace-nowrap">
+                <Lock className="w-3.5 h-3.5" />
+                Secure Guard Active
+              </span>
+            )}
             <div className="min-w-0 hidden sm:block">
               <p className="font-bold text-slate-900 text-sm truncate">{exam.title}</p>
               <p className="text-xs text-slate-400 truncate">{exam.courseTitle ?? "General"}</p>
@@ -568,7 +606,7 @@ export default function SecureExamPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {exam.config.trackTabSwitches && (
+            {!isAssignment && exam.config.trackTabSwitches && (
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 ring-inset whitespace-nowrap ${
                   overBudget
@@ -584,7 +622,7 @@ export default function SecureExamPage() {
               </span>
             )}
 
-            {exam.deadline && (
+            {!isAssignment && exam.deadline && (
               <ExamTimer
                 deadline={exam.deadline}
                 durationMins={exam.durationMins}

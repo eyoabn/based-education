@@ -7,6 +7,7 @@ import {
   CalendarClock,
   CheckCircle2,
   Copy,
+  Edit3,
   Eye,
   FilePlus2,
   FileText,
@@ -90,6 +91,7 @@ export default function TeacherExamsPage() {
   const [notice, setNotice] = useState<string | null>(null)
 
   const [composerOpen, setComposerOpen] = useState(false)
+  const [editingExamId, setEditingExamId] = useState<string | null>(null)
   const [draft, setDraft] = useState(emptyDraft)
   const [questions, setQuestions] = useState<ExamQuestion[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -125,11 +127,53 @@ export default function TeacherExamsPage() {
   }, [loadExams])
 
   const openComposer = () => {
+    setEditingExamId(null)
     setDraft(emptyDraft())
     setQuestions([])
     setFormError(null)
     setShowAdvancedSecurity(false)
     setComposerOpen(true)
+  }
+
+  const handleEditDraft = async (exam: ExamSummary) => {
+    try {
+      setFormError(null)
+      const res = await fetch(`/api/exams/${exam.id}`)
+      const data = await res.json()
+      if (data.error) {
+        setError(data.error)
+        return
+      }
+      const fullExam = data.exam
+      let dueDate = ""
+      let dueTime = "23:59"
+      if (fullExam.dueAt) {
+        const d = new Date(fullExam.dueAt)
+        dueDate = d.toISOString().split("T")[0]
+        dueTime = `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`
+      }
+      setDraft({
+        title: fullExam.title || "",
+        description: fullExam.description || "",
+        courseId: fullExam.courseId || "",
+        type: fullExam.type || "EXAM",
+        durationMins: fullExam.type === "ASSIGNMENT" ? 0 : (fullExam.durationMins || 45),
+        passingPct: fullExam.passingPct ?? 50,
+        dueDate,
+        dueTime,
+        forceFullscreen: fullExam.config?.forceFullscreen ?? false,
+        trackTabSwitches: fullExam.config?.trackTabSwitches ?? false,
+        maxTabSwitches: fullExam.config?.maxTabSwitches ?? 3,
+        blockCopyPaste: fullExam.config?.blockCopyPaste ?? false,
+        randomizeOrder: fullExam.config?.randomizeOrder ?? false,
+      })
+      setQuestions(fullExam.questions || [])
+      setEditingExamId(exam.id)
+      setShowAdvancedSecurity(false)
+      setComposerOpen(true)
+    } catch {
+      setError("Failed to load draft for editing.")
+    }
   }
 
   const handlePublish = async (publish: boolean) => {
@@ -140,25 +184,27 @@ export default function TeacherExamsPage() {
       return
     }
 
-    if (draft.type === "ASSIGNMENT" && !draft.dueDate) {
-      setFormError("Assignments require a submission deadline date and time.")
-      return
-    }
+    if (publish) {
+      if (draft.type === "ASSIGNMENT" && !draft.dueDate) {
+        setFormError("Assignments require a submission deadline date and time.")
+        return
+      }
 
-    if (questions.length === 0) {
-      setFormError("Add at least one question or assignment task.")
-      return
-    }
+      if (questions.length === 0) {
+        setFormError("Add at least one question or assignment task before publishing.")
+        return
+      }
 
-    const missingKey = questions.findIndex(q => q.type !== "ESSAY" && !q.correctOptionId)
-    if (missingKey !== -1) {
-      setFormError(`Mark the correct answer for question ${missingKey + 1}.`)
-      return
-    }
-    const emptyPrompt = questions.findIndex(q => !q.prompt.trim())
-    if (emptyPrompt !== -1) {
-      setFormError(`Question ${emptyPrompt + 1} is missing its prompt.`)
-      return
+      const missingKey = questions.findIndex(q => q.type !== "ESSAY" && !q.correctOptionId)
+      if (missingKey !== -1) {
+        setFormError(`Mark the correct answer for question ${missingKey + 1}.`)
+        return
+      }
+      const emptyPrompt = questions.findIndex(q => !q.prompt.trim())
+      if (emptyPrompt !== -1) {
+        setFormError(`Question ${emptyPrompt + 1} is missing its prompt.`)
+        return
+      }
     }
 
     // Local date + time -> UTC, the same conversion the scheduler uses.
@@ -168,38 +214,46 @@ export default function TeacherExamsPage() {
 
     setSubmitting(true)
     try {
-      const res = await fetch("/api/exams", {
-        method: "POST",
+      const url = editingExamId ? `/api/exams/${editingExamId}` : "/api/exams"
+      const method = editingExamId ? "PATCH" : "POST"
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: draft.title.trim(),
           description: draft.description.trim() || null,
           courseId: draft.courseId || null,
           type: draft.type,
-          durationMins: draft.durationMins,
+          durationMins: draft.type === "ASSIGNMENT" ? 0 : draft.durationMins,
           passingPct: draft.passingPct,
           dueAt,
           questions,
-          forceFullscreen: draft.forceFullscreen,
-          trackTabSwitches: draft.trackTabSwitches,
+          forceFullscreen: draft.type === "ASSIGNMENT" ? false : draft.forceFullscreen,
+          trackTabSwitches: draft.type === "ASSIGNMENT" ? false : draft.trackTabSwitches,
           maxTabSwitches: draft.maxTabSwitches,
-          blockCopyPaste: draft.blockCopyPaste,
-          randomizeOrder: draft.randomizeOrder,
+          blockCopyPaste: draft.type === "ASSIGNMENT" ? false : draft.blockCopyPaste,
+          randomizeOrder: draft.type === "ASSIGNMENT" ? false : draft.randomizeOrder,
           isPublished: publish,
         }),
       })
 
       const data = await res.json()
       if (!res.ok) {
-        setFormError(data.error ?? "Could not create the assessment.")
+        setFormError(data.error ?? "Could not save the assessment.")
         return
       }
 
-      setExams(prev => [data.exam as ExamSummary, ...prev])
+      if (editingExamId) {
+        setExams(prev => prev.map(e => e.id === editingExamId ? { ...e, ...data.exam } : e))
+      } else {
+        setExams(prev => [data.exam as ExamSummary, ...prev])
+      }
+
       setComposerOpen(false)
       setNotice(
         publish
-          ? `"${data.exam.title}" published — ${data.notifiedCount} student${
+          ? `"${data.exam.title}" published — ${data.notifiedCount ?? 0} student${
               data.notifiedCount === 1 ? "" : "s"
             } notified.`
           : `"${data.exam.title}" saved as a draft.`

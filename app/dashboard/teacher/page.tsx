@@ -44,6 +44,7 @@ export default function TeacherDashboardPage() {
   const [courseStudents, setCourseStudents] = useState<any[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [activeMenuCourseId, setActiveMenuCourseId] = useState<string | null>(null)
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null)
 
   // Form State
   const [title, setTitle] = useState("")
@@ -252,6 +253,9 @@ export default function TeacherDashboardPage() {
   }
 
   const handleApproveOrReject = async (courseId: string, requestId: string, status: "APPROVED" | "REJECTED") => {
+    // Prevent double-click: if already processing this request, bail out immediately
+    if (processingRequestId === requestId) return
+    setProcessingRequestId(requestId)
     try {
       const res = await fetch(`/api/courses/${courseId}/requests`, {
         method: "PATCH",
@@ -259,11 +263,28 @@ export default function TeacherDashboardPage() {
         body: JSON.stringify({ requestId, status }),
       })
       if (res.ok) {
-        setSuccessMsg(`Request ${status.toLowerCase()} successfully!`)
+        const data = await res.json()
+        if (!data.alreadyProcessed) {
+          setSuccessMsg(`Request ${status.toLowerCase()} successfully!`)
+        }
+        // Optimistically remove from UI immediately without waiting for full refetch
+        setRequestsMap(prev => {
+          const next = { ...prev }
+          if (next[courseId]) {
+            next[courseId] = next[courseId].filter(r => r.id !== requestId)
+          }
+          return next
+        })
         fetchTeacherData()
+      } else {
+        const data = await res.json()
+        setSuccessMsg(null)
+        setError(data.error || "Failed to process request")
       }
     } catch {
-      // Error handling
+      setError("Network error. Please try again.")
+    } finally {
+      setProcessingRequestId(null)
     }
   }
 
@@ -368,15 +389,27 @@ export default function TeacherDashboardPage() {
                   <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-auto">
                     <button
                       onClick={() => handleApproveOrReject(courseId, req.id, "APPROVED")}
-                      className="flex-1 sm:flex-initial justify-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm"
+                      disabled={processingRequestId === req.id}
+                      className="flex-1 sm:flex-initial justify-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm transition-colors"
                     >
-                      <Check className="w-3.5 h-3.5" /> Approve
+                      {processingRequestId === req.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                      {processingRequestId === req.id ? "Processing..." : "Approve"}
                     </button>
                     <button
                       onClick={() => handleApproveOrReject(courseId, req.id, "REJECTED")}
-                      className="flex-1 sm:flex-initial justify-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm"
+                      disabled={processingRequestId === req.id}
+                      className="flex-1 sm:flex-initial justify-center px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm transition-colors"
                     >
-                      <X className="w-3.5 h-3.5" /> Decline
+                      {processingRequestId === req.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <X className="w-3.5 h-3.5" />
+                      )}
+                      {processingRequestId === req.id ? "" : "Decline"}
                     </button>
                   </div>
                 </div>

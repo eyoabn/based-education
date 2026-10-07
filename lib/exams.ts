@@ -278,9 +278,11 @@ export function stripAnswerKey(questions: ExamQuestion[]): SafeQuestion[] {
  * human-readable error — the API never trusts the shape the client posts.
  */
 export function normalizeQuestions(
-  raw: unknown
+  raw: unknown,
+  isDraft = false
 ): { questions: ExamQuestion[]; error: null } | { questions: null; error: string } {
   if (!Array.isArray(raw) || raw.length === 0) {
+    if (isDraft) return { questions: [], error: null }
     return { questions: null, error: 'Add at least one question.' }
   }
 
@@ -292,21 +294,29 @@ export function normalizeQuestions(
     const position = i + 1
 
     if (!item || typeof item !== 'object') {
+      if (isDraft) continue
       return { questions: null, error: `Question ${position} is malformed.` }
     }
 
-    const type = item.type
+    const type = item.type ?? 'MCQ'
     if (type !== 'MCQ' && type !== 'TRUE_FALSE' && type !== 'ESSAY') {
+      if (isDraft) continue
       return { questions: null, error: `Question ${position} has an unknown type.` }
     }
 
     const prompt = typeof item.prompt === 'string' ? item.prompt.trim() : ''
     if (!prompt) {
-      return { questions: null, error: `Question ${position} is missing its prompt.` }
+      if (isDraft) {
+        // Allow empty prompt for drafts with a placeholder
+        // so the teacher's in-progress state is preserved
+      } else {
+        return { questions: null, error: `Question ${position} is missing its prompt.` }
+      }
     }
 
-    const points = Number(item.points)
-    if (!Number.isFinite(points) || points <= 0) {
+    const rawPoints = Number(item.points)
+    const points = Number.isFinite(rawPoints) && rawPoints > 0 ? round2(rawPoints) : (isDraft ? 1 : 0)
+    if (!isDraft && points <= 0) {
       return { questions: null, error: `Question ${position} needs a point value above zero.` }
     }
 
@@ -317,13 +327,20 @@ export function normalizeQuestions(
     seenIds.add(id)
 
     if (type === 'ESSAY') {
-      questions.push({ id, type, prompt, points: round2(points), options: [], correctOptionId: null })
+      questions.push({ id, type, prompt: prompt || 'Draft Essay Question', points: round2(points), options: [], correctOptionId: null })
       continue
     }
 
-    const rawOptions = type === 'TRUE_FALSE' ? trueFalseOptions() : item.options
+    let rawOptions = type === 'TRUE_FALSE' ? trueFalseOptions() : item.options
     if (!Array.isArray(rawOptions) || rawOptions.length < 2) {
-      return { questions: null, error: `Question ${position} needs at least two options.` }
+      if (isDraft) {
+        rawOptions = [
+          { id: 'o1', text: 'Option A' },
+          { id: 'o2', text: 'Option B' }
+        ]
+      } else {
+        return { questions: null, error: `Question ${position} needs at least two options.` }
+      }
     }
 
     const options: QuestionOption[] = []
@@ -332,22 +349,26 @@ export function normalizeQuestions(
     for (let j = 0; j < rawOptions.length; j++) {
       const opt = rawOptions[j] as Partial<QuestionOption> | null
       const text = opt && typeof opt.text === 'string' ? opt.text.trim() : ''
-      if (!text) {
+      if (!text && !isDraft) {
         return { questions: null, error: `Question ${position} has an empty option.` }
       }
       let optId = opt && typeof opt.id === 'string' && opt.id.trim() ? opt.id.trim() : `o${j + 1}`
       while (seenOptionIds.has(optId)) optId = `${optId}-${j + 1}`
       seenOptionIds.add(optId)
-      options.push({ id: optId, text })
+      options.push({ id: optId, text: text || `Draft Option ${j + 1}` })
     }
 
-    const correctOptionId =
+    let correctOptionId =
       typeof item.correctOptionId === 'string' ? item.correctOptionId.trim() : ''
     if (!correctOptionId || !options.some(o => o.id === correctOptionId)) {
-      return { questions: null, error: `Mark the correct answer for question ${position}.` }
+      if (isDraft) {
+        correctOptionId = options[0]?.id || 'o1'
+      } else {
+        return { questions: null, error: `Mark the correct answer for question ${position}.` }
+      }
     }
 
-    questions.push({ id, type, prompt, points: round2(points), options, correctOptionId })
+    questions.push({ id, type, prompt: prompt || 'Draft Question', points: round2(points), options, correctOptionId })
   }
 
   return { questions, error: null }

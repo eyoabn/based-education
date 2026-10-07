@@ -307,7 +307,9 @@ export async function PATCH(request: NextRequest) {
     const finalScore = totalAwarded(updatedAnswers);
     const wasAlreadyGraded = submission.status === 'GRADED';
     const isNowGraded = release === true || wasAlreadyGraded;
-    const shouldNotify = release === true;
+    // Only notify the student the first time a grade is released (SUBMITTED -> GRADED).
+    // Re-saving an already-released grade does NOT fire a second notification.
+    const shouldNotify = release === true && !wasAlreadyGraded;
     const now = new Date();
 
     const updated = await prisma.submission.update({

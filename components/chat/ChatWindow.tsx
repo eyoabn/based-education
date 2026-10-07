@@ -42,6 +42,7 @@ interface ChatMessageItem {
   content: string
   isMe: boolean
   createdAt: string
+  status?: 'sending' | 'sent' | 'read'
 }
 
 interface ContactItem {
@@ -241,16 +242,16 @@ function playMessageChime() {
       }
     } catch {}
 
-    // 3. Fast high-frequency silent polling (every 2.5s) to guarantee zero message delay
+    // 3. Fast high-frequency silent polling (every 5s) to guarantee zero message delay
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
     pollIntervalRef.current = setInterval(() => {
       fetchMessages(activeConvId, true)
-    }, 2500)
+    }, 5000)
 
-    // Also sync conversation snippets and unread counters every 6s
+    // Also sync conversation snippets and unread counters every 10s
     const convInterval = setInterval(() => {
       fetchConversations()
-    }, 6000)
+    }, 10000)
 
     return () => {
       if (channel) channel.close()
@@ -280,6 +281,7 @@ function playMessageChime() {
       content,
       isMe: true,
       createdAt: new Date().toISOString(),
+      status: 'sending',
     }
     setMessages(prev => [...prev, tempMessage])
     setTimeout(() => scrollToBottom(), 20)
@@ -296,7 +298,7 @@ function playMessageChime() {
         const realMsg = data.message
         // Replace temp with real
         setMessages(prev =>
-          prev.map(m => (m.id === tempMessage.id ? realMsg : m))
+          prev.map(m => (m.id === tempMessage.id ? { ...realMsg, isMe: true, status: 'sent' as const } : m))
         )
         // Broadcast to other open tabs on this browser instantly
         try {
@@ -642,12 +644,25 @@ function playMessageChime() {
                           {msg.content}
                         </div>
 
-                        <span className="text-[10px] text-slate-400 mt-1 px-1 tabular-nums">
-                          {new Date(msg.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
+                        <div className="flex items-center gap-1 mt-1 px-1">
+                          <span className="text-[10px] text-slate-400 tabular-nums">
+                            {new Date(msg.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          {msg.isMe && (
+                            <span className="text-slate-400">
+                              {msg.status === 'sending' ? (
+                                <Clock className="w-2.5 h-2.5 opacity-50" />
+                              ) : msg.status === 'read' ? (
+                                <CheckCheck className="w-3 h-3 text-indigo-400" />
+                              ) : (
+                                <Check className="w-2.5 h-2.5 opacity-60" />
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )

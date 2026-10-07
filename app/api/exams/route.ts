@@ -81,17 +81,20 @@ export async function GET(request: NextRequest) {
     }
 
     // --- Student view ------------------------------------------------------
-    const enrolledCourseIds = (
-      await prisma.course.findMany({
-        where: { students: { some: { id: session.userId } } },
-        select: { id: true },
-      })
-    ).map(c => c.id);
+    const enrolledCourses = await prisma.course.findMany({
+      where: { students: { some: { id: session.userId } } },
+      select: { id: true, teacherId: true },
+    });
+    const enrolledCourseIds = enrolledCourses.map(c => c.id);
+    const teacherIds = Array.from(new Set(enrolledCourses.map(c => c.teacherId)));
 
     const exams = await prisma.exam.findMany({
       where: {
         isPublished: true,
-        OR: [{ courseId: { in: enrolledCourseIds } }, { courseId: null }],
+        OR: [
+          { courseId: { in: enrolledCourseIds } },
+          { courseId: null, teacherId: { in: teacherIds } },
+        ],
       },
       orderBy: [{ dueAt: 'asc' }, { createdAt: 'desc' }],
       select: {
@@ -201,17 +204,25 @@ export async function POST(request: NextRequest) {
     }
 
     const assessmentType = type === 'ASSIGNMENT' ? 'ASSIGNMENT' : 'EXAM';
+    const published = isPublished === true;
 
-    const duration = Number(durationMins);
-    if (!Number.isFinite(duration) || duration < 1 || duration > 600) {
-      return NextResponse.json(
-        { error: 'Duration must be between 1 and 600 minutes.' },
-        { status: 400 }
-      );
+    let duration = 0;
+    if (assessmentType === 'EXAM') {
+      const rawDur = Number(durationMins);
+      if (published && (!Number.isFinite(rawDur) || rawDur < 1 || rawDur > 600)) {
+        return NextResponse.json(
+          { error: 'Exam duration must be between 1 and 600 minutes.' },
+          { status: 400 }
+        );
+      }
+      duration = Number.isFinite(rawDur) && rawDur > 0 ? rawDur : 45;
+    } else {
+      // Assignments are untimed and free
+      duration = 0;
     }
 
     const passing = Number(passingPct);
-    if (!Number.isFinite(passing) || passing < 0 || passing > 100) {
+    if (published && (!Number.isFinite(passing) || passing < 0 || passing > 100)) {
       return NextResponse.json(
         { error: 'Passing score must be between 0 and 100.' },
         { status: 400 }
@@ -227,7 +238,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Never trust the client's question shape — normalise or reject.
-    const normalized = normalizeQuestions(rawQuestions);
+    const normalized = normalizeQuestions(rawQuestions, !published);
     if (normalized.error !== null) {
       return NextResponse.json({ error: normalized.error }, { status: 400 });
     }
@@ -248,7 +259,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const published = isPublished !== false;
     const switchBudget = Number(maxTabSwitches);
 
     const exam = await prisma.exam.create({
@@ -259,17 +269,17 @@ export async function POST(request: NextRequest) {
         teacherId: session.userId,
         courseId: course?.id ?? null,
         durationMins: Math.round(duration),
-        passingPct: Math.round(passing),
+        passingPct: Number.isFinite(passing) ? Math.round(passing) : 50,
         dueAt: due,
         totalPoints: totalPointsOf(questions),
         questions: questions as unknown as object[],
         isPublished: published,
-        forceFullscreen: forceFullscreen !== false,
-        trackTabSwitches: trackTabSwitches !== false,
+        forceFullscreen: assessmentType === 'ASSIGNMENT' ? false : forceFullscreen !== false,
+        trackTabSwitches: assessmentType === 'ASSIGNMENT' ? false : trackTabSwitches !== false,
         maxTabSwitches:
           Number.isFinite(switchBudget) && switchBudget >= 0 ? Math.round(switchBudget) : 3,
-        blockCopyPaste: blockCopyPaste !== false,
-        randomizeOrder: randomizeOrder !== false,
+        blockCopyPaste: assessmentType === 'ASSIGNMENT' ? false : blockCopyPaste !== false,
+        randomizeOrder: assessmentType === 'ASSIGNMENT' ? false : randomizeOrder !== false,
       },
       select: {
         id: true,
@@ -290,11 +300,22 @@ export async function POST(request: NextRequest) {
     // Announce it to the cohort. An unpublished draft stays silent.
     let notifiedCount = 0;
     if (published) {
-      const recipientIds = course
-        ? course.students.map(s => s.id)
-        : (
-            await prisma.user.findMany({ where: { role: 'STUDENT' }, select: { id: true } })
-          ).map(u => u.id);
+      let recipientIds: string[] = [];
+      if (course) {
+        recipientIds = course.students.map(s => s.id);
+      } else {
+        const teacherCourses = await prisma.course.findMany({
+          where: { teacherId: session.userId },
+          select: { students: { select: { id: true } } },
+        });
+        const idSet = new Set<string>();
+        for (const c of teacherCourses) {
+          for (const s of c.students) {
+            idSet.add(s.id);
+          }
+        }
+        recipientIds = Array.from(idSet);
+      }
 
       if (recipientIds.length > 0) {
         const dueLabel = due
