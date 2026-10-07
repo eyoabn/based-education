@@ -47,6 +47,7 @@ interface SubmissionGradeDrawerProps {
 interface AwardDraft {
   points: number
   feedback: string
+  selectedOptionId?: string | null
 }
 
 export default function SubmissionGradeDrawer({
@@ -68,6 +69,7 @@ export default function SubmissionGradeDrawer({
       seeded[answer.questionId] = {
         points: answer.pointsAwarded,
         feedback: answer.feedback ?? "",
+        selectedOptionId: answer.selectedOptionId ?? null,
       }
     }
     setAwards(seeded)
@@ -143,7 +145,11 @@ export default function SubmissionGradeDrawer({
           awards: Object.fromEntries(
             Object.entries(awards).map(([questionId, draft]) => [
               questionId,
-              { points: draft.points, feedback: draft.feedback },
+              {
+                points: draft.points,
+                feedback: draft.feedback,
+                selectedOptionId: draft.selectedOptionId,
+              },
             ])
           ),
           feedback,
@@ -478,68 +484,120 @@ export default function SubmissionGradeDrawer({
           {/* Auto-graded breakdown */}
           {autoAnswers.length > 0 && (
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide mb-3">
-                Auto-Graded Questions
-              </h3>
-              <ul className="space-y-2">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                  Auto-Graded Questions (MCQ & True/False)
+                </h3>
+                <span className="text-xs text-slate-500">
+                  Teachers can adjust student answer choices below
+                </span>
+              </div>
+              <ul className="space-y-3">
                 {autoAnswers.map(answer => {
                   const question = questionById.get(answer.questionId)
-                  const chosen = question?.options.find(o => o.id === answer.selectedOptionId)
                   const correct = question?.options.find(o => o.id === question.correctOptionId)
+                  const activeOptId =
+                    awards[answer.questionId]?.selectedOptionId !== undefined
+                      ? awards[answer.questionId].selectedOptionId
+                      : answer.selectedOptionId
+                  const isCurrentCorrect = question ? activeOptId === question.correctOptionId : answer.isCorrect
                   const currentAward = awards[answer.questionId]?.points ?? answer.pointsAwarded
+                  const isOverridden = activeOptId !== answer.selectedOptionId
 
                   return (
                     <li
                       key={answer.questionId}
-                      className="flex items-start gap-3 py-2 border-b border-slate-100 last:border-0"
+                      className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-2.5"
                     >
-                      {answer.isCorrect ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-slate-700 truncate">
-                          {question?.prompt ?? "Question"}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Answered:{" "}
-                          <span
-                            className={answer.isCorrect ? "text-emerald-600" : "text-red-600"}
-                          >
-                            {chosen?.text ?? "— skipped —"}
-                          </span>
-                          {!answer.isCorrect && correct && (
-                            <>
-                              {" · "}Correct:{" "}
-                              <span className="text-emerald-600">{correct.text}</span>
-                            </>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                          {isCurrentCorrect ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                           )}
-                        </p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-slate-800">
+                              {question?.prompt ?? "Question"}
+                            </p>
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              Type: {question?.type === "TRUE_FALSE" ? "True / False" : "Multiple Choice"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Point override */}
+                        <div className="flex items-center gap-1.5 shrink-0 bg-white border border-slate-200 px-2 py-1 rounded-lg">
+                          <label htmlFor={`override-pts-${answer.questionId}`} className="text-[11px] font-semibold text-slate-500">
+                            Pts:
+                          </label>
+                          <input
+                            id={`override-pts-${answer.questionId}`}
+                            type="number"
+                            min={0}
+                            max={answer.maxPoints}
+                            step={0.5}
+                            value={currentAward}
+                            onChange={e =>
+                              setAwards(prev => ({
+                                ...prev,
+                                [answer.questionId]: {
+                                  points: Math.min(
+                                    Math.max(Number(e.target.value) || 0, 0),
+                                    answer.maxPoints
+                                  ),
+                                  feedback: prev[answer.questionId]?.feedback ?? "",
+                                  selectedOptionId: activeOptId,
+                                },
+                              }))
+                            }
+                            className="w-12 px-1 py-0.5 text-xs font-bold text-slate-800 tabular-nums text-center focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                          />
+                          <span className="text-xs text-slate-400 font-medium">/{answer.maxPoints}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <input
-                          aria-label={`Override points for question`}
-                          type="number"
-                          min={0}
-                          max={answer.maxPoints}
-                          step={0.5}
-                          value={currentAward}
-                          onChange={e =>
-                            setAwards(prev => ({
-                              ...prev,
-                              [answer.questionId]: {
-                                points: Math.min(
-                                  Math.max(Number(e.target.value) || 0, 0),
-                                  answer.maxPoints
-                                ),
-                                feedback: prev[answer.questionId]?.feedback ?? "",
-                              },
-                            }))
-                          }
-                          className="w-14 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-800 tabular-nums text-center focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                        />
-                        <span className="text-xs text-slate-400 font-medium">/{answer.maxPoints}</span>
+
+                      {/* Teacher editable student answer choice */}
+                      <div className="pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-600">Student Choice:</span>
+                          <select
+                            value={activeOptId ?? ""}
+                            onChange={e => {
+                              const newOptId = e.target.value || null
+                              const isNowCorrect = question ? newOptId === question.correctOptionId : false
+                              const newPoints = isNowCorrect ? answer.maxPoints : 0
+                              setAwards(prev => ({
+                                ...prev,
+                                [answer.questionId]: {
+                                  points: newPoints,
+                                  feedback: prev[answer.questionId]?.feedback ?? "",
+                                  selectedOptionId: newOptId,
+                                },
+                              }))
+                            }}
+                            className="px-2.5 py-1 text-xs font-medium bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
+                          >
+                            <option value="">— No Answer Selected —</option>
+                            {question?.options.map(opt => (
+                              <option key={opt.id} value={opt.id}>
+                                {opt.text} {opt.id === question.correctOptionId ? "✓ (Correct Key)" : ""}
+                              </option>
+                            ))}
+                          </select>
+
+                          {isOverridden && (
+                            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                              Answer modified by teacher
+                            </span>
+                          )}
+                        </div>
+
+                        {correct && (
+                          <span className="text-xs text-slate-500">
+                            Key: <span className="font-semibold text-emerald-700">{correct.text}</span>
+                          </span>
+                        )}
                       </div>
                     </li>
                   )

@@ -258,7 +258,7 @@ export async function PATCH(request: NextRequest) {
         isFlagged: true,
         studentId: true,
         gradedAt: true,
-        exam: { select: { id: true, title: true, passingPct: true } },
+        exam: { select: { id: true, title: true, passingPct: true, questions: true } },
       },
     });
 
@@ -277,11 +277,13 @@ export async function PATCH(request: NextRequest) {
 
     const answers = (submission.answers as unknown as StudentAnswer[]) ?? [];
     const current = Array.isArray(answers) ? answers : [];
+    const examQuestions = (submission.exam.questions as unknown as ExamQuestion[]) ?? [];
+    const questionMap = new Map<string, ExamQuestion>(examQuestions.map(q => [q.id, q]));
 
-    // `awards` is a map of questionId -> { points, feedback }.
-    const awardMap = new Map<string, { points?: unknown; feedback?: unknown }>(
+    // `awards` is a map of questionId -> { points, feedback, selectedOptionId }.
+    const awardMap = new Map<string, { points?: unknown; feedback?: unknown; selectedOptionId?: unknown }>(
       awards && typeof awards === 'object' && !Array.isArray(awards)
-        ? Object.entries(awards as Record<string, { points?: unknown; feedback?: unknown }>)
+        ? Object.entries(awards as Record<string, { points?: unknown; feedback?: unknown; selectedOptionId?: unknown }>)
         : []
     );
 
@@ -289,13 +291,32 @@ export async function PATCH(request: NextRequest) {
       const award = awardMap.get(answer.questionId);
       if (!award) return answer;
 
+      const q = questionMap.get(answer.questionId);
+      let selectedOptionId = answer.selectedOptionId;
+      let isCorrect = answer.isCorrect;
+
+      if (award.selectedOptionId !== undefined) {
+        selectedOptionId =
+          typeof award.selectedOptionId === 'string' && award.selectedOptionId.trim()
+            ? award.selectedOptionId.trim()
+            : null;
+        if (q && q.type !== 'ESSAY') {
+          isCorrect = selectedOptionId ? selectedOptionId === q.correctOptionId : false;
+        }
+      }
+
       const raw = Number(award.points);
-      const points = Number.isFinite(raw)
-        ? round2(Math.min(Math.max(raw, 0), answer.maxPoints))
-        : answer.pointsAwarded;
+      let points = answer.pointsAwarded;
+      if (Number.isFinite(raw)) {
+        points = round2(Math.min(Math.max(raw, 0), answer.maxPoints));
+      } else if (award.selectedOptionId !== undefined && q && q.type !== 'ESSAY') {
+        points = isCorrect ? answer.maxPoints : 0;
+      }
 
       return {
         ...answer,
+        selectedOptionId,
+        isCorrect,
         pointsAwarded: points,
         feedback:
           typeof award.feedback === 'string'

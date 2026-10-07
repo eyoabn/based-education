@@ -76,7 +76,14 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
 
     // Determine destination target URL
     let targetUrl = notification.link
-    if (!targetUrl) {
+    if (targetUrl) {
+      if (targetUrl.includes('/dashboard/student/courses')) {
+        targetUrl = targetUrl.replace('/dashboard/student/courses', '/dashboard/student')
+      }
+      if (targetUrl === '/dashboard/teacher/courses/requests') {
+        targetUrl = '/dashboard/teacher'
+      }
+    } else {
       switch (notification.type) {
         case 'GRADE_RELEASED':
         case 'grade':
@@ -95,7 +102,7 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
           break
         case 'COURSE_JOIN_APPROVED':
         case 'COURSE_JOIN_REJECTED':
-          targetUrl = '/dashboard/student/courses'
+          targetUrl = '/dashboard/student'
           break
         case 'LIVE_CLASS_STARTING':
         case 'live':
@@ -109,12 +116,18 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
           targetUrl = '/dashboard/student/feed'
           break
         default:
-          if (notification.title.toLowerCase().includes('grade')) {
+          if (
+            notification.title.toLowerCase().includes('feedback') ||
+            notification.title.toLowerCase().includes('report') ||
+            notification.title.toLowerCase().includes('bug')
+          ) {
+            targetUrl = '/dashboard/admin/feedback'
+          } else if (notification.title.toLowerCase().includes('grade')) {
             targetUrl = '/dashboard/student/gradebook'
           } else if (notification.title.toLowerCase().includes('live')) {
             targetUrl = '/dashboard/student/calendar'
           } else if (notification.title.toLowerCase().includes('course')) {
-            targetUrl = '/dashboard/student/courses'
+            targetUrl = '/dashboard/student'
           } else if (notification.title.toLowerCase().includes('exam') || notification.title.toLowerCase().includes('task')) {
             targetUrl = '/dashboard/student/exams'
           } else {

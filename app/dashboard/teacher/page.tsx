@@ -505,10 +505,16 @@ export default function TeacherDashboardPage() {
                     </Link>
                     <div className="flex items-center gap-3">
                       <Link
-                        href="/dashboard/teacher/feed"
+                        href={`/dashboard/teacher/feed`}
                         className="text-indigo-600 hover:text-indigo-700 font-bold"
                       >
                         Feed →
+                      </Link>
+                      <Link
+                        href={`/dashboard/teacher/courses/${course.id}/materials`}
+                        className="text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1"
+                      >
+                        <BookOpen className="w-3.5 h-3.5" /> Materials
                       </Link>
                       <Link
                         href={`/dashboard/teacher/live/${encodeURIComponent(course.title)}`}

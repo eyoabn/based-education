@@ -444,13 +444,23 @@ export default function TeacherExamsPage() {
                   </div>
 
                   <div className="flex items-center gap-2 pl-2 border-l border-slate-100">
-                    <Link
-                      href={`/dashboard/teacher/grading?examId=${exam.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors"
-                    >
-                      <Flag className="w-3.5 h-3.5" />
-                      Grade
-                    </Link>
+                    {!exam.isPublished ? (
+                      <button
+                        onClick={() => void handleEditDraft(exam)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Edit Draft
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/dashboard/teacher/grading?examId=${exam.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors"
+                      >
+                        <Flag className="w-3.5 h-3.5" />
+                        Grade
+                      </Link>
+                    )}
                     <button
                       onClick={() => void handleDelete(exam)}
                       disabled={deletingId === exam.id}
@@ -494,7 +504,13 @@ export default function TeacherExamsPage() {
                 </div>
                 <div>
                   <h2 id="composer-title" className="text-base sm:text-lg font-bold text-slate-900">
-                    Create Assessment
+                    {editingExamId
+                      ? draft.type === "ASSIGNMENT"
+                        ? "Edit Assignment Draft"
+                        : "Edit Exam Draft"
+                      : draft.type === "ASSIGNMENT"
+                        ? "Create Assignment"
+                        : "Create Exam"}
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {questions.length} question{questions.length === 1 ? "" : "s"} · {draftPoints}{" "}
@@ -630,27 +646,36 @@ export default function TeacherExamsPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label
-                        htmlFor="exam-duration"
-                        className="block text-xs font-semibold text-slate-700 mb-1.5"
-                      >
-                        {draft.type === "ASSIGNMENT"
-                          ? "Est. Time (min, 0 = untimed)"
-                          : "Duration (min)"}
-                      </label>
-                      <input
-                        id="exam-duration"
-                        type="number"
-                        min={0}
-                        max={600}
-                        value={draft.durationMins}
-                        onChange={e =>
-                          setDraft({ ...draft, durationMins: Number(e.target.value) || 0 })
-                        }
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm tabular-nums focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
-                      />
-                    </div>
+                    {draft.type === "EXAM" ? (
+                      <div>
+                        <label
+                          htmlFor="exam-duration"
+                          className="block text-xs font-semibold text-slate-700 mb-1.5"
+                        >
+                          Duration (min)
+                        </label>
+                        <input
+                          id="exam-duration"
+                          type="number"
+                          min={1}
+                          max={600}
+                          value={draft.durationMins}
+                          onChange={e =>
+                            setDraft({ ...draft, durationMins: Number(e.target.value) || 0 })
+                          }
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm tabular-nums focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/60 rounded-lg flex flex-col justify-center">
+                        <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">
+                          Untimed Assignment
+                        </span>
+                        <span className="text-xs text-emerald-600 mt-0.5">
+                          Free submission without a countdown clock.
+                        </span>
+                      </div>
+                    )}
                     <div>
                       <label
                         htmlFor="exam-passing"
