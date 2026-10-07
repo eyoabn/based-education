@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { post: newPost, notifiedCount: students.length },
+      { post: newPost, notifiedCount: targetStudentIds.length },
       { status: 201 }
     );
   } catch (error) {
