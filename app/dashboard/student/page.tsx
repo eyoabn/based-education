@@ -115,56 +115,85 @@ export default function StudentDashboardPage() {
     }
   }
 
+  const [filterTab, setFilterTab] = useState<"all" | "enrolled" | "public" | "restricted">("all")
+
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 18) return "Good afternoon"
+    return "Good evening"
+  }
+
+  const currentDateFormatted = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  })
+
   const enrolledCourses = courses.filter(c => c.isEnrolled)
+  const publicCourses = courses.filter(c => c.accessMode === "PUBLIC")
+  const restrictedCourses = courses.filter(c => c.accessMode === "PERMISSION_REQUIRED")
+
+  const filteredCourses = courses.filter(c => {
+    if (filterTab === "enrolled") return c.isEnrolled
+    if (filterTab === "public") return c.accessMode === "PUBLIC"
+    if (filterTab === "restricted") return c.accessMode === "PERMISSION_REQUIRED"
+    return true
+  })
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
       {/* Active Live Class Alert Banner */}
       {liveEvents.length > 0 && (
-        <div className="bg-gradient-to-r from-red-600 via-red-500 to-amber-600 rounded-2xl p-4 sm:p-6 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <Radio className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-ping" />
+        <div className="bg-gradient-to-r from-red-600 via-red-500 to-amber-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in duration-300">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 shadow-inner">
+              <Radio className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-white text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                  LIVE NOW
+                <span className="px-2 py-0.5 rounded-full bg-white text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-wider shadow-xs">
+                  LIVE BROADCAST
                 </span>
                 <span className="text-xs font-semibold text-red-100 truncate max-w-[180px] sm:max-w-none">
                   {liveEvents[0].courseTitle || "Course Class"}
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-white mt-0.5">{liveEvents[0].title}</h2>
+              <h2 className="text-base sm:text-xl font-extrabold text-white mt-1 leading-snug">{liveEvents[0].title}</h2>
               {liveEvents[0].teacherName && (
-                <p className="text-xs text-red-100">Instructor: {liveEvents[0].teacherName}</p>
+                <p className="text-xs text-red-100/90 font-medium mt-0.5">Host: {liveEvents[0].teacherName}</p>
               )}
             </div>
           </div>
           <Link
             href={`/dashboard/student/live/${encodeURIComponent(liveEvents[0].id)}`}
-            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-white hover:bg-slate-100 text-red-600 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg transition-transform hover:scale-105 inline-flex items-center justify-center gap-2 shrink-0 text-center"
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-white hover:bg-slate-100 active:scale-95 text-red-600 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg transition-all inline-flex items-center justify-center gap-2 shrink-0 text-center"
           >
             <Video className="w-4 h-4" /> Join Live Stream Now
           </Link>
         </div>
       )}
 
-      {/* Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-2 sm:mb-3">
-            <Sparkles className="w-3.5 h-3.5" /> Learning Portal
+      {/* Humanized Welcome Banner with Dynamic Greeting */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-2 sm:mb-3 backdrop-blur-xs">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+            <span>{currentDateFormatted}</span>
+            <span className="opacity-40">•</span>
+            <span>Student Hub</span>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">Welcome back, {userName}! 👋</h1>
-          <p className="text-indigo-200 text-xs sm:text-sm mt-1 max-w-xl">
-            Explore live courses, request permission to join restricted classes, and track your progress.
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
+            {getGreeting()}, {userName}! 👋
+          </h1>
+          <p className="text-indigo-200 text-xs sm:text-sm mt-1.5 max-w-xl leading-relaxed">
+            Welcome to your learning sanctuary. Explore scheduled classes, submit assessments, and connect with your teachers.
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 relative z-10">
           <Link
             href="/dashboard/student/calendar"
-            className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-lg transition-colors inline-flex items-center justify-center gap-2 text-center"
+            className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-lg transition-all inline-flex items-center justify-center gap-2 text-center"
           >
             <Clock className="w-4 h-4" /> Schedule &amp; Live
           </Link>
@@ -180,74 +209,123 @@ export default function StudentDashboardPage() {
           }`}
         >
           <span>{message.text}</span>
-          <button onClick={() => setMessage(null)} className="text-xs underline ml-4">
+          <button onClick={() => setMessage(null)} className="text-xs underline ml-4 hover:opacity-80">
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-700">Enrolled Courses</h3>
-            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+      {/* Humanized Stats Cards with Contextual Subtitles */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-500">Enrolled Courses</h3>
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
               <BookOpen className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-slate-900">{enrolledCourses.length}</div>
+          <div className="text-3xl font-extrabold text-slate-900">{enrolledCourses.length}</div>
+          <p className="text-xs text-slate-400 mt-1">Active courses in your curriculum</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-700">Available Courses</h3>
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-500">Available Courses</h3>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
               <Building2 className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-slate-900">{courses.length}</div>
+          <div className="text-3xl font-extrabold text-slate-900">{courses.length}</div>
+          <p className="text-xs text-slate-400 mt-1">Total public &amp; restricted subjects</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-700">Active Instructors</h3>
-            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-500">Instructors</h3>
+            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-slate-900">
+          <div className="text-3xl font-extrabold text-slate-900">
             {new Set(courses.map(c => c.teacherId)).size}
           </div>
+          <p className="text-xs text-slate-400 mt-1">Faculty educators teaching now</p>
         </div>
       </div>
 
-      {/* Course Catalogue (Real Database Data) */}
+      {/* Course Catalogue with Mobile-Friendly Filter Chips */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">All Platform Courses</h2>
-            <p className="text-slate-500 text-sm">Join public classes instantly or request approval for restricted courses.</p>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">Course Catalogue</h2>
+            <p className="text-slate-500 text-xs sm:text-sm">Join open classes or request admission to specialized cohorts.</p>
+          </div>
+
+          {/* Quick Filter Tabs for Ergonomic Mobile Browsing */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <button
+              onClick={() => setFilterTab("all")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
+                filterTab === "all"
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              All ({courses.length})
+            </button>
+            <button
+              onClick={() => setFilterTab("enrolled")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
+                filterTab === "enrolled"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Enrolled ({enrolledCourses.length})
+            </button>
+            <button
+              onClick={() => setFilterTab("public")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
+                filterTab === "public"
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Public ({publicCourses.length})
+            </button>
+            <button
+              onClick={() => setFilterTab("restricted")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
+                filterTab === "restricted"
+                  ? "bg-amber-600 text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Approval Req ({restrictedCourses.length})
+            </button>
           </div>
         </div>
 
         {loading ? (
-          <div className="bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-400">
+          <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-400">
             Loading course directory...
           </div>
-        ) : courses.length === 0 ? (
-          <div className="bg-white p-12 rounded-xl border border-slate-200 text-center">
+        ) : filteredCourses.length === 0 ? (
+          <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center">
             <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="font-bold text-slate-700 text-lg">No Courses Created Yet</h3>
+            <h3 className="font-bold text-slate-700 text-lg">No Matching Courses Found</h3>
             <p className="text-slate-500 text-sm max-w-md mx-auto mt-1">
-              Instructors have not published any courses yet. Once a teacher signs up and creates a course, it will appear here instantly!
+              {filterTab === "enrolled"
+                ? "You haven't joined any courses yet. Browse public courses and enroll with one tap!"
+                : "No courses match the current filter selection."}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map(course => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredCourses.map(course => (
               <div
                 key={course.id}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between"
               >
                 <div>
                   {/* Course Header / Logo */}
@@ -331,13 +409,13 @@ export default function StudentDashboardPage() {
                       <div className="flex gap-2">
                         <Link
                           href={`/dashboard/student/courses/${encodeURIComponent(course.id)}/materials`}
-                          className="flex-1 py-2 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition-colors"
+                          className="flex-1 py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex flex-col items-center justify-center transition-all min-h-[44px]"
                         >
                           <BookOpen className="w-3.5 h-3.5 mb-0.5" /> Materials
                         </Link>
                         <Link
                           href={`/dashboard/student/messages?courseId=${encodeURIComponent(course.id)}`}
-                          className="flex-1 py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition-colors text-center"
+                          className="flex-1 py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex flex-col items-center justify-center transition-all text-center min-h-[44px]"
                         >
                           <MessageSquare className="w-3.5 h-3.5 mb-0.5" /> Class Chat
                         </Link>
@@ -346,7 +424,7 @@ export default function StudentDashboardPage() {
                   ) : course.hasPendingRequest ? (
                     <button
                       disabled
-                      className="w-full py-2.5 px-4 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+                      className="w-full min-h-[44px] py-2.5 px-4 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
                     >
                       <Clock className="w-4 h-4 text-amber-600" /> Request Pending Approval
                     </button>
@@ -354,7 +432,7 @@ export default function StudentDashboardPage() {
                     <button
                       onClick={() => handleJoinOrRequest(course)}
                       disabled={joiningId === course.id}
-                      className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white shadow-sm transition-all flex items-center justify-center gap-1.5 ${
+                      className={`w-full min-h-[44px] py-2.5 px-4 rounded-xl text-xs font-bold text-white shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
                         course.accessMode === "PUBLIC"
                           ? "bg-indigo-600 hover:bg-indigo-700"
                           : "bg-amber-600 hover:bg-amber-700"

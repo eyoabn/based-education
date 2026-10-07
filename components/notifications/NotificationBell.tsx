@@ -103,7 +103,7 @@ export default function NotificationBell() {
         }}
         aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
         title={connected ? "Notifications · live" : "Notifications · reconnecting"}
-        className="relative rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className="relative rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
       >
         <Bell className="h-5 w-5" />
 

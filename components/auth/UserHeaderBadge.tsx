@@ -75,7 +75,7 @@ export default function UserHeaderBadge() {
       <button
         type="button"
         onClick={() => setSettingsOpen(true)}
-        className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 md:pl-6 border-l border-slate-200 hover:opacity-90 transition-opacity text-left group cursor-pointer focus:outline-none"
+        className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 md:pl-6 border-l border-slate-200 hover:opacity-90 active:scale-95 transition-all text-left group cursor-pointer focus:outline-none min-h-[40px]"
         title="Click to edit profile picture and details"
       >
         <div className="text-right hidden sm:block">
