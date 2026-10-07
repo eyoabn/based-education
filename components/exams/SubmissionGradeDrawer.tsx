@@ -65,7 +65,6 @@ export default function SubmissionGradeDrawer({
 
     const seeded: Record<string, AwardDraft> = {}
     for (const answer of submission.answers) {
-      if (answer.autoGraded) continue
       seeded[answer.questionId] = {
         points: answer.pointsAwarded,
         feedback: answer.feedback ?? "",
@@ -101,11 +100,22 @@ export default function SubmissionGradeDrawer({
     [submission]
   )
 
+  const autoTotal = useMemo(
+    () =>
+      round2(
+        autoAnswers.reduce(
+          (sum, a) => sum + (Number(awards[a.questionId]?.points) ?? a.pointsAwarded ?? 0),
+          0
+        )
+      ),
+    [autoAnswers, awards]
+  )
+
   const manualTotal = useMemo(
     () =>
       round2(
         manualAnswers.reduce(
-          (sum, a) => sum + (Number(awards[a.questionId]?.points) || 0),
+          (sum, a) => sum + (Number(awards[a.questionId]?.points) ?? a.pointsAwarded ?? 0),
           0
         )
       ),
@@ -114,7 +124,7 @@ export default function SubmissionGradeDrawer({
 
   if (!submission) return null
 
-  const runningScore = round2(submission.autoScore + manualTotal)
+  const runningScore = round2(autoTotal + manualTotal)
   const pct = scorePct(runningScore, submission.maxScore)
   const willPass = hasPassed(runningScore, submission.maxScore, submission.passingPct)
   const risk = riskLevel(submission.tabSwitches, submission.maxTabSwitches)
@@ -191,7 +201,7 @@ export default function SubmissionGradeDrawer({
                 <img
                   src={
                     submission.avatarUrl ||
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(submission.studentName)}`
+                    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(submission.studentName)}&backgroundColor=0284c7,4f46e5,059669`
                   }
                   alt=""
                   className="w-full h-full object-cover"
@@ -476,6 +486,7 @@ export default function SubmissionGradeDrawer({
                   const question = questionById.get(answer.questionId)
                   const chosen = question?.options.find(o => o.id === answer.selectedOptionId)
                   const correct = question?.options.find(o => o.id === question.correctOptionId)
+                  const currentAward = awards[answer.questionId]?.points ?? answer.pointsAwarded
 
                   return (
                     <li
@@ -506,9 +517,30 @@ export default function SubmissionGradeDrawer({
                           )}
                         </p>
                       </div>
-                      <span className="text-sm font-bold text-slate-700 tabular-nums shrink-0">
-                        {answer.pointsAwarded}/{answer.maxPoints}
-                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <input
+                          aria-label={`Override points for question`}
+                          type="number"
+                          min={0}
+                          max={answer.maxPoints}
+                          step={0.5}
+                          value={currentAward}
+                          onChange={e =>
+                            setAwards(prev => ({
+                              ...prev,
+                              [answer.questionId]: {
+                                points: Math.min(
+                                  Math.max(Number(e.target.value) || 0, 0),
+                                  answer.maxPoints
+                                ),
+                                feedback: prev[answer.questionId]?.feedback ?? "",
+                              },
+                            }))
+                          }
+                          className="w-14 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-800 tabular-nums text-center focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                        />
+                        <span className="text-xs text-slate-400 font-medium">/{answer.maxPoints}</span>
+                      </div>
                     </li>
                   )
                 })}
@@ -548,11 +580,23 @@ export default function SubmissionGradeDrawer({
         {/* Footer */}
         <footer className="shrink-0 bg-white border-t border-slate-200 px-6 py-4 flex items-center justify-between gap-3">
           <div className="text-sm text-slate-600">
-            Releasing sends{" "}
-            <span className="font-bold text-slate-900 tabular-nums">
-              {runningScore}/{submission.maxScore}
-            </span>{" "}
-            and notifies the student.
+            {submission.status === "GRADED" ? (
+              <>
+                Saving updates final score to{" "}
+                <span className="font-bold text-slate-900 tabular-nums">
+                  {runningScore}/{submission.maxScore}
+                </span>{" "}
+                and notifies student of revised grade.
+              </>
+            ) : (
+              <>
+                Releasing sends{" "}
+                <span className="font-bold text-slate-900 tabular-nums">
+                  {runningScore}/{submission.maxScore}
+                </span>{" "}
+                and notifies the student.
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -581,12 +625,12 @@ export default function SubmissionGradeDrawer({
               {saving === "release" ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Releasing...
+                  {submission.status === "GRADED" ? "Updating..." : "Releasing..."}
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  Release Grade
+                  {submission.status === "GRADED" ? "Update Grade" : "Release Grade"}
                 </>
               )}
             </button>

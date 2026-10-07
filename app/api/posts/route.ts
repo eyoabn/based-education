@@ -9,7 +9,23 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const session = token ? await verifyToken(token) : null;
 
+    let whereClause: any = {};
+    if (session?.role === 'STUDENT') {
+      const studentWithCourses = await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { enrolledIn: { select: { teacherId: true } } }
+      });
+      const teacherIds = studentWithCourses?.enrolledIn.map(c => c.teacherId) || [];
+      whereClause = {
+        OR: [
+          { authorId: { in: teacherIds } },
+          { author: { role: 'ADMIN' } }
+        ]
+      };
+    }
+
     const posts = await prisma.post.findMany({
+      where: whereClause,
       take: 50,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -73,22 +89,36 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Phase 7 — close the loop: persist an alert for every student, then push
-    // it down the SSE stream so anyone currently online sees the toast without
-    // waiting for their next page load. Persistence comes first, so a student
-    // who is offline right now still finds the alert in their drawer later.
-    const students = await prisma.user.findMany({
-      where: { role: 'STUDENT', isBanned: false },
-      select: { id: true },
-    });
+    let targetStudentIds: string[] = [];
+    if (session.role === 'TEACHER') {
+      const courses = await prisma.course.findMany({
+        where: { teacherId: session.userId },
+        select: { students: { select: { id: true, isBanned: true } } }
+      });
+      const studentIdsSet = new Set<string>();
+      for (const course of courses) {
+        for (const student of course.students) {
+          if (!student.isBanned) {
+            studentIdsSet.add(student.id);
+          }
+        }
+      }
+      targetStudentIds = Array.from(studentIdsSet);
+    } else if (session.role === 'ADMIN') {
+      const students = await prisma.user.findMany({
+        where: { role: 'STUDENT', isBanned: false },
+        select: { id: true },
+      });
+      targetStudentIds = students.map(s => s.id);
+    }
 
     const title = 'New Announcement';
     const message = `${newPost.author.name} posted a new announcement.`;
 
-    if (students.length > 0) {
+    if (targetStudentIds.length > 0) {
       await prisma.notification.createMany({
-        data: students.map(student => ({
-          userId: student.id,
+        data: targetStudentIds.map(studentId => ({
+          userId: studentId,
           type: 'NEW_POST' as const,
           title,
           message,
@@ -104,12 +134,11 @@ export async function POST(request: NextRequest) {
         postId: newPost.id,
       };
 
-      // Best-effort: a dropped socket must never fail the write that succeeded.
-      for (const student of students) {
+      for (const studentId of targetStudentIds) {
         try {
-          notifyUser(student.id, payload);
+          notifyUser(studentId, payload);
         } catch {
-          // Stale controller — the client will reconnect and refetch.
+          // Stale controller
         }
       }
     }

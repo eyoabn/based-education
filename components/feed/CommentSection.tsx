@@ -59,6 +59,18 @@ export default function CommentSection({
         }
       })
       .catch(() => {})
+
+    const onUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ name?: string; avatarUrl?: string | null }>
+      if (customEvent.detail) {
+        setCurrentUser(prev => ({
+          name: customEvent.detail.name || prev?.name || "User",
+          avatarUrl: customEvent.detail.avatarUrl !== undefined ? customEvent.detail.avatarUrl : prev?.avatarUrl,
+        }))
+      }
+    }
+    window.addEventListener("user-profile-updated", onUpdate)
+    return () => window.removeEventListener("user-profile-updated", onUpdate)
   }, [])
 
   // Fetch real comments for this post
@@ -112,7 +124,9 @@ export default function CommentSection({
     }
   }
 
-  const userAvatar = currentUser?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser?.name || "User")}`
+  const userAvatar =
+    currentUser?.avatarUrl ||
+    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser?.name || "User")}&backgroundColor=0284c7,4f46e5,059669`
 
   return (
     <div className="bg-slate-50/80 border-t border-slate-100 p-4 sm:p-5">
@@ -134,7 +148,9 @@ export default function CommentSection({
             const isTeacher = comment.author.role === "TEACHER"
             const isAdmin = comment.author.role === "ADMIN"
             const authorSeed = comment.author.name || "User"
-            const avatar = comment.author.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(authorSeed)}`
+            const avatar =
+              comment.author.avatarUrl ||
+              `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(authorSeed)}&backgroundColor=0284c7,4f46e5,059669`
 
             return (
               <div key={comment.id} className="flex gap-2.5 sm:gap-3 group">

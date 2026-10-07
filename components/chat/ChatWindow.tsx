@@ -70,6 +70,25 @@ export default function ChatWindow({ initialCourseId }: { initialCourseId?: stri
   const [contacts, setContacts] = useState<ContactItem[]>([])
   const [contactSearch, setContactSearch] = useState("")
   const [creatingConv, setCreatingConv] = useState(false)
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatarUrl: string | null; role: string } | null>(null)
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(r => r.json())
+      .then(d => {
+        if (d?.user) setCurrentUser(d.user)
+      })
+      .catch(() => {})
+
+    const onUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<any>
+      if (customEvent.detail) {
+        setCurrentUser(prev => (prev ? { ...prev, ...customEvent.detail } : customEvent.detail))
+      }
+    }
+    window.addEventListener("user-profile-updated", onUpdate)
+    return () => window.removeEventListener("user-profile-updated", onUpdate)
+  }, [])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -254,10 +273,10 @@ function playMessageChime() {
     const tempMessage: ChatMessageItem = {
       id: `temp-${Date.now()}`,
       conversationId: activeConvId,
-      senderId: "me",
-      senderName: "You",
-      senderAvatar: null,
-      senderRole: "STUDENT",
+      senderId: currentUser?.id || "me",
+      senderName: currentUser?.name || "You",
+      senderAvatar: currentUser?.avatarUrl || null,
+      senderRole: currentUser?.role || "TEACHER",
       content,
       isMe: true,
       createdAt: new Date().toISOString(),
@@ -451,9 +470,17 @@ function playMessageChime() {
                   {/* Avatar / Icon */}
                   <div className="relative shrink-0">
                     {conv.isDirect ? (
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-sm">
-                        {conv.title.substring(0, 2).toUpperCase()}
-                      </div>
+                      conv.participants[0]?.avatarUrl ? (
+                        <img
+                          src={conv.participants[0].avatarUrl}
+                          alt=""
+                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-200 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-sm">
+                          {conv.title.substring(0, 2).toUpperCase()}
+                        </div>
+                      )
                     ) : (
                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-slate-800 to-indigo-900 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-sm">
                         <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-300" />
@@ -563,35 +590,65 @@ function playMessageChime() {
                   return (
                     <div
                       key={msg.id || index}
-                      className={`flex flex-col ${msg.isMe ? "items-end" : "items-start"}`}
+                      className={`flex gap-2 sm:gap-2.5 ${msg.isMe ? "flex-row-reverse items-end" : "flex-row items-start"}`}
                     >
-                      {!msg.isMe && (
-                        <div className="flex items-center gap-1.5 mb-1 px-1">
-                          <span className="text-xs font-bold text-slate-700">{msg.senderName}</span>
-                          {isInstructor && (
-                            <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase">
-                              Instructor
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      <div
-                        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm break-words whitespace-pre-wrap ${
-                          msg.isMe
-                            ? "bg-indigo-600 text-white rounded-br-none"
-                            : "bg-white border border-slate-200 text-slate-800 rounded-bl-none"
-                        }`}
-                      >
-                        {msg.content}
+                      {/* Avatar */}
+                      <div className="shrink-0 mb-4">
+                        {msg.senderAvatar ? (
+                          <img
+                            src={msg.senderAvatar}
+                            alt=""
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shadow-xs border ${
+                              isInstructor ? "border-emerald-500 ring-2 ring-emerald-400/30" : "border-slate-200"
+                            }`}
+                          />
+                        ) : (
+                          <div
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full text-white font-bold text-[10px] sm:text-xs flex items-center justify-center shadow-xs ${
+                              msg.isMe
+                                ? "bg-indigo-600"
+                                : isInstructor
+                                ? "bg-emerald-600 ring-2 ring-emerald-400/30"
+                                : "bg-slate-700"
+                            }`}
+                          >
+                            {(msg.senderName || "U").slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
                       </div>
 
-                      <span className="text-[10px] text-slate-400 mt-1 px-1 tabular-nums">
-                        {new Date(msg.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+                      {/* Bubble & Metadata */}
+                      <div
+                        className={`flex flex-col max-w-[80%] sm:max-w-[70%] ${msg.isMe ? "items-end" : "items-start"}`}
+                      >
+                        {!msg.isMe && (
+                          <div className="flex items-center gap-1.5 mb-1 px-1">
+                            <span className="text-xs font-bold text-slate-700">{msg.senderName}</span>
+                            {isInstructor && (
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase">
+                                Instructor
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <div
+                          className={`rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm break-words whitespace-pre-wrap ${
+                            msg.isMe
+                              ? "bg-indigo-600 text-white rounded-br-none"
+                              : "bg-white border border-slate-200 text-slate-800 rounded-bl-none"
+                          }`}
+                        >
+                          {msg.content}
+                        </div>
+
+                        <span className="text-[10px] text-slate-400 mt-1 px-1 tabular-nums">
+                          {new Date(msg.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
                     </div>
                   )
                 })
@@ -683,9 +740,17 @@ function playMessageChime() {
                     className="w-full text-left p-3 hover:bg-slate-50 rounded-xl flex items-center justify-between transition-colors group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs shrink-0">
-                        {contact.name.substring(0, 2).toUpperCase()}
-                      </div>
+                      {contact.avatarUrl ? (
+                        <img
+                          src={contact.avatarUrl}
+                          alt=""
+                          className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs shrink-0">
+                          {contact.name.substring(0, 2).toUpperCase()}
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-slate-900 truncate group-hover:text-indigo-600">
                           {contact.name}

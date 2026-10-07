@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User as UserIcon } from "lucide-react";
+import { Camera, User as UserIcon } from "lucide-react";
+import ProfileSettingsModal, { type UserProfileData } from "@/components/profile/ProfileSettingsModal";
 
 interface UserProfile {
   id: string;
@@ -10,11 +11,14 @@ interface UserProfile {
   role: string;
   avatarUrl: string | null;
   teacherStatus?: string | null;
+  bio?: string | null;
+  specialty?: string | null;
 }
 
 export default function UserHeaderBadge() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     async function fetchMe() {
@@ -33,6 +37,16 @@ export default function UserHeaderBadge() {
       }
     }
     fetchMe();
+
+    const onProfileUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<UserProfileData>;
+      if (customEvent.detail) {
+        setUser(prev => (prev ? { ...prev, ...customEvent.detail } : customEvent.detail));
+      }
+    };
+
+    window.addEventListener("user-profile-updated", onProfileUpdate);
+    return () => window.removeEventListener("user-profile-updated", onProfileUpdate);
   }, []);
 
   if (loading) {
@@ -57,21 +71,41 @@ export default function UserHeaderBadge() {
     .toUpperCase();
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 md:pl-6 border-l border-slate-200">
-      <div className="text-right hidden sm:block">
-        <div className="text-sm font-bold text-slate-800 truncate max-w-[140px]">{name}</div>
-        <div className="text-xs text-slate-500 font-medium">{role}</div>
-      </div>
-      <div 
-        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center border-2 border-indigo-200 overflow-hidden shadow-sm shrink-0"
-        title={`${name} (${role})`}
+    <>
+      <button
+        type="button"
+        onClick={() => setSettingsOpen(true)}
+        className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 md:pl-6 border-l border-slate-200 hover:opacity-90 transition-opacity text-left group cursor-pointer focus:outline-none"
+        title="Click to edit profile picture and details"
       >
-        {user?.avatarUrl ? (
-          <img src={user.avatarUrl} alt={name} className="w-full h-full object-cover" />
-        ) : (
-          <span>{initials || <UserIcon className="w-4 h-4" />}</span>
-        )}
-      </div>
-    </div>
+        <div className="text-right hidden sm:block">
+          <div className="text-sm font-bold text-slate-800 truncate max-w-[140px] group-hover:text-indigo-600 transition-colors">
+            {name}
+          </div>
+          <div className="text-xs text-slate-500 font-medium">{role}</div>
+        </div>
+        <div 
+          className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center border-2 border-indigo-200 overflow-hidden shadow-sm shrink-0 group-hover:border-indigo-400 transition-colors"
+        >
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            <span>{initials || <UserIcon className="w-4 h-4" />}</span>
+          )}
+          <span className="absolute inset-0 bg-slate-900/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <Camera className="w-3.5 h-3.5" />
+          </span>
+        </div>
+      </button>
+
+      {user && (
+        <ProfileSettingsModal
+          user={user}
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          onSaved={updated => setUser(prev => (prev ? { ...prev, ...updated } : updated))}
+        />
+      )}
+    </>
   );
 }

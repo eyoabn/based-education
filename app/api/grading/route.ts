@@ -289,10 +289,6 @@ export async function PATCH(request: NextRequest) {
       const award = awardMap.get(answer.questionId);
       if (!award) return answer;
 
-      // Auto-graded questions are the engine's call; a teacher overriding an
-      // MCQ mark would desync `autoScore` from the answer array.
-      if (answer.autoGraded) return answer;
-
       const raw = Number(award.points);
       const points = Number.isFinite(raw)
         ? round2(Math.min(Math.max(raw, 0), answer.maxPoints))
@@ -343,10 +339,14 @@ export async function PATCH(request: NextRequest) {
 
       const notification = {
         type: 'GRADE_RELEASED' as const,
-        title: 'Your Grade Is Ready',
-        message: `"${submission.exam.title}" has been graded: ${finalScore}/${
-          submission.maxScore
-        } (${pct}%) — ${passed ? 'Passed' : 'Did not pass'}.`,
+        title: wasAlreadyGraded ? 'Grade Updated' : 'Your Grade Is Ready',
+        message: wasAlreadyGraded
+          ? `Your instructor updated your grade for "${submission.exam.title}": ${finalScore}/${
+              submission.maxScore
+            } (${pct}%).`
+          : `"${submission.exam.title}" has been graded: ${finalScore}/${
+              submission.maxScore
+            } (${pct}%) — ${passed ? 'Passed' : 'Did not pass'}.`,
         link: '/dashboard/student/gradebook',
       };
 

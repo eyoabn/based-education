@@ -44,7 +44,14 @@ export default function PostCard({
       <div className="p-5 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-            <img src={post.author.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author.name}`} alt={post.author.name} />
+            <img
+              src={
+                post.author.avatarUrl ||
+                `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(post.author.name)}&backgroundColor=0284c7,4f46e5,059669`
+              }
+              alt={post.author.name}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">

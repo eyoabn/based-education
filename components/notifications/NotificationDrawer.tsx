@@ -28,6 +28,10 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
           const data = await res.json()
           if (Array.isArray(data)) {
             setNotifications(data)
+            const hasUnread = data.some((n: DbNotification) => !n.isRead)
+            if (hasUnread) {
+              onMarkAllRead()
+            }
           }
         }
       } catch (err) {
@@ -37,7 +41,7 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
       }
     }
     fetchNotifications()
-  }, [])
+  }, [onMarkAllRead])
 
   const handleMarkAll = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))

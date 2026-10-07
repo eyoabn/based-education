@@ -32,6 +32,7 @@ import {
 interface ExamBuilderProps {
   questions: ExamQuestion[]
   onChange: (questions: ExamQuestion[]) => void
+  assessmentType?: "EXAM" | "ASSIGNMENT"
 }
 
 const TYPE_META: Record<QuestionType, { icon: typeof ListChecks; tone: string }> = {
@@ -40,7 +41,11 @@ const TYPE_META: Record<QuestionType, { icon: typeof ListChecks; tone: string }>
   ESSAY: { icon: FileText, tone: "bg-amber-50 text-amber-700 ring-amber-600/20" },
 }
 
-export default function ExamBuilder({ questions, onChange }: ExamBuilderProps) {
+export default function ExamBuilder({
+  questions,
+  onChange,
+  assessmentType = "EXAM",
+}: ExamBuilderProps) {
   // Monotonic so ids stay unique even after deletions reshuffle the list.
   const nextId = useRef(1)
   const makeId = (prefix: string) => `${prefix}${nextId.current++}-${Date.now().toString(36)}`
@@ -135,29 +140,60 @@ export default function ExamBuilder({ questions, onChange }: ExamBuilderProps) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-            Questions
+            {assessmentType === "ASSIGNMENT" ? "Assignment Tasks & Deliverables" : "Questions"}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            {questions.length} question{questions.length === 1 ? "" : "s"} · {total} point
-            {total === 1 ? "" : "s"} · {autoGradedCount} auto-graded
+            {questions.length} {assessmentType === "ASSIGNMENT" ? "task" : "question"}
+            {questions.length === 1 ? "" : "s"} · {total} point
+            {total === 1 ? "" : "s"}
+            {assessmentType === "EXAM" && ` · ${autoGradedCount} auto-graded`}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {(Object.keys(QUESTION_TYPE_LABEL) as QuestionType[]).map(type => {
-            const Icon = TYPE_META[type].icon
-            return (
+          {assessmentType === "ASSIGNMENT" ? (
+            <>
               <button
-                key={type}
                 type="button"
-                onClick={() => addQuestion(type)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                onClick={() => addQuestion("ESSAY")}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
               >
-                <Icon className="w-3.5 h-3.5" />
-                {QUESTION_TYPE_LABEL[type]}
+                <FileText className="w-3.5 h-3.5" />
+                + Task / Written Prompt (Recommended)
               </button>
-            )
-          })}
+              <button
+                type="button"
+                onClick={() => addQuestion("MCQ")}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+              >
+                <ListChecks className="w-3.5 h-3.5" />
+                Multiple Choice
+              </button>
+              <button
+                type="button"
+                onClick={() => addQuestion("TRUE_FALSE")}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+              >
+                <ToggleLeft className="w-3.5 h-3.5" />
+                True / False
+              </button>
+            </>
+          ) : (
+            (Object.keys(QUESTION_TYPE_LABEL) as QuestionType[]).map(type => {
+              const Icon = TYPE_META[type].icon
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => addQuestion(type)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {QUESTION_TYPE_LABEL[type]}
+                </button>
+              )
+            })
+          )}
         </div>
       </div>
 
@@ -165,9 +201,13 @@ export default function ExamBuilder({ questions, onChange }: ExamBuilderProps) {
       {questions.length === 0 && (
         <div className="bg-white rounded-xl border-2 border-dashed border-slate-200 p-10 text-center">
           <ListChecks className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-          <p className="text-sm font-semibold text-slate-600">No questions yet</p>
+          <p className="text-sm font-semibold text-slate-600">
+            {assessmentType === "ASSIGNMENT" ? "No assignment tasks yet" : "No questions yet"}
+          </p>
           <p className="text-xs text-slate-400 mt-1">
-            Add a multiple choice, true/false or essay question to begin building the paper.
+            {assessmentType === "ASSIGNMENT"
+              ? "Add a written task, essay prompt, or deliverable requirements for students to complete."
+              : "Add a multiple choice, true/false or essay question to begin building the paper."}
           </p>
         </div>
       )}
@@ -253,14 +293,21 @@ export default function ExamBuilder({ questions, onChange }: ExamBuilderProps) {
                     htmlFor={`prompt-${question.id}`}
                     className="block text-xs font-semibold text-slate-700 mb-1.5"
                   >
-                    Question Prompt <span className="text-red-500">*</span>
+                    {assessmentType === "ASSIGNMENT"
+                      ? "Task Prompt / Instructions"
+                      : "Question Prompt"}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id={`prompt-${question.id}`}
                     value={question.prompt}
                     onChange={e => updateQuestion(index, { prompt: e.target.value })}
                     rows={2}
-                    placeholder="e.g. Which law states that energy cannot be created or destroyed?"
+                    placeholder={
+                      assessmentType === "ASSIGNMENT"
+                        ? "e.g. Write an essay analyzing the case study findings, citing at least three references..."
+                        : "e.g. Which law states that energy cannot be created or destroyed?"
+                    }
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
                   />
                 </div>

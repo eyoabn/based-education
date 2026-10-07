@@ -92,6 +92,19 @@ export async function POST(request: NextRequest) {
         }
       }).catch(() => {});
 
+      // Automatically turn off / mark as read live class notifications for this room
+      const roomIdentifiers = Array.from(new Set([decodedRoom, targetRoom, ...(dbLiveRoom ? [dbLiveRoom.id] : [])].filter(Boolean)));
+      await prisma.notification.updateMany({
+        where: {
+          type: 'LIVE_CLASS_STARTING',
+          isRead: false,
+          OR: roomIdentifiers.map(rId => ({ link: { contains: rId } })),
+        },
+        data: {
+          isRead: true,
+        },
+      }).catch(() => {});
+
       invalidateLiveStatusCache(decodedRoom);
       if (dbLiveRoom) invalidateLiveStatusCache(dbLiveRoom.id);
     }

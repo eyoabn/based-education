@@ -271,7 +271,7 @@ function GradingSuite() {
                             <img
                               src={
                                 submission.avatarUrl ||
-                                `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(submission.studentName)}`
+                                `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(submission.studentName)}&backgroundColor=0284c7,4f46e5,059669`
                               }
                               alt=""
                               className="w-full h-full object-cover"
@@ -356,9 +356,13 @@ function GradingSuite() {
                       <td className="px-5 py-3 text-right">
                         <button
                           onClick={() => setSelected(submission)}
-                          className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
+                          className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+                            submission.status === "GRADED"
+                              ? "bg-emerald-700 hover:bg-emerald-800 text-white"
+                              : "bg-slate-900 hover:bg-slate-800 text-white"
+                          }`}
                         >
-                          {submission.status === "GRADED" ? "Review" : "Grade"}
+                          {submission.status === "GRADED" ? "Edit Grade" : "Grade"}
                         </button>
                       </td>
                     </tr>

@@ -3,7 +3,7 @@
 import { type ReactNode, useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, LayoutDashboard, Rss, Calendar, FileText, GraduationCap, MessageSquare, Menu, X } from "lucide-react"
+import { Search, LayoutDashboard, Rss, Calendar, FileText, GraduationCap, MessageSquare, Menu, X, Bug } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import LogoutButton from "@/components/auth/LogoutButton"
 import UserHeaderBadge from "@/components/auth/UserHeaderBadge"
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { id: 'calendar', label: 'Calendar', icon: Calendar, href: '/dashboard/student/calendar' },
   { id: 'exams', label: 'Exams', icon: FileText, href: '/dashboard/student/exams' },
   { id: 'gradebook', label: 'Gradebook', icon: GraduationCap, href: '/dashboard/student/gradebook' },
+  { id: 'feedback', label: 'Report Bug', icon: Bug, href: '/dashboard/student/feedback' },
 ]
 
 export default function StudentLayoutClient({ children }: { children: ReactNode }) {
@@ -105,7 +106,7 @@ export default function StudentLayoutClient({ children }: { children: ReactNode 
             </div>
 
             <nav className="flex-1 flex flex-col gap-1 px-3 overflow-y-auto">
-              {NAV_ITEMS.map(item => {
+              {NAV_ITEMS.filter(item => !['overview', 'messages', 'calendar', 'exams'].includes(item.id)).map(item => {
                 const active = isActive(item.href)
                 return (
                   <Link
@@ -173,62 +174,62 @@ export default function StudentLayoutClient({ children }: { children: ReactNode 
         </div>
 
         {/* Mobile Bottom Navigation Bar */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 flex items-center justify-around px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-slate-200/60 flex items-center justify-around px-2 py-2 pb-[calc(env(safe-area-inset-bottom)+8px)] shadow-[0_-8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
           <Link
             href="/dashboard/student"
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg text-[10px] font-semibold transition-colors ${
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl text-[10px] font-semibold transition-all duration-200 w-16 ${
               pathname === '/dashboard/student'
-                ? 'text-indigo-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'text-indigo-600 bg-indigo-50 shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
             }`}
           >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>Overview</span>
+            <LayoutDashboard className={`w-5 h-5 ${pathname === '/dashboard/student' ? 'scale-110' : ''}`} />
+            <span className="tracking-wide">Overview</span>
           </Link>
 
           <Link
             href="/dashboard/student/messages"
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg text-[10px] font-semibold transition-colors ${
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl text-[10px] font-semibold transition-all duration-200 w-16 ${
               pathname.startsWith('/dashboard/student/messages')
-                ? 'text-indigo-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'text-indigo-600 bg-indigo-50 shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
             }`}
           >
-            <MessageSquare className="w-4 h-4" />
-            <span>Chat</span>
+            <MessageSquare className={`w-5 h-5 ${pathname.startsWith('/dashboard/student/messages') ? 'scale-110' : ''}`} />
+            <span className="tracking-wide">Chat</span>
           </Link>
 
           <Link
             href="/dashboard/student/calendar"
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg text-[10px] font-semibold transition-colors ${
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl text-[10px] font-semibold transition-all duration-200 w-16 ${
               pathname.startsWith('/dashboard/student/calendar')
-                ? 'text-indigo-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'text-indigo-600 bg-indigo-50 shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
             }`}
           >
-            <Calendar className="w-4 h-4" />
-            <span>Calendar</span>
+            <Calendar className={`w-5 h-5 ${pathname.startsWith('/dashboard/student/calendar') ? 'scale-110' : ''}`} />
+            <span className="tracking-wide">Calendar</span>
           </Link>
 
           <Link
             href="/dashboard/student/exams"
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg text-[10px] font-semibold transition-colors ${
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl text-[10px] font-semibold transition-all duration-200 w-16 ${
               pathname.startsWith('/dashboard/student/exams')
-                ? 'text-indigo-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'text-indigo-600 bg-indigo-50 shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
             }`}
           >
-            <FileText className="w-4 h-4" />
-            <span>Exams</span>
+            <FileText className={`w-5 h-5 ${pathname.startsWith('/dashboard/student/exams') ? 'scale-110' : ''}`} />
+            <span className="tracking-wide">Exams</span>
           </Link>
 
           <button
             type="button"
             onClick={() => setMobileDrawerOpen(true)}
-            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-lg text-[10px] font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+            className="flex flex-col items-center gap-1.5 p-2 rounded-xl text-[10px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all duration-200 w-16"
           >
-            <Menu className="w-4 h-4" />
-            <span>More</span>
+            <Menu className="w-5 h-5" />
+            <span className="tracking-wide">More</span>
           </button>
         </nav>
       </main>

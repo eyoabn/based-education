@@ -95,6 +95,7 @@ export default function TeacherExamsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showAdvancedSecurity, setShowAdvancedSecurity] = useState(false)
 
   const loadExams = useCallback(async () => {
     try {
@@ -127,6 +128,7 @@ export default function TeacherExamsPage() {
     setDraft(emptyDraft())
     setQuestions([])
     setFormError(null)
+    setShowAdvancedSecurity(false)
     setComposerOpen(true)
   }
 
@@ -137,8 +139,14 @@ export default function TeacherExamsPage() {
       setFormError("Give the assessment a title.")
       return
     }
+
+    if (draft.type === "ASSIGNMENT" && !draft.dueDate) {
+      setFormError("Assignments require a submission deadline date and time.")
+      return
+    }
+
     if (questions.length === 0) {
-      setFormError("Add at least one question.")
+      setFormError("Add at least one question or assignment task.")
       return
     }
 
@@ -485,13 +493,34 @@ export default function TeacherExamsPage() {
                     <select
                       id="exam-type"
                       value={draft.type}
-                      onChange={e =>
-                        setDraft({ ...draft, type: e.target.value as "EXAM" | "ASSIGNMENT" })
-                      }
+                      onChange={e => {
+                        const newType = e.target.value as "EXAM" | "ASSIGNMENT"
+                        if (newType === "ASSIGNMENT") {
+                          setDraft({
+                            ...draft,
+                            type: "ASSIGNMENT",
+                            durationMins: 0,
+                            forceFullscreen: false,
+                            trackTabSwitches: false,
+                            blockCopyPaste: false,
+                            randomizeOrder: false,
+                          })
+                        } else {
+                          setDraft({
+                            ...draft,
+                            type: "EXAM",
+                            durationMins: draft.durationMins || 45,
+                            forceFullscreen: true,
+                            trackTabSwitches: true,
+                            blockCopyPaste: true,
+                            randomizeOrder: true,
+                          })
+                        }
+                      }}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow cursor-pointer"
                     >
-                      <option value="EXAM">Exam (timed & locked)</option>
-                      <option value="ASSIGNMENT">Assignment</option>
+                      <option value="EXAM">Exam (timed & proctored)</option>
+                      <option value="ASSIGNMENT">Assignment (homework / project submission)</option>
                     </select>
                   </div>
                 </div>
@@ -501,14 +530,18 @@ export default function TeacherExamsPage() {
                     htmlFor="exam-description"
                     className="block text-xs font-semibold text-slate-700 mb-1.5"
                   >
-                    Description
+                    Description & Guidelines
                   </label>
                   <textarea
                     id="exam-description"
                     value={draft.description}
                     onChange={e => setDraft({ ...draft, description: e.target.value })}
                     rows={2}
-                    placeholder="What does this paper cover? Students see this before they start."
+                    placeholder={
+                      draft.type === "ASSIGNMENT"
+                        ? "State the project objectives, deliverables, grading criteria, and instructions."
+                        : "What does this paper cover? Students see this before they start."
+                    }
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
                   />
                 </div>
@@ -548,12 +581,14 @@ export default function TeacherExamsPage() {
                         htmlFor="exam-duration"
                         className="block text-xs font-semibold text-slate-700 mb-1.5"
                       >
-                        Duration (min)
+                        {draft.type === "ASSIGNMENT"
+                          ? "Est. Time (min, 0 = untimed)"
+                          : "Duration (min)"}
                       </label>
                       <input
                         id="exam-duration"
                         type="number"
-                        min={1}
+                        min={0}
                         max={600}
                         value={draft.durationMins}
                         onChange={e =>
@@ -584,117 +619,241 @@ export default function TeacherExamsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:max-w-md">
-                  <div>
-                    <label
-                      htmlFor="exam-due-date"
-                      className="block text-xs font-semibold text-slate-700 mb-1.5"
-                    >
-                      Due Date
-                    </label>
-                    <input
-                      id="exam-due-date"
-                      type="date"
-                      value={draft.dueDate}
-                      onChange={e => setDraft({ ...draft, dueDate: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="exam-due-time"
-                      className="block text-xs font-semibold text-slate-700 mb-1.5"
-                    >
-                      Due Time
-                    </label>
-                    <input
-                      id="exam-due-time"
-                      type="time"
-                      value={draft.dueTime}
-                      onChange={e => setDraft({ ...draft, dueTime: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Anti-cheat configuration */}
-              <section className="bg-slate-900 rounded-xl p-5">
-                <div className="flex items-center gap-2 mb-1">
-                  <Lock className="w-4 h-4 text-emerald-400" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-                    Anti-Cheating Configuration
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-400 mb-4">
-                  Enforced in the browser and re-verified on the server at submit time.
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {GUARD_TOGGLES.map(toggle => {
-                    const enabled = draft[toggle.key]
-                    const Icon = toggle.icon
-
-                    return (
-                      <button
-                        key={toggle.key}
-                        type="button"
-                        onClick={() => setDraft({ ...draft, [toggle.key]: !enabled })}
-                        aria-pressed={enabled}
-                        className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
-                          enabled
-                            ? "bg-emerald-500/15 border-emerald-500/40"
-                            : "bg-white/5 border-white/10 hover:bg-white/10"
-                        }`}
-                      >
-                        <span
-                          className={`w-5 h-5 rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                            enabled ? "bg-emerald-500" : "bg-slate-700"
-                          }`}
+                {draft.type === "ASSIGNMENT" ? (
+                  <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CalendarClock className="w-4 h-4 text-emerald-600" />
+                      <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">
+                        Submission Deadline (Date & Time)
+                      </span>
+                      <span className="ml-auto text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                        Required
+                      </span>
+                    </div>
+                    <p className="text-xs text-emerald-800">
+                      Students can prepare and submit their deliverables anytime before this cutoff.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label
+                          htmlFor="exam-due-date"
+                          className="block text-xs font-semibold text-slate-700 mb-1.5"
                         >
-                          {enabled && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                        </span>
-
-                        <span className="min-w-0">
-                          <span className="flex items-center gap-1.5 text-sm font-semibold text-white">
-                            <Icon className="w-3.5 h-3.5 text-slate-400" />
-                            {toggle.label}
-                          </span>
-                          <span className="block text-xs text-slate-400 mt-0.5">
-                            {toggle.hint}
-                          </span>
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {draft.trackTabSwitches && (
-                  <div className="flex items-center gap-3 mt-3 px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg">
-                    <label
-                      htmlFor="max-switches"
-                      className="text-sm text-slate-300 font-medium"
-                    >
-                      Flag the paper after
-                    </label>
-                    <input
-                      id="max-switches"
-                      type="number"
-                      min={0}
-                      max={20}
-                      value={draft.maxTabSwitches}
-                      onChange={e =>
-                        setDraft({ ...draft, maxTabSwitches: Number(e.target.value) || 0 })
-                      }
-                      className="w-20 px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white font-bold tabular-nums focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                    <span className="text-sm text-slate-300">tab switches</span>
+                          Submission Due Date <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          id="exam-due-date"
+                          type="date"
+                          value={draft.dueDate}
+                          onChange={e => setDraft({ ...draft, dueDate: e.target.value })}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="exam-due-time"
+                          className="block text-xs font-semibold text-slate-700 mb-1.5"
+                        >
+                          Submission Due Time <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          id="exam-due-time"
+                          type="time"
+                          value={draft.dueTime}
+                          onChange={e => setDraft({ ...draft, dueTime: e.target.value })}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+                    <div>
+                      <label
+                        htmlFor="exam-due-date"
+                        className="block text-xs font-semibold text-slate-700 mb-1.5"
+                      >
+                        Due Date
+                      </label>
+                      <input
+                        id="exam-due-date"
+                        type="date"
+                        value={draft.dueDate}
+                        onChange={e => setDraft({ ...draft, dueDate: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="exam-due-time"
+                        className="block text-xs font-semibold text-slate-700 mb-1.5"
+                      >
+                        Due Time
+                      </label>
+                      <input
+                        id="exam-due-time"
+                        type="time"
+                        value={draft.dueTime}
+                        onChange={e => setDraft({ ...draft, dueTime: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                      />
+                    </div>
                   </div>
                 )}
               </section>
 
+              {/* Anti-cheat configuration */}
+              {draft.type === "ASSIGNMENT" ? (
+                <section className="bg-slate-100/90 rounded-xl p-5 border border-slate-200">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                          Assignment Format: Open-Book & Flexible
+                        </h3>
+                      </div>
+                      <p className="text-xs text-slate-600 max-w-xl">
+                        Exam lockdown guards (fullscreen enforcement, tab tracking, and copy-paste blocking) are turned off for assignments so students can research and craft their responses freely.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedSecurity(prev => !prev)}
+                      className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shrink-0 transition-colors"
+                    >
+                      {showAdvancedSecurity ? "Hide Lockdown Settings" : "Proctoring Options"}
+                    </button>
+                  </div>
+
+                  {showAdvancedSecurity && (
+                    <div className="mt-4 pt-4 border-t border-slate-200">
+                      <p className="text-xs font-semibold text-slate-700 mb-3">
+                        Optional Exam Proctoring Controls:
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {GUARD_TOGGLES.map(toggle => {
+                          const enabled = draft[toggle.key]
+                          const Icon = toggle.icon
+
+                          return (
+                            <button
+                              key={toggle.key}
+                              type="button"
+                              onClick={() => setDraft({ ...draft, [toggle.key]: !enabled })}
+                              aria-pressed={enabled}
+                              className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
+                                enabled
+                                  ? "bg-emerald-50 border-emerald-300"
+                                  : "bg-white border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span
+                                className={`w-5 h-5 rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                                  enabled ? "bg-emerald-600" : "bg-slate-300"
+                                }`}
+                              >
+                                {enabled && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                              </span>
+
+                              <span className="min-w-0">
+                                <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                                  <Icon className="w-3.5 h-3.5 text-slate-500" />
+                                  {toggle.label}
+                                </span>
+                                <span className="block text-xs text-slate-500 mt-0.5">
+                                  {toggle.hint}
+                                </span>
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              ) : (
+                <section className="bg-slate-900 rounded-xl p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Lock className="w-4 h-4 text-emerald-400" />
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+                      Anti-Cheating Configuration
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-4">
+                    Enforced in the browser and re-verified on the server at submit time.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {GUARD_TOGGLES.map(toggle => {
+                      const enabled = draft[toggle.key]
+                      const Icon = toggle.icon
+
+                      return (
+                        <button
+                          key={toggle.key}
+                          type="button"
+                          onClick={() => setDraft({ ...draft, [toggle.key]: !enabled })}
+                          aria-pressed={enabled}
+                          className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
+                            enabled
+                              ? "bg-emerald-500/15 border-emerald-500/40"
+                              : "bg-white/5 border-white/10 hover:bg-white/10"
+                          }`}
+                        >
+                          <span
+                            className={`w-5 h-5 rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                              enabled ? "bg-emerald-500" : "bg-slate-700"
+                            }`}
+                          >
+                            {enabled && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                          </span>
+
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1.5 text-sm font-semibold text-white">
+                              <Icon className="w-3.5 h-3.5 text-slate-400" />
+                              {toggle.label}
+                            </span>
+                            <span className="block text-xs text-slate-400 mt-0.5">
+                              {toggle.hint}
+                            </span>
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {draft.trackTabSwitches && (
+                    <div className="flex items-center gap-3 mt-3 px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg">
+                      <label
+                        htmlFor="max-switches"
+                        className="text-sm text-slate-300 font-medium"
+                      >
+                        Flag the paper after
+                      </label>
+                      <input
+                        id="max-switches"
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={draft.maxTabSwitches}
+                        onChange={e =>
+                          setDraft({ ...draft, maxTabSwitches: Number(e.target.value) || 0 })
+                        }
+                        className="w-20 px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white font-bold tabular-nums focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                      <span className="text-sm text-slate-300">tab switches</span>
+                    </div>
+                  )}
+                </section>
+              )}
+
               {/* Question builder */}
-              <ExamBuilder questions={questions} onChange={setQuestions} />
+              <ExamBuilder
+                questions={questions}
+                onChange={setQuestions}
+                assessmentType={draft.type}
+              />
 
               {formError && (
                 <div className="flex items-start gap-2 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
