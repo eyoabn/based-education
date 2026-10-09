@@ -220,36 +220,34 @@ export default function AntiCheatGuard({
         <div
           key={toast.id}
           role="alert"
-          className={`pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg border animate-slide-in-right ${
+          className={`pointer-events-auto flex items-start gap-3 px-4 py-3.5 rounded-2xl shadow-2xl border animate-slide-in-right backdrop-blur-xl ${
             toast.severity === "danger"
-              ? "bg-red-600 border-red-700 text-white"
-              : "bg-amber-50 border-amber-300 text-amber-900"
+              ? "bg-[#181817]/95 border-rose-500/50 text-rose-200 shadow-rose-950/40"
+              : "bg-[#181817]/95 border-[rgba(212,175,55,0.4)] text-[#f7f3e8] shadow-black/60"
           }`}
         >
           {toast.severity === "danger" ? (
-            <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
+            <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5 text-rose-400" />
           ) : (
-            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-[#d4af37]" />
           )}
 
           <div className="flex-1 min-w-0">
             <div
-              className={`text-xs font-bold uppercase tracking-wide mb-0.5 ${
-                toast.severity === "danger" ? "text-red-100" : "text-amber-700"
+              className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${
+                toast.severity === "danger" ? "text-rose-400" : "text-[#d4af37]"
               }`}
             >
               <Eye className="w-3 h-3 inline mr-1 -mt-0.5" />
-              Secure Guard
+              Secure Proctor Guard
             </div>
-            <p className="text-sm leading-snug font-medium">{toast.message}</p>
+            <p className="text-sm leading-snug font-medium text-[#f7f3e8]/90">{toast.message}</p>
           </div>
 
           <button
             onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
             aria-label="Dismiss warning"
-            className={`p-0.5 rounded transition-colors ${
-              toast.severity === "danger" ? "hover:bg-red-500" : "hover:bg-amber-200"
-            }`}
+            className="p-1 rounded-lg text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.08] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

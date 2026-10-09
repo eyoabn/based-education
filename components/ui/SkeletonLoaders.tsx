@@ -20,10 +20,10 @@ interface BoneProps {
 }
 
 /** A single shimmering block. The primitive every skeleton is built from. */
-export function Bone({ className = "", dark = false }: BoneProps) {
+export function Bone({ className = "", dark = true }: BoneProps) {
   return (
     <div
-      className={`skeleton ${dark ? "skeleton-dark" : ""} rounded ${className}`}
+      className={`bg-white/[0.06] animate-pulse rounded-lg ${className}`}
       aria-hidden
     />
   )
@@ -52,7 +52,7 @@ export function SkeletonRegion({
 /** Mirrors `components/feed/PostCard.tsx`: header, body lines, attachment, footer. */
 export function PostCardSkeleton({ withAttachment = false }: { withAttachment?: boolean }) {
   return (
-    <div className="mb-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="mb-6 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111110] shadow-xl shadow-black/30">
       {/* Author row */}
       <div className="flex items-start gap-3 p-5">
         <Bone className="h-10 w-10 shrink-0 rounded-full" />
@@ -73,8 +73,8 @@ export function PostCardSkeleton({ withAttachment = false }: { withAttachment?: 
       {/* Attachment chip */}
       {withAttachment && (
         <div className="px-5 pb-4">
-          <div className="flex w-fit items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 pr-12">
-            <Bone className="h-10 w-10 rounded" />
+          <div className="flex w-fit items-center gap-3 rounded-xl border border-white/[0.08] bg-[#181817] p-3 pr-12">
+            <Bone className="h-10 w-10 rounded-lg" />
             <div className="space-y-2">
               <Bone className="h-3 w-36 rounded-md" />
               <Bone className="h-2.5 w-24 rounded-md" />
@@ -84,7 +84,7 @@ export function PostCardSkeleton({ withAttachment = false }: { withAttachment?: 
       )}
 
       {/* Action bar */}
-      <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/30 px-5 py-3">
+      <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#181817]/40 px-5 py-3">
         <div className="flex items-center gap-6">
           <Bone className="h-3.5 w-14 rounded-md" />
           <Bone className="h-3.5 w-24 rounded-md" />
@@ -110,8 +110,8 @@ export function PostFeedSkeleton({ count = 3 }: { count?: number }) {
 /** Mirrors `components/feed/PostComposer.tsx`. */
 export function PostComposerSkeleton() {
   return (
-    <div className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
+    <div className="mb-8 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111110] shadow-xl shadow-black/30">
+      <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#181817]/60 px-4 py-3">
         <Bone className="h-3.5 w-44 rounded-md" />
         <Bone className="h-5 w-20 rounded" />
       </div>
@@ -119,13 +119,13 @@ export function PostComposerSkeleton() {
         <Bone className="h-3 w-3/4 rounded-md" />
         <Bone className="h-3 w-1/2 rounded-md" />
       </div>
-      <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-4 py-3">
+      <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#181817]/40 px-4 py-3">
         <div className="flex gap-2">
           {Array.from({ length: 5 }, (_, i) => (
-            <Bone key={i} className="h-7 w-7 rounded" />
+            <Bone key={i} className="h-7 w-7 rounded-lg" />
           ))}
         </div>
-        <Bone className="h-9 w-44 rounded-lg" />
+        <Bone className="h-9 w-44 rounded-xl" />
       </div>
     </div>
   )
@@ -161,20 +161,20 @@ export function TableSkeleton({
 
   return (
     <SkeletonRegion label={caption}>
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111110] shadow-xl shadow-black/30">
         {withToolbar && (
-          <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
-            <Bone className="h-9 w-full max-w-xs rounded-lg" />
+          <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] px-5 py-4">
+            <Bone className="h-9 w-full max-w-xs rounded-xl" />
             <div className="flex gap-2">
-              <Bone className="h-9 w-24 rounded-lg" />
-              <Bone className="h-9 w-24 rounded-lg" />
+              <Bone className="h-9 w-24 rounded-xl" />
+              <Bone className="h-9 w-24 rounded-xl" />
             </div>
           </div>
         )}
 
         {/* Head */}
         <div
-          className="grid gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3"
+          className="grid gap-4 border-b border-white/[0.08] bg-[#181817]/60 px-5 py-3"
           style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: columns }, (_, i) => (
@@ -186,7 +186,7 @@ export function TableSkeleton({
         {Array.from({ length: rows }, (_, r) => (
           <div
             key={r}
-            className="grid items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-b-0"
+            className="grid items-center gap-4 border-b border-white/[0.05] px-5 py-4 last:border-b-0"
             style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
           >
             {Array.from({ length: columns }, (_, c) =>
@@ -224,7 +224,7 @@ export function VideoGridSkeleton({ tiles = 6 }: { tiles?: number }) {
         {Array.from({ length: tiles }, (_, i) => (
           <div
             key={i}
-            className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-[#0e1525]/80 backdrop-blur-xl"
+            className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#0e1525]/80 backdrop-blur-xl"
           >
             <Bone dark className="absolute inset-0 rounded-none" />
 
@@ -275,10 +275,10 @@ export function StatCardSkeleton({ count = 1 }: { count?: number }) {
   return (
     <>
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div key={i} className="rounded-2xl border border-white/[0.08] bg-[#111110] p-5 shadow-xl shadow-black/20">
           <div className="mb-4 flex items-start justify-between">
             <Bone className="h-2.5 w-24 rounded-md" />
-            <Bone className="h-9 w-9 rounded-lg" />
+            <Bone className="h-9 w-9 rounded-xl" />
           </div>
           <Bone className="mb-2.5 h-7 w-20 rounded-md" />
           <Bone className="h-2.5 w-28 rounded-md" />
@@ -292,7 +292,7 @@ export function StatCardSkeleton({ count = 1 }: { count?: number }) {
 export function CalendarSkeleton() {
   return (
     <SkeletonRegion label="Loading calendar">
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-white/[0.08] bg-[#111110] p-5 shadow-xl shadow-black/20">
         <div className="mb-5 flex items-center justify-between">
           <Bone className="h-5 w-40 rounded-md" />
           <div className="flex gap-2">
@@ -309,7 +309,7 @@ export function CalendarSkeleton() {
 
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: 42 }, (_, i) => (
-            <Bone key={i} className="h-16 rounded-lg" />
+            <Bone key={i} className="h-16 rounded-xl" />
           ))}
         </div>
       </div>
@@ -329,7 +329,7 @@ export function CardListSkeleton({
     <SkeletonRegion label="Loading">
       <div className="space-y-3">
         {Array.from({ length: count }, (_, i) => (
-          <Bone key={i} className={`${height} w-full rounded-xl`} />
+          <Bone key={i} className={`${height} w-full rounded-2xl`} />
         ))}
       </div>
     </SkeletonRegion>
@@ -344,16 +344,14 @@ export function PageHeaderSkeleton({ withAction = true }: { withAction?: boolean
         <Bone className="h-6 w-52 rounded-md" />
         <Bone className="h-3 w-80 rounded-md" />
       </div>
-      {withAction && <Bone className="h-10 w-44 rounded-lg" />}
+      {withAction && <Bone className="h-10 w-44 rounded-xl" />}
     </div>
   )
 }
 
 /**
  * The default body used by every portal `loading.tsx`: header, KPI row and a
- * two-column split. `accent` is unused visually on purpose — all three portals
- * share the same slate content surface, and only the persistent sidebar (which
- * stays mounted during navigation) is role-tinted.
+ * two-column split.
  */
 export function DashboardSkeleton({ stats = 4 }: { stats?: number }) {
   return (
@@ -367,9 +365,9 @@ export function DashboardSkeleton({ stats = 4 }: { stats?: number }) {
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           <div className="space-y-4 xl:col-span-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#111110] p-5 shadow-xl shadow-black/20">
               <Bone className="mb-5 h-4 w-40 rounded-md" />
-              <Bone className="h-56 w-full rounded-lg" />
+              <Bone className="h-56 w-full rounded-xl" />
             </div>
           </div>
           <div className="space-y-3">

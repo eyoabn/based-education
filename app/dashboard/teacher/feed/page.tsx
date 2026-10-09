@@ -55,8 +55,11 @@ export default function TeacherFeedPage() {
   return (
     <div className="mx-auto max-w-3xl py-6">
       <div className="mb-6">
-        <h1 className="mb-1 text-2xl font-bold text-slate-900">Post Stream</h1>
-        <p className="text-slate-500">Publish announcements and interact with your students.</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] text-[#d4af37] text-xs font-semibold tracking-wider uppercase mb-3">
+          Faculty Dispatch Desk
+        </div>
+        <h1 className="mb-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#f7f3e8]">Post Stream</h1>
+        <p className="text-sm sm:text-base text-[#9d9b95]">Publish announcements, broadcast resources, and interact with your students.</p>
       </div>
 
       <div ref={composerRef}>
@@ -66,12 +69,12 @@ export default function TeacherFeedPage() {
       {loading && <PostFeedSkeleton count={2} />}
 
       {!loading && error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-          <AlertCircle className="mx-auto mb-3 h-6 w-6 text-red-500" />
-          <p className="text-sm font-semibold text-red-800">{error}</p>
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+          <AlertCircle className="mx-auto mb-3 h-6 w-6 text-rose-400" />
+          <p className="text-sm font-semibold text-rose-300">{error}</p>
           <button
             onClick={() => void load()}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-rose-500/20 border border-rose-500/40 px-4 py-2 text-xs sm:text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/30"
           >
             <RotateCw className="h-4 w-4" />
             Try again

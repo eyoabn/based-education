@@ -87,25 +87,27 @@ export default function PostComposer({
   }
 
   return (
-    <div className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="mb-8 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111110] shadow-xl shadow-black/40">
       {/* Target Selector Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#181817]/60 px-4 py-3">
         <select
           value={targetClass}
           onChange={e => setTargetClass(e.target.value)}
           aria-label="Announcement audience"
-          className="cursor-pointer bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+          className="cursor-pointer rounded-xl border border-white/[0.08] bg-[#141413] px-3 py-1.5 text-xs font-semibold text-[#f7f3e8] focus:border-[rgba(212,175,55,0.4)] focus:outline-none"
         >
-          <option value="all">All Enrolled Students</option>
-          <option value="math101">Mathematics 101</option>
-          <option value="physics_adv">Physics Advanced</option>
+          <option value="all" className="bg-[#181817] text-[#f7f3e8]">All Enrolled Students</option>
+          <option value="math101" className="bg-[#181817] text-[#f7f3e8]">Mathematics 101</option>
+          <option value="physics_adv" className="bg-[#181817] text-[#f7f3e8]">Physics Advanced</option>
         </select>
 
         <button
           onClick={() => setIsPinned(!isPinned)}
           aria-pressed={isPinned}
-          className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs font-semibold transition-colors ${
-            isPinned ? "bg-indigo-100 text-indigo-700" : "text-slate-500 hover:bg-slate-100"
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+            isPinned
+              ? "border border-[rgba(212,175,55,0.35)] bg-[rgba(212,175,55,0.18)] text-[#d4af37]"
+              : "text-[#9d9b95] hover:bg-white/[0.06] hover:text-[#f7f3e8]"
           }`}
         >
           <Pin className="h-3.5 w-3.5" />
@@ -125,56 +127,56 @@ export default function PostComposer({
               void handlePublish()
             }
           }}
-          placeholder="Share an announcement, resource, or update..."
-          className="min-h-[100px] w-full resize-none border-none p-0 text-slate-800 placeholder-slate-400 focus:ring-0"
+          placeholder="Share an announcement, resource, or assignment update with your cohort..."
+          className="min-h-[110px] w-full resize-none border-none bg-transparent p-0 text-sm text-[#f7f3e8] placeholder:text-[#9d9b95]/50 focus:ring-0"
         />
       </div>
 
       {error && (
-        <div className="mx-4 mb-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+        <div className="mx-4 mb-3 flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-300">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
       )}
 
       {/* Formatting & Attachments Toolbar */}
-      <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-4 py-3">
-        <div className="flex items-center gap-1 text-slate-400">
-          <button className="rounded p-1.5 transition-colors hover:bg-slate-200" title="Bold">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] bg-[#181817]/40 px-4 py-3">
+        <div className="flex items-center gap-1 text-[#9d9b95]">
+          <button className="rounded-lg p-1.5 transition-colors hover:bg-white/[0.06] hover:text-[#d4af37]" title="Bold">
             <Bold className="h-4 w-4" />
           </button>
-          <button className="rounded p-1.5 transition-colors hover:bg-slate-200" title="Italic">
+          <button className="rounded-lg p-1.5 transition-colors hover:bg-white/[0.06] hover:text-[#d4af37]" title="Italic">
             <Italic className="h-4 w-4" />
           </button>
           <button
-            className="rounded p-1.5 transition-colors hover:bg-slate-200"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/[0.06] hover:text-[#d4af37]"
             title="Bullet List"
           >
             <List className="h-4 w-4" />
           </button>
           <button
-            className="rounded p-1.5 transition-colors hover:bg-slate-200"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/[0.06] hover:text-[#d4af37]"
             title="Code Block"
           >
             <Code className="h-4 w-4" />
           </button>
 
-          <div className="mx-2 h-4 w-px bg-slate-300" />
+          <div className="mx-2 h-4 w-px bg-white/[0.08]" />
 
           <button
-            className="rounded p-1.5 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/[0.06] hover:text-[#d4af37]"
             title="Attach Image"
           >
             <ImageIcon className="h-4 w-4" />
           </button>
           <button
-            className="rounded p-1.5 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/[0.06] hover:text-[#d4af37]"
             title="Attach File"
           >
             <Paperclip className="h-4 w-4" />
           </button>
           <button
-            className="rounded p-1.5 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+            className="rounded-lg p-1.5 transition-colors hover:bg-white/[0.06] hover:text-[#d4af37]"
             title="Add Link"
           >
             <LinkIcon className="h-4 w-4" />
@@ -182,14 +184,14 @@ export default function PostComposer({
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="hidden text-[11px] font-medium text-slate-400 sm:inline">⌘↵</span>
+          <span className="hidden text-[11px] font-medium text-[#9d9b95]/60 sm:inline">⌘↵</span>
           <button
             onClick={handlePublish}
             disabled={!content.trim() || isPublishing}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#e6ca65] px-4 py-2 text-xs sm:text-sm font-semibold text-[#050505] shadow-lg shadow-[rgba(212,175,55,0.2)] transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:brightness-100"
           >
             {isPublishing ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
             ) : (
               <Send className="h-4 w-4" />
             )}

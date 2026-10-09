@@ -70,18 +70,21 @@ export default function StudentFeedPage() {
   return (
     <div className="mx-auto max-w-3xl py-6">
       <div className="mb-8">
-        <h1 className="mb-1 text-2xl font-bold text-slate-900">My Feed</h1>
-        <p className="text-slate-500">
-          Latest announcements and discussions from your enrolled classes.
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] text-[#d4af37] text-xs font-semibold tracking-wider uppercase mb-3">
+          Campus Dispatch
+        </div>
+        <h1 className="mb-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#f7f3e8]">My Feed</h1>
+        <p className="text-sm sm:text-base text-[#9d9b95]">
+          Latest announcements, academic dispatches, and cohort discussions.
         </p>
       </div>
 
       {/* Realtime pill — sticky so it stays reachable while scrolled. */}
       {pendingCount > 0 && (
-        <div className="sticky top-0 z-20 mb-4 flex justify-center">
+        <div className="sticky top-4 z-20 mb-6 flex justify-center">
           <button
             onClick={revealPending}
-            className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
+            className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#d4af37] to-[#e6ca65] px-5 py-2 text-xs sm:text-sm font-bold text-[#050505] shadow-xl shadow-[rgba(212,175,55,0.35)] transition-all hover:brightness-110 active:scale-95"
           >
             <Sparkles className="h-4 w-4" />
             {pendingCount} new {pendingCount === 1 ? "announcement" : "announcements"}
@@ -92,12 +95,12 @@ export default function StudentFeedPage() {
       {loading && <PostFeedSkeleton count={3} />}
 
       {!loading && error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-          <AlertCircle className="mx-auto mb-3 h-6 w-6 text-red-500" />
-          <p className="text-sm font-semibold text-red-800">{error}</p>
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+          <AlertCircle className="mx-auto mb-3 h-6 w-6 text-rose-400" />
+          <p className="text-sm font-semibold text-rose-300">{error}</p>
           <button
             onClick={() => void load()}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-rose-500/20 border border-rose-500/40 px-4 py-2 text-xs sm:text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/30"
           >
             <RotateCw className="h-4 w-4" />
             Try again

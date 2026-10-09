@@ -164,7 +164,7 @@ export default function ScheduleModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/75 backdrop-blur-md"
         onClick={onClose}
         aria-hidden
       />
@@ -173,19 +173,19 @@ export default function ScheduleModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="schedule-modal-title"
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 animate-fade-up max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg bg-[#111110] rounded-2xl shadow-2xl border border-white/[0.1] animate-fade-up max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="flex items-start justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-slate-100">
+        <div className="flex items-start justify-between px-4 py-4 sm:px-6 sm:py-5 border-b border-white/[0.08]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[rgba(212,175,55,0.15)] text-[#d4af37] border border-[rgba(212,175,55,0.25)] flex items-center justify-center shrink-0">
               <CalendarPlus className="w-5 h-5" />
             </div>
             <div>
-              <h2 id="schedule-modal-title" className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+              <h2 id="schedule-modal-title" className="text-base sm:text-lg font-bold text-[#f7f3e8] leading-snug">
                 Schedule New Live Class
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-[#9d9b95] mt-0.5">
                 Times are in your local zone ({timeZone})
               </p>
             </div>
@@ -193,7 +193,7 @@ export default function ScheduleModal({
           <button
             onClick={onClose}
             aria-label="Close"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -202,17 +202,17 @@ export default function ScheduleModal({
         <form onSubmit={handleSubmit} className="px-4 py-4 sm:px-6 sm:py-5 space-y-4">
           {/* Title */}
           <div>
-            <label htmlFor="class-title" className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Class Title <span className="text-red-500">*</span>
+            <label htmlFor="class-title" className="block text-xs font-semibold text-[#f7f3e8] mb-1.5">
+              Class Title <span className="text-rose-400">*</span>
             </label>
             <input
               id="class-title"
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="e.g. Thermodynamics — Second Law"
+              placeholder="e.g. Advanced Thermodynamics — Core Principles"
               autoFocus
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+              className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder:text-[#9d9b95]/50 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none transition-shadow"
             />
           </div>
 
@@ -220,7 +220,7 @@ export default function ScheduleModal({
           <div>
             <label
               htmlFor="class-description"
-              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
             >
               Description
             </label>
@@ -230,27 +230,27 @@ export default function ScheduleModal({
               onChange={e => setDescription(e.target.value)}
               rows={3}
               placeholder="What will you cover? Students see this on their calendar."
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+              className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder:text-[#9d9b95]/50 resize-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none transition-shadow"
             />
           </div>
 
           {/* Date + times */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label htmlFor="class-date" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Date <span className="text-red-500">*</span>
+              <label htmlFor="class-date" className="block text-xs font-semibold text-[#f7f3e8] mb-1.5">
+                Date <span className="text-rose-400">*</span>
               </label>
               <input
                 id="class-date"
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none transition-shadow"
               />
             </div>
             <div>
-              <label htmlFor="start-time" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Start <span className="text-red-500">*</span>
+              <label htmlFor="start-time" className="block text-xs font-semibold text-[#f7f3e8] mb-1.5">
+                Start <span className="text-rose-400">*</span>
               </label>
               <input
                 id="start-time"
@@ -260,11 +260,11 @@ export default function ScheduleModal({
                   setStartTime(e.target.value)
                   if (e.target.value) setEndTime(addHour(e.target.value))
                 }}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none transition-shadow"
               />
             </div>
             <div>
-              <label htmlFor="end-time" className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label htmlFor="end-time" className="block text-xs font-semibold text-[#f7f3e8] mb-1.5">
                 End
               </label>
               <input
@@ -272,30 +272,30 @@ export default function ScheduleModal({
                 type="time"
                 value={endTime}
                 onChange={e => setEndTime(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none transition-shadow"
               />
             </div>
           </div>
 
           {/* Target course */}
           <div>
-            <label htmlFor="target-course" className="block text-xs font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="target-course" className="block text-xs font-semibold text-[#f7f3e8] mb-1.5">
               Target Course
             </label>
             <select
               id="target-course"
               value={courseId}
               onChange={e => setCourseId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none transition-shadow cursor-pointer"
             >
-              <option value="">All my students (open class)</option>
+              <option value="" className="bg-[#181817] text-[#f7f3e8]">All my students (open class)</option>
               {courses.map(course => (
-                <option key={course.id} value={course.id}>
+                <option key={course.id} value={course.id} className="bg-[#181817] text-[#f7f3e8]">
                   {course.code} — {course.title} ({course.studentCount} enrolled)
                 </option>
               ))}
             </select>
-            <p className="text-xs text-slate-500 mt-1.5">
+            <p className="text-xs text-[#9d9b95] mt-1.5">
               {selectedCourse
                 ? `${selectedCourse.studentCount} student${selectedCourse.studentCount === 1 ? "" : "s"} will be notified.`
                 : "Every student will be notified when this class is scheduled."}
@@ -303,7 +303,7 @@ export default function ScheduleModal({
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="flex items-start gap-2 px-3.5 py-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-sm text-rose-300">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               {error}
             </div>
@@ -314,14 +314,14 @@ export default function ScheduleModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center"
+              className="w-full sm:w-auto px-4 py-2.5 text-sm font-semibold text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] rounded-xl transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#e6ca65] hover:brightness-110 text-[#050505] text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[rgba(212,175,55,0.2)]"
             >
               {submitting ? (
                 <>

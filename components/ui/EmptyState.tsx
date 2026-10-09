@@ -82,16 +82,12 @@ function ActionControl({
   const Icon = action.icon
 
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+    "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 min-h-[44px]"
 
   const styles =
     kind === "primary"
-      ? tone === "dark"
-        ? `${base} bg-indigo-600 px-4 py-2.5 text-white shadow-lg shadow-indigo-500/25 hover:bg-indigo-500 hover:-translate-y-px focus-visible:ring-indigo-400 focus-visible:ring-offset-slate-900`
-        : `${base} bg-indigo-600 px-4 py-2.5 text-white shadow-sm hover:bg-indigo-700 hover:-translate-y-px hover:shadow-md hover:shadow-indigo-500/25 focus-visible:ring-indigo-500`
-      : tone === "dark"
-        ? `${base} px-3 py-2.5 text-slate-400 hover:text-slate-200 focus-visible:ring-slate-500 focus-visible:ring-offset-slate-900`
-        : `${base} px-3 py-2.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus-visible:ring-slate-400`
+      ? `${base} bg-gradient-to-r from-[#d4af37] to-[#e6ca65] px-5 py-2.5 text-[#050505] font-semibold shadow-lg shadow-[rgba(212,175,55,0.25)] hover:brightness-110 hover:-translate-y-px focus-visible:ring-[#d4af37]`
+      : `${base} px-4 py-2.5 bg-[#181817] text-[#9d9b95] border border-white/[0.08] hover:border-[rgba(212,175,55,0.3)] hover:text-[#f7f3e8] focus-visible:ring-white/20`
 
   const inner = (
     <>
@@ -121,7 +117,7 @@ export default function EmptyState({
   icon,
   actionButton,
   secondaryAction,
-  tone = "light",
+  tone = "dark",
   size = "md",
   variant = "empty",
   bare = false,
@@ -130,13 +126,10 @@ export default function EmptyState({
 }: EmptyStateProps) {
   const Icon = icon ?? (variant === "filtered" ? Search : Inbox)
   const s = SIZES[size]
-  const dark = tone === "dark"
 
   const surface = bare
     ? ""
-    : dark
-      ? "rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl"
-      : "rounded-xl border border-slate-200 bg-white shadow-sm"
+    : "rounded-2xl border border-white/[0.08] bg-[#111110] shadow-xl shadow-black/40"
 
   return (
     <div
@@ -146,25 +139,17 @@ export default function EmptyState({
       {/* Haloed glyph — a soft ring keeps it from reading as a disabled icon. */}
       <div
         aria-hidden
-        className={`mb-4 flex ${s.halo} items-center justify-center rounded-2xl ${
-          dark
-            ? "bg-white/5 text-slate-400 ring-1 ring-white/10"
-            : "bg-slate-50 text-slate-400 ring-1 ring-slate-200/80"
-        }`}
+        className={`mb-4 flex ${s.halo} items-center justify-center rounded-2xl bg-[rgba(212,175,55,0.1)] text-[#d4af37] ring-1 ring-[rgba(212,175,55,0.25)]`}
       >
         <Icon className={s.glyph} strokeWidth={1.5} />
       </div>
 
-      <h3 className={`font-bold ${s.title} ${dark ? "text-slate-100" : "text-slate-900"}`}>
+      <h3 className={`font-bold ${s.title} text-[#f7f3e8]`}>
         {title}
       </h3>
 
       {description && (
-        <p
-          className={`mt-1.5 max-w-sm text-sm leading-relaxed ${
-            dark ? "text-slate-400" : "text-slate-500"
-          }`}
-        >
+        <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-[#9d9b95]">
           {description}
         </p>
       )}

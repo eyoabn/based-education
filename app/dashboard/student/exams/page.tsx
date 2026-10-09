@@ -34,81 +34,81 @@ function ExamCard({ exam }: { exam: ExamSummary }) {
   const released = attempt?.status === "GRADED" && attempt.score !== null
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-shadow flex flex-col">
+    <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-xl shadow-black/40 p-5 hover:border-[rgba(212,175,55,0.3)] transition-all flex flex-col group">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
             <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset ${
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                 exam.type === "EXAM"
-                  ? "bg-indigo-50 text-indigo-700 ring-indigo-600/20"
-                  : "bg-sky-50 text-sky-700 ring-sky-600/20"
+                  ? "bg-[rgba(212,175,55,0.15)] text-[#d4af37] border-[rgba(212,175,55,0.3)]"
+                  : "bg-sky-500/15 text-sky-300 border-sky-500/30"
               }`}
             >
               {exam.type === "EXAM" ? "Exam" : "Assignment"}
             </span>
             {bucket === "IN_PROGRESS" && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30">
                 <Hourglass className="w-2.5 h-2.5" />
                 In Progress
               </span>
             )}
             {overdue && bucket === "AVAILABLE" && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-500/15 text-rose-300 border border-rose-500/30">
                 Overdue
               </span>
             )}
           </div>
 
-          <h3 className="font-bold text-slate-900 leading-snug truncate">{exam.title}</h3>
+          <h3 className="font-bold text-[#f7f3e8] text-base leading-snug truncate group-hover:text-[#d4af37] transition-colors">{exam.title}</h3>
           {exam.courseTitle && (
-            <p className="text-xs text-slate-400 mt-0.5 truncate">{exam.courseTitle}</p>
+            <p className="text-xs text-[#9d9b95] mt-0.5 truncate">{exam.courseTitle}</p>
           )}
         </div>
 
-        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-          <FileText className="w-5 h-5 text-slate-500" />
+        <div className="w-10 h-10 rounded-xl bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.2)] flex items-center justify-center shrink-0 text-[#d4af37]">
+          <FileText className="w-5 h-5" />
         </div>
       </div>
 
       {exam.description && (
-        <p className="text-sm text-slate-500 line-clamp-2 mb-4">{exam.description}</p>
+        <p className="text-sm text-[#9d9b95] line-clamp-2 mb-4">{exam.description}</p>
       )}
 
       {/* Facts */}
-      <div className="grid grid-cols-3 gap-3 py-3 border-y border-slate-100 mb-4">
+      <div className="grid grid-cols-3 gap-3 py-3 border-y border-white/[0.06] mb-4">
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-0.5">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-[#9d9b95]/60 mb-0.5">
             Questions
           </div>
-          <div className="text-sm font-semibold text-slate-700 tabular-nums">
+          <div className="text-sm font-bold text-[#f7f3e8] tabular-nums">
             {exam.questionCount}
           </div>
         </div>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-0.5">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-[#9d9b95]/60 mb-0.5">
             Duration
           </div>
-          <div className="text-sm font-semibold text-slate-700 tabular-nums">
+          <div className="text-sm font-bold text-[#f7f3e8] tabular-nums">
             {exam.durationMins}m
           </div>
         </div>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-0.5">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-[#9d9b95]/60 mb-0.5">
             Points
           </div>
-          <div className="text-sm font-semibold text-slate-700 tabular-nums">
+          <div className="text-sm font-bold text-[#f7f3e8] tabular-nums">
             {exam.totalPoints}
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-4">
-        <Clock className="w-3.5 h-3.5 shrink-0" />
-        {exam.dueAt ? `Due ${formatWhen(exam.dueAt)}` : "No due date"}
-        <span className="text-slate-300">·</span>
-        <Target className="w-3.5 h-3.5 shrink-0" />
-        Pass {exam.passingPct}%
+      <div className="flex items-center gap-1.5 text-xs text-[#9d9b95] mb-4">
+        <Clock className="w-3.5 h-3.5 shrink-0 text-[#d4af37]" />
+        <span>{exam.dueAt ? `Due ${formatWhen(exam.dueAt)}` : "No due date"}</span>
+        <span className="text-white/20">·</span>
+        <Target className="w-3.5 h-3.5 shrink-0 text-[#d4af37]" />
+        <span>Pass mark: {exam.passingPct}%</span>
       </div>
 
       {/* Action / result */}
@@ -116,10 +116,10 @@ function ExamCard({ exam }: { exam: ExamSummary }) {
         {bucket === "DONE" ? (
           released ? (
             <div
-              className={`flex items-center justify-between px-4 py-3 rounded-lg ${
+              className={`flex items-center justify-between px-4 py-3 rounded-xl border ${
                 hasPassed(attempt.score!, attempt.maxScore, exam.passingPct)
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-red-50 text-red-700"
+                  ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                  : "bg-rose-500/10 text-rose-300 border-rose-500/30"
               }`}
             >
               <span className="flex items-center gap-2 text-sm font-semibold">
@@ -131,18 +131,18 @@ function ExamCard({ exam }: { exam: ExamSummary }) {
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-slate-50 text-slate-600 text-sm font-semibold">
-              <Hourglass className="w-4 h-4" />
-              Submitted — awaiting your teacher&apos;s review
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#181817] text-[#9d9b95] border border-white/[0.08] text-sm font-medium">
+              <Hourglass className="w-4 h-4 text-[#d4af37]" />
+              Submitted — awaiting instructor evaluation
             </div>
           )
         ) : (
           <Link
             href={`/dashboard/student/exams/${exam.id}`}
-            className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg transition-colors ${
+            className={`w-full inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl transition-all shadow-lg active:scale-95 ${
               bucket === "IN_PROGRESS"
-                ? "bg-amber-500 hover:bg-amber-600 text-white"
-                : "bg-slate-900 hover:bg-slate-800 text-white"
+                ? "bg-gradient-to-r from-amber-500 to-amber-400 text-[#050505] shadow-amber-900/30 hover:brightness-110"
+                : "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] text-[#050505] shadow-[rgba(212,175,55,0.25)] hover:brightness-110"
             }`}
           >
             {bucket === "IN_PROGRESS" ? (
@@ -211,26 +211,28 @@ export default function StudentExamsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Exams &amp; Assignments</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Everything assigned to your enrolled courses, newest deadline first.
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] text-[#d4af37] text-xs font-semibold tracking-wider uppercase mb-2">
+          Assessment Hall
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#f7f3e8] tracking-tight">Exams &amp; Assignments</h1>
+        <p className="text-sm text-[#9d9b95] mt-1">
+          Everything assigned across your enrolled courses, organized chronologically by submission deadline.
         </p>
       </div>
 
       {/* Integrity notice */}
-      <div className="flex items-start gap-3 p-4 bg-slate-900 rounded-xl text-slate-300">
-        <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 p-4 sm:p-5 bg-[#111110] border border-[rgba(212,175,55,0.25)] rounded-2xl text-[#9d9b95] shadow-xl shadow-black/30">
+        <ShieldCheck className="w-5 h-5 text-[#d4af37] shrink-0 mt-0.5" />
         <div className="text-sm">
-          <p className="font-semibold text-white mb-0.5">Secure Guard is active on these papers</p>
-          <p className="text-slate-400 leading-relaxed">
-            Once you start, switching tabs or leaving full-screen will be logged and flagged to your
-            teacher. Read each paper&apos;s rules before you begin.
+          <p className="font-bold text-[#f7f3e8] mb-0.5">Secure Proctoring &amp; Guard active</p>
+          <p className="text-xs sm:text-sm text-[#9d9b95] leading-relaxed">
+            Once initiated, window defocus, tab navigation, and fullscreen exits are recorded and securely submitted in your instructor&apos;s evaluation audit.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div className="flex items-center gap-2 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-sm text-rose-300">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
@@ -239,23 +241,23 @@ export default function StudentExamsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[0, 1, 2].map(i => (
-            <div key={i} className="h-72 bg-white rounded-xl border border-slate-200 animate-pulse" />
+            <div key={i} className="h-72 bg-[#111110] rounded-2xl border border-white/[0.08] animate-pulse" />
           ))}
         </div>
       ) : exams.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
-          <FileText className="w-10 h-10 text-slate-300 mx-auto mb-4" />
-          <p className="font-semibold text-slate-700">No assessments yet</p>
-          <p className="text-sm text-slate-400 mt-1">
-            When your teachers publish an exam or assignment it will land here.
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-xl p-12 text-center">
+          <FileText className="w-10 h-10 text-[#d4af37]/40 mx-auto mb-4" />
+          <p className="font-bold text-[#f7f3e8]">No assessments assigned</p>
+          <p className="text-xs sm:text-sm text-[#9d9b95] mt-1">
+            When instructors publish tests, assignments or papers, they will appear here.
           </p>
         </div>
       ) : (
         <>
           {pending.length > 0 && (
             <section className="space-y-4">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
-                To Do <span className="text-slate-400 tabular-nums">({pending.length})</span>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#d4af37]">
+                Pending Tasks <span className="text-[#9d9b95] tabular-nums">({pending.length})</span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {pending.map(exam => (
@@ -267,8 +269,8 @@ export default function StudentExamsPage() {
 
           {completed.length > 0 && (
             <section className="space-y-4">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
-                Completed <span className="text-slate-400 tabular-nums">({completed.length})</span>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#9d9b95]">
+                Completed Papers <span className="text-[#9d9b95]/60 tabular-nums">({completed.length})</span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {completed.map(exam => (

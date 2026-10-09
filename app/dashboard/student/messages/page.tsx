@@ -14,8 +14,8 @@ export default function StudentMessagesPage({
   return (
     <div className="max-w-7xl mx-auto space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Messages &amp; Discussions</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <h1 className="text-2xl font-bold text-[#f7f3e8] tracking-tight">Messages &amp; Discussions</h1>
+        <p className="text-sm text-[#9d9b95] mt-0.5">
           Communicate with your course instructors and collaborate with your peers outside live sessions.
         </p>
       </div>

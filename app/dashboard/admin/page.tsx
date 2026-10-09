@@ -124,8 +124,8 @@ export default function AdminOverviewPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Platform Analytics</h1>
-          <p className="text-slate-500">
+          <h1 className="text-2xl font-bold text-[#f7f3e8] mb-1">Platform Analytics</h1>
+          <p className="text-[#9d9b95]">
             System health, growth and governance across {formatCount(metrics.totalUsers)} accounts.
           </p>
         </div>
@@ -133,15 +133,15 @@ export default function AdminOverviewPage() {
         <button
           onClick={() => void load()}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111110] border border-white/[0.08] text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-[#181817] text-sm font-semibold transition-colors disabled:opacity-60"
         >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 text-[#d4af37] ${refreshing ? "animate-spin" : ""}`} />
           Refresh
         </button>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+        <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
           {error} Showing the last figures that loaded.
         </div>
@@ -156,21 +156,21 @@ export default function AdminOverviewPage() {
 
       {/* Database Storage Analysis & Quota Card */}
       {dbStorage && (
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <section className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(212,175,55,0.12)] border border-[rgba(212,175,55,0.25)] flex items-center justify-center text-[#d4af37]">
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-900">Database Storage & Capacity Analytics</h2>
-                <p className="text-xs text-slate-500">Live PostgreSQL allocation, storage consumption, and remaining quota</p>
+                <h2 className="text-base font-bold text-[#f7f3e8]">Database Storage &amp; Capacity Analytics</h2>
+                <p className="text-xs text-[#9d9b95]">Live PostgreSQL allocation, storage consumption, and remaining quota</p>
               </div>
             </div>
 
             <Link
               href="/dashboard/admin/database"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition-colors shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(212,175,55,0.12)] hover:bg-[rgba(212,175,55,0.2)] border border-[rgba(212,175,55,0.25)] text-[#d4af37] text-xs font-bold rounded-lg transition-colors shrink-0"
             >
               <span>Explore Raw Database Tables</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -179,32 +179,32 @@ export default function AdminOverviewPage() {
 
           {/* 3 Metric Cards: Used, Remaining, Quota */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Space Taken</span>
-              <div className="text-2xl font-extrabold text-slate-900 mt-1">
+            <div className="p-4 rounded-xl bg-[#181817] border border-white/[0.08]">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#9d9b95]">Space Taken</span>
+              <div className="text-2xl font-extrabold text-[#f7f3e8] mt-1">
                 {dbStorage.totalUsedFormatted}
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-[#9d9b95] mt-0.5">
                 {dbStorage.totalUsedMB} MB of active data
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80">
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Space Remaining</span>
-              <div className="text-2xl font-extrabold text-emerald-700 mt-1">
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Space Remaining</span>
+              <div className="text-2xl font-extrabold text-emerald-300 mt-1">
                 {dbStorage.remainingMB} MB Left
               </div>
-              <p className="text-[11px] text-emerald-600 font-medium mt-0.5">
+              <p className="text-[11px] text-emerald-400/80 font-medium mt-0.5">
                 {dbStorage.remainingPercent}% free headroom
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Allocated Quota</span>
-              <div className="text-2xl font-extrabold text-slate-900 mt-1">
+            <div className="p-4 rounded-xl bg-[#181817] border border-white/[0.08]">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#9d9b95]">Allocated Quota</span>
+              <div className="text-2xl font-extrabold text-[#f7f3e8] mt-1">
                 {dbStorage.capacityMB} MB
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-[#9d9b95] mt-0.5">
                 {dbStorage.usagePercent}% capacity consumed
               </p>
             </div>
@@ -213,17 +213,17 @@ export default function AdminOverviewPage() {
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-semibold text-slate-700">Storage Usage ({dbStorage.usagePercent}%)</span>
-              <span className="text-slate-500">{dbStorage.remainingMB} MB remaining of {dbStorage.capacityMB} MB</span>
+              <span className="font-semibold text-[#f7f3e8]">Storage Usage ({dbStorage.usagePercent}%)</span>
+              <span className="text-[#9d9b95]">{dbStorage.remainingMB} MB remaining of {dbStorage.capacityMB} MB</span>
             </div>
-            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+            <div className="w-full h-3 bg-[#181817] rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
                   dbStorage.usagePercent > 85
                     ? "bg-red-500"
                     : dbStorage.usagePercent > 65
                     ? "bg-amber-500"
-                    : "bg-gradient-to-r from-emerald-500 to-indigo-600"
+                    : "bg-gradient-to-r from-emerald-500 to-[#d4af37]"
                 }`}
                 style={{ width: `${Math.max(2, dbStorage.usagePercent)}%` }}
               />
@@ -233,18 +233,18 @@ export default function AdminOverviewPage() {
           {/* Top Relation Tables Breakdown */}
           {dbStorage.tableSizes && dbStorage.tableSizes.length > 0 && (
             <div>
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2.5">
+              <span className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wider block mb-2.5">
                 Top Relation Tables by Size
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
                 {dbStorage.tableSizes.slice(0, 6).map((table) => (
                   <div
                     key={table.tableName}
-                    className="p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl"
+                    className="p-2.5 bg-[#181817] border border-white/[0.08] rounded-xl"
                   >
-                    <p className="text-xs font-bold text-slate-800 truncate">{table.tableName}</p>
-                    <p className="text-xs font-semibold text-indigo-600 mt-0.5">{table.totalSizeFormatted}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
+                    <p className="text-xs font-bold text-[#f7f3e8] truncate">{table.tableName}</p>
+                    <p className="text-xs font-semibold text-[#d4af37] mt-0.5">{table.totalSizeFormatted}</p>
+                    <p className="text-[10px] text-[#9d9b95] mt-0.5">
                       {table.estimatedRowCount >= 0 ? `~${table.estimatedRowCount} rows` : "Relations"}
                     </p>
                   </div>
@@ -257,15 +257,15 @@ export default function AdminOverviewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Audit trail */}
-        <section className="lg:col-span-3 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
-            <h2 className="font-bold text-slate-900 flex items-center gap-2">
-              <History className="w-4 h-4 text-slate-400" />
+        <section className="lg:col-span-3 bg-[#111110] rounded-2xl border border-white/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between gap-3">
+            <h2 className="font-bold text-[#f7f3e8] flex items-center gap-2">
+              <History className="w-4 h-4 text-[#d4af37]" />
               Recent admin activity
             </h2>
             <Link
               href="/dashboard/admin/monetization"
-              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"
+              className="text-sm font-semibold text-[#d4af37] hover:underline inline-flex items-center gap-1"
             >
               Full log
               <ArrowRight className="w-3.5 h-3.5" />
@@ -273,13 +273,13 @@ export default function AdminOverviewPage() {
           </div>
 
           {auditLog.length === 0 ? (
-            <p className="px-5 py-8 text-sm text-slate-500 text-center">
+            <p className="px-5 py-8 text-sm text-[#9d9b95] text-center">
               No administrative actions recorded yet.
             </p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-white/[0.06]">
               {auditLog.slice(0, 8).map(entry => (
-                <li key={entry.id} className="px-5 py-3 flex items-start gap-3">
+                <li key={entry.id} className="px-5 py-3 flex items-start gap-3 hover:bg-[#181817] transition-colors">
                   <span
                     className={`shrink-0 px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1 ring-inset ${
                       AUDIT_STYLE[entry.action]
@@ -287,8 +287,8 @@ export default function AdminOverviewPage() {
                   >
                     {AUDIT_LABEL[entry.action]}
                   </span>
-                  <p className="flex-1 min-w-0 text-sm text-slate-600">{entry.summary}</p>
-                  <span className="shrink-0 text-xs text-slate-400 tabular-nums">
+                  <p className="flex-1 min-w-0 text-sm text-[#f7f3e8]/90">{entry.summary}</p>
+                  <span className="shrink-0 text-xs text-[#9d9b95] tabular-nums">
                     {formatWhen(entry.createdAt)}
                   </span>
                 </li>
@@ -298,30 +298,30 @@ export default function AdminOverviewPage() {
         </section>
 
         {/* Leaderboard */}
-        <section className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900 flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-amber-500" />
+        <section className="lg:col-span-2 bg-[#111110] rounded-2xl border border-white/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/[0.06]">
+            <h2 className="font-bold text-[#f7f3e8] flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-[#d4af37]" />
               Top teachers
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">By enrolled students</p>
+            <p className="text-xs text-[#9d9b95] mt-0.5">By enrolled students</p>
           </div>
 
           {topTeachers.length === 0 ? (
             <div className="px-5 py-8 text-center">
-              <Sparkles className="w-5 h-5 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">
+              <Sparkles className="w-5 h-5 text-[#9d9b95]/40 mx-auto mb-2" />
+              <p className="text-sm text-[#9d9b95]">
                 No approved teachers with enrolments yet.
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-white/[0.06]">
               {topTeachers.map((teacher, index) => (
-                <li key={teacher.id} className="px-5 py-3 flex items-center gap-3">
-                  <span className="w-5 shrink-0 text-xs font-bold text-slate-400 tabular-nums">
+                <li key={teacher.id} className="px-5 py-3 flex items-center gap-3 hover:bg-[#181817] transition-colors">
+                  <span className="w-5 shrink-0 text-xs font-bold text-[#9d9b95] tabular-nums">
                     {index + 1}
                   </span>
-                  <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-[#181817] border border-[rgba(212,175,55,0.3)] overflow-hidden shrink-0">
                     <img
                       src={avatarFor(teacher.name, teacher.avatarUrl)}
                       alt=""
@@ -329,12 +329,12 @@ export default function AdminOverviewPage() {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{teacher.name}</p>
-                    <p className="text-xs text-slate-500 truncate">
+                    <p className="text-sm font-semibold text-[#f7f3e8] truncate">{teacher.name}</p>
+                    <p className="text-xs text-[#9d9b95] truncate">
                       {teacher.specialty ?? `${teacher.courseCount} course${teacher.courseCount === 1 ? "" : "s"}`}
                     </p>
                   </div>
-                  <span className="shrink-0 text-sm font-bold text-slate-700 tabular-nums">
+                  <span className="shrink-0 text-sm font-bold text-[#d4af37] tabular-nums">
                     {formatCount(teacher.studentCount)}
                   </span>
                 </li>

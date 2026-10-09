@@ -129,19 +129,19 @@ export default function CommentSection({
     `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser?.name || "User")}&backgroundColor=0284c7,4f46e5,059669`
 
   return (
-    <div className="bg-slate-50/80 border-t border-slate-100 p-4 sm:p-5">
+    <div className="bg-[#0c0c0b] border-t border-white/[0.08] p-4 sm:p-5 rounded-b-2xl">
       {/* Comments List */}
       <div className="space-y-3 mb-4 max-h-[320px] overflow-y-auto pr-1">
         {isLoading ? (
-          <div className="flex items-center justify-center py-6 gap-2 text-slate-400 text-xs">
-            <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+          <div className="flex items-center justify-center py-6 gap-2 text-[#9d9b95] text-xs">
+            <Loader2 className="w-4 h-4 animate-spin text-[#d4af37]" />
             <span>Loading discussion…</span>
           </div>
         ) : comments.length === 0 ? (
-          <div className="py-6 text-center text-slate-400 text-xs">
-            <MessageSquare className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
-            <p className="font-medium text-slate-500">No comments yet</p>
-            <p className="text-[11px] mt-0.5">Start the conversation below.</p>
+          <div className="py-6 text-center text-[#9d9b95] text-xs">
+            <MessageSquare className="w-6 h-6 mx-auto mb-1.5 opacity-30 text-[#d4af37]" />
+            <p className="font-semibold text-[#f7f3e8]">No comments yet</p>
+            <p className="text-[11px] mt-0.5 text-[#9d9b95]">Start the conversation below.</p>
           </div>
         ) : (
           comments.map(comment => {
@@ -150,41 +150,41 @@ export default function CommentSection({
             const authorSeed = comment.author.name || "User"
             const avatar =
               comment.author.avatarUrl ||
-              `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(authorSeed)}&backgroundColor=0284c7,4f46e5,059669`
+              `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(authorSeed)}&backgroundColor=181817,262624,3f3f3e`
 
             return (
               <div key={comment.id} className="flex gap-2.5 sm:gap-3 group">
-                <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0 overflow-hidden border border-slate-200/80">
+                <div className="w-8 h-8 rounded-full bg-[#181817] shrink-0 overflow-hidden border border-white/10">
                   <img src={avatar} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div
-                  className={`flex-1 rounded-2xl px-3.5 py-2.5 text-sm transition-shadow ${
+                  className={`flex-1 rounded-2xl px-3.5 py-2.5 text-sm transition-all ${
                     isTeacher
-                      ? "bg-indigo-50/70 border border-indigo-100/90 text-slate-800"
+                      ? "bg-[#181817] border border-[rgba(212,175,55,0.3)] text-[#f7f3e8]"
                       : isAdmin
-                      ? "bg-amber-50/70 border border-amber-100 text-slate-800"
-                      : "bg-white border border-slate-200 text-slate-800 shadow-xs"
+                      ? "bg-[#181817] border border-amber-500/30 text-[#f7f3e8]"
+                      : "bg-[#141413] border border-white/[0.08] text-[#f7f3e8]"
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-slate-900 text-xs sm:text-sm">
+                    <span className="font-bold text-[#f7f3e8] text-xs sm:text-sm">
                       {comment.author.name}
                     </span>
                     {isTeacher && (
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-indigo-100 text-indigo-700 tracking-wide">
-                        TEACHER
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[rgba(212,175,55,0.15)] text-[#d4af37] border border-[rgba(212,175,55,0.25)] tracking-wider">
+                        FACULTY
                       </span>
                     )}
                     {isAdmin && (
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 tracking-wide">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/25 tracking-wider">
                         ADMIN
                       </span>
                     )}
-                    <span className="text-[11px] text-slate-400 ml-auto tabular-nums">
+                    <span className="text-[11px] text-[#9d9b95] ml-auto tabular-nums">
                       {timeAgo(comment.createdAt)}
                     </span>
                   </div>
-                  <p className="text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+                  <p className="text-[#f7f3e8]/85 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
                     {comment.content}
                   </p>
                 </div>
@@ -195,14 +195,14 @@ export default function CommentSection({
       </div>
 
       {error && (
-        <div className="mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+        <div className="mb-3 px-3 py-2 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300">
           {error}
         </div>
       )}
 
       {/* Input Composer */}
       <form onSubmit={handleSubmit} className="flex gap-2.5 items-center">
-        <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0 overflow-hidden border border-slate-200 hidden sm:block">
+        <div className="w-8 h-8 rounded-full bg-[#181817] shrink-0 overflow-hidden border border-white/10 hidden sm:block">
           <img src={userAvatar} alt="" className="w-full h-full object-cover" />
         </div>
         <div className="flex-1 relative">
@@ -212,13 +212,13 @@ export default function CommentSection({
             onChange={e => setNewComment(e.target.value)}
             disabled={isSubmitting}
             placeholder="Write a comment..."
-            className="w-full bg-white border border-slate-200 rounded-full px-4 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-11 transition-all"
+            className="w-full bg-[#141413] border border-white/[0.08] rounded-full px-4 py-2.5 text-xs sm:text-sm text-[#f7f3e8] placeholder:text-[#9d9b95]/50 focus:outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] pr-11 transition-all"
           />
           <button
             type="submit"
             disabled={!newComment.trim() || isSubmitting}
             aria-label="Send comment"
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 rounded-full transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 text-[#050505] bg-gradient-to-r from-[#d4af37] to-[#e6ca65] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed rounded-full transition-all cursor-pointer shadow-md shadow-[rgba(212,175,55,0.2)] active:scale-95"
           >
             {isSubmitting ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />

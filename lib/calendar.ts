@@ -32,21 +32,21 @@ export const EVENT_STYLES: Record<
   { dot: string; chip: string; bar: string; label: string }
 > = {
   LIVE_CLASS: {
-    dot: 'bg-indigo-500',
-    chip: 'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
-    bar: 'border-l-indigo-500 bg-indigo-50/60',
+    dot: 'bg-[#d4af37]',
+    chip: 'bg-[rgba(212,175,55,0.15)] text-[#f7f3e8] ring-1 ring-[rgba(212,175,55,0.35)]',
+    bar: 'border-l-[#d4af37] bg-[rgba(212,175,55,0.06)]',
     label: 'Live Class',
   },
   EXAM: {
-    dot: 'bg-red-500',
-    chip: 'bg-red-50 text-red-700 ring-red-600/20',
-    bar: 'border-l-red-500 bg-red-50/60',
+    dot: 'bg-rose-500',
+    chip: 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/30',
+    bar: 'border-l-rose-500 bg-rose-500/10',
     label: 'Exam',
   },
   ASSIGNMENT: {
-    dot: 'bg-amber-500',
-    chip: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-    bar: 'border-l-amber-500 bg-amber-50/60',
+    dot: 'bg-amber-400',
+    chip: 'bg-amber-500/15 text-amber-200 ring-1 ring-amber-500/30',
+    bar: 'border-l-amber-500 bg-amber-500/10',
     label: 'Assignment',
   },
 }

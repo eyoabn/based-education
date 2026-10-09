@@ -25,7 +25,12 @@
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-display: 'Cinzel', serif;
-  --font-body: 'Lato', sans-serif;
+  --color-surface: #111110;
+  --color-surface-2: #181817;
+  --color-surface-3: #20201e;
+  --color-gold: #d4af37;
+  --color-gold-hover: #b89626;
+  --color-dim: #6d6b65;
 
   /* Global UI Overrides: Force existing colors to Black & Gold */
   --color-indigo-50: #fbf9f1;
@@ -61,47 +66,58 @@
 }
 
 :root {
-  --background: #000000;
-  --foreground: #F1F5F9;
-  --card: #0A0A0A;
-  --card-foreground: #F1F5F9;
-  --primary: #D4AF37;
-  --primary-foreground: #000000;
-  --secondary: #1C1808;
-  --secondary-foreground: #FCE69B;
-  --muted: #111111;
-  --muted-foreground: #94A3B8;
-  --accent: #D4AF37;
-  --accent-foreground: #000000;
-  --border: rgba(212, 175, 55, 0.2);
-  --ring: #D4AF37;
+  --background: #050505;
+  --foreground: #f7f3e8;
+  --card: #111110;
+  --card-foreground: #f7f3e8;
+  --primary: #d4af37;
+  --primary-foreground: #050505;
+  --secondary: #181817;
+  --secondary-foreground: #fce69b;
+  --muted: #181817;
+  --muted-foreground: #9d9b95;
+  --accent: #d4af37;
+  --accent-foreground: #050505;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: #d4af37;
   --radius: 12px;
 
+  --bg: #050505;
+  --bg-soft: #0a0a0a;
+  --surface: #111110;
+  --surface-2: #181817;
+  --surface-3: #20201e;
+  --text: #f7f3e8;
+  --dim: #6d6b65;
+  --gold: #d4af37;
+  --gold-line: rgba(212, 175, 55, 0.2);
+  --line: rgba(255, 255, 255, 0.08);
+
   --indigo-deep: #1A1500;
-  --indigo-brand: #D4AF37;
-  --indigo-light: #FCE69B;
-  --emerald: #10B981; /* Keeping green for success states */
-  --coral: #EF4444;
-  --amber: #F59E0B;
-  --surface-glass: rgba(0, 0, 0, 0.7);
-  --surface-glass-dark: rgba(0, 0, 0, 0.8);
+  --indigo-brand: #d4af37;
+  --indigo-light: #fce69b;
+  --emerald: #10b981;
+  --coral: #ef4444;
+  --amber: #f59e0b;
+  --surface-glass: rgba(17, 17, 16, 0.85);
+  --surface-glass-dark: rgba(10, 10, 10, 0.92);
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #F1F5F9;
-  --card: #0A0A0A;
-  --card-foreground: #F1F5F9;
-  --primary: #D4AF37;
-  --primary-foreground: #000000;
-  --secondary: #1C1808;
-  --secondary-foreground: #FCE69B;
-  --muted: #111111;
-  --muted-foreground: #94A3B8;
-  --accent: #D4AF37;
-  --accent-foreground: #000000;
-  --border: rgba(212, 175, 55, 0.2);
-  --ring: #D4AF37;
+  --background: #050505;
+  --foreground: #f7f3e8;
+  --card: #111110;
+  --card-foreground: #f7f3e8;
+  --primary: #d4af37;
+  --primary-foreground: #050505;
+  --secondary: #181817;
+  --secondary-foreground: #fce69b;
+  --muted: #181817;
+  --muted-foreground: #9d9b95;
+  --accent: #d4af37;
+  --accent-foreground: #050505;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: #d4af37;
 }
 
 * {
@@ -115,49 +131,74 @@ body {
   padding: 0;
 }
 
+html {
+  background: #050505;
+  color-scheme: dark;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  background-color: var(--background);
-  color: var(--foreground);
+  background:
+    radial-gradient(circle at 78% -10%, rgba(212, 175, 55, 0.09), transparent 30rem),
+    radial-gradient(circle at -10% 90%, rgba(129, 140, 248, 0.05), transparent 26rem),
+    #050505;
+  background-color: #050505;
+  color: #f7f3e8;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Form inputs default to dark text on light backgrounds to prevent white-on-white text */
+/* Form inputs default to dark surface with gold focus */
 input,
 textarea,
 select {
-  color: #0f172a;
+  color: #f7f3e8;
+  background-color: #181817;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
 }
 
-/* Explicit light text classes stay light on dark cards */
-input[class*="text-white"],
-textarea[class*="text-white"],
-select[class*="text-white"],
-input[class*="text-slate-100"],
-textarea[class*="text-slate-100"],
-select[class*="text-slate-100"],
-input[class*="text-slate-200"],
-textarea[class*="text-slate-200"],
-select[class*="text-slate-200"],
-input[class*="text-slate-300"],
-textarea[class*="text-slate-300"],
-select[class*="text-slate-300"],
-.dark input,
-.dark textarea,
-.dark select {
-  color: #f8fafc;
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #94a3b8;
+  color: #6d6b65;
 }
 
-/* Hide scrollbars by default, show on hover */
+::selection {
+  color: #0a0a0a;
+  background: var(--gold);
+}
+
+/* Scrollbars from Figma specifications */
 * {
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  scrollbar-color: #35342f transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #35342f;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4943;
 }
 *:hover {
   scrollbar-color: rgba(79, 70, 229, 0.3) transparent;

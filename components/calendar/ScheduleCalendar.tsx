@@ -32,16 +32,16 @@ interface ScheduleCalendarProps {
 
 const ACCENTS = {
   indigo: {
-    todayRing: "ring-indigo-500",
-    todayBadge: "bg-indigo-600",
-    selected: "bg-indigo-50 border-indigo-300",
-    button: "hover:bg-indigo-50 hover:text-indigo-700",
+    todayRing: "ring-[#d4af37]",
+    todayBadge: "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] text-[#050505] font-bold shadow-sm",
+    selected: "bg-[rgba(212,175,55,0.12)] border-[rgba(212,175,55,0.4)]",
+    button: "hover:bg-white/[0.06] hover:text-[#d4af37] text-[#9d9b95]",
   },
   emerald: {
-    todayRing: "ring-emerald-500",
-    todayBadge: "bg-emerald-600",
-    selected: "bg-emerald-50 border-emerald-300",
-    button: "hover:bg-emerald-50 hover:text-emerald-700",
+    todayRing: "ring-[#d4af37]",
+    todayBadge: "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] text-[#050505] font-bold shadow-sm",
+    selected: "bg-[rgba(212,175,55,0.12)] border-[rgba(212,175,55,0.4)]",
+    button: "hover:bg-white/[0.06] hover:text-[#d4af37] text-[#9d9b95]",
   },
 }
 
@@ -64,17 +64,17 @@ function EventChip({
         e.stopPropagation()
         onClick?.()
       }}
-      className={`w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-left text-[11px] leading-tight transition-colors ${style.chip} ring-1 ring-inset hover:brightness-95 ${
-        joinable ? "font-bold" : "font-medium"
+      className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-left text-[11px] leading-tight transition-all ${style.chip} hover:brightness-110 ${
+        joinable ? "font-bold shadow-xs shadow-emerald-500/20" : "font-medium"
       }`}
       title={`${event.title} — ${toLocalTime(event.startsAt)}`}
     >
       {joinable ? (
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse-dot" />
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse-dot" />
       ) : (
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${style.dot}`} />
       )}
-      <span className="tabular-nums opacity-70 shrink-0">{toLocalTime(event.startsAt)}</span>
+      <span className="tabular-nums opacity-75 shrink-0">{toLocalTime(event.startsAt)}</span>
       <span className="truncate">{event.title}</span>
     </button>
   )
@@ -123,47 +123,47 @@ export default function ScheduleCalendar({
       : `${cells[0].date.toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${cells[6].date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-xl shadow-black/40 overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 sm:px-4 py-3 border-b border-slate-200 bg-slate-50/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 sm:px-4 py-3.5 border-b border-white/[0.08] bg-[#181817]/60">
         <div className="flex items-center justify-between sm:justify-start gap-2">
           <div className="flex items-center gap-1">
             <button
               onClick={() => shift(-1)}
               aria-label="Previous"
-              className={`p-1.5 rounded-lg text-slate-500 transition-colors ${theme.button}`}
+              className={`p-1.5 rounded-lg transition-colors ${theme.button}`}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => shift(1)}
               aria-label="Next"
-              className={`p-1.5 rounded-lg text-slate-500 transition-colors ${theme.button}`}
+              className={`p-1.5 rounded-lg transition-colors ${theme.button}`}
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => setAnchor(new Date())}
-              className="ml-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200/70 transition-colors"
+              className="ml-1 px-3 py-1.5 rounded-xl border border-white/[0.08] bg-[#141413] text-xs font-semibold text-[#f7f3e8] hover:border-[rgba(212,175,55,0.3)] hover:text-[#d4af37] transition-all"
             >
               Today
             </button>
           </div>
 
-          <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">{headerLabel}</h2>
+          <h2 className="text-sm sm:text-base font-bold text-[#f7f3e8] tracking-tight">{headerLabel}</h2>
         </div>
 
         <div className="flex items-center justify-between sm:justify-end gap-2">
           {/* Month / Week toggle */}
-          <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5">
+          <div className="flex items-center bg-[#141413] border border-white/[0.08] rounded-xl p-0.5">
             {(["month", "week"] as CalendarViewMode[]).map(mode => (
               <button
                 key={mode}
                 onClick={() => setView(mode)}
-                className={`px-2.5 sm:px-3 py-1 rounded-md text-xs font-semibold capitalize transition-colors ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all ${
                   view === mode
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] text-[#050505] font-bold shadow-sm"
+                    : "text-[#9d9b95] hover:text-[#f7f3e8]"
                 }`}
               >
                 {mode}
@@ -178,11 +178,11 @@ export default function ScheduleCalendar({
       <div className="overflow-x-auto">
         <div className="min-w-[620px] sm:min-w-0">
           {/* Weekday header */}
-          <div className="grid grid-cols-7 border-b border-slate-200 bg-white">
+          <div className="grid grid-cols-7 border-b border-white/[0.08] bg-[#141413]">
             {WEEKDAY_LABELS.map(day => (
               <div
                 key={day}
-                className="px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wide text-slate-400"
+                className="px-2 py-2.5 text-center text-[11px] font-bold uppercase tracking-wider text-[#9d9b95]"
               >
                 {day}
               </div>
@@ -192,7 +192,7 @@ export default function ScheduleCalendar({
           {/* Grid */}
           <div
             className={`grid grid-cols-7 ${loading ? "opacity-50 pointer-events-none" : ""}`}
-            style={{ gridAutoRows: view === "month" ? "minmax(100px, auto)" : "minmax(220px, auto)" }}
+            style={{ gridAutoRows: view === "month" ? "minmax(105px, auto)" : "minmax(220px, auto)" }}
           >
             {cells.map(cell => {
               const dayEvents = eventsByDay.get(dayKey(cell.date)) ?? []
@@ -203,25 +203,25 @@ export default function ScheduleCalendar({
                 <div
                   key={cell.date.toISOString()}
                   onClick={() => handleDayClick(cell.date)}
-                  className={`border-b border-r border-slate-100 p-1.5 flex flex-col gap-1 cursor-pointer transition-colors ${
-                    cell.inCurrentMonth ? "bg-white" : "bg-slate-50/50"
-                  } ${isSelected ? theme.selected : "hover:bg-slate-50"}`}
+                  className={`border-b border-r border-white/[0.06] p-2 flex flex-col gap-1 cursor-pointer transition-colors ${
+                    cell.inCurrentMonth ? "bg-[#111110]" : "bg-[#0b0b0a]/70"
+                  } ${isSelected ? theme.selected : "hover:bg-[#181817]/70"}`}
                 >
                   {/* Day number */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-0.5">
                     <span
                       className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
                         cell.isToday
-                          ? `${theme.todayBadge} text-white`
+                          ? `${theme.todayBadge}`
                           : cell.inCurrentMonth
-                            ? "text-slate-700"
-                            : "text-slate-300"
+                            ? "text-[#f7f3e8]"
+                            : "text-[#9d9b95]/40"
                       }`}
                     >
                       {cell.date.getDate()}
                     </span>
                     {hasJoinable && (
-                      <Radio className="w-3 h-3 text-emerald-500 animate-pulse" aria-label="Live soon" />
+                      <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" aria-label="Live soon" />
                     )}
                   </div>
 
@@ -236,7 +236,7 @@ export default function ScheduleCalendar({
                       />
                     ))}
                     {dayEvents.length > (view === "month" ? 3 : 8) && (
-                      <span className="text-[10px] font-semibold text-slate-400 pl-1.5">
+                      <span className="text-[10px] font-semibold text-[#d4af37] pl-1.5">
                         +{dayEvents.length - (view === "month" ? 3 : 8)} more
                       </span>
                     )}
@@ -250,17 +250,17 @@ export default function ScheduleCalendar({
 
       {/* Selected Day Agenda View */}
       {selectedDate && (
-        <div className="p-3 sm:p-4 border-t border-slate-200 bg-slate-50/50">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+        <div className="p-3 sm:p-5 border-t border-white/[0.08] bg-[#181817]/50">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#d4af37]">
               Schedule for {selectedDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
             </h3>
-            <span className="text-[11px] font-semibold text-slate-400">
+            <span className="text-[11px] font-semibold text-[#9d9b95]">
               {(eventsByDay.get(dayKey(selectedDate)) ?? []).length} session(s)
             </span>
           </div>
           {(eventsByDay.get(dayKey(selectedDate)) ?? []).length === 0 ? (
-            <p className="text-xs text-slate-400 py-2 italic">No classes or tasks scheduled for this day.</p>
+            <p className="text-xs text-[#9d9b95] py-2 italic">No classes or assessments scheduled for this day.</p>
           ) : (
             <div className="space-y-2 pt-1">
               {(eventsByDay.get(dayKey(selectedDate)) ?? []).map(event => {
@@ -270,13 +270,13 @@ export default function ScheduleCalendar({
                   <div
                     key={event.id}
                     onClick={() => onSelectEvent?.(event)}
-                    className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3 cursor-pointer hover:border-slate-300 transition-all"
+                    className="p-3.5 bg-[#141413] rounded-xl border border-white/[0.08] flex items-center justify-between gap-3 cursor-pointer hover:border-[rgba(212,175,55,0.3)] hover:bg-[#1a1a19] transition-all"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${joinable ? "bg-emerald-500 animate-pulse-dot" : style.dot}`} />
+                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${joinable ? "bg-emerald-400 animate-pulse-dot" : style.dot}`} />
                       <div className="min-w-0">
-                        <div className="text-xs font-bold text-slate-900 truncate">{event.title}</div>
-                        <div className="text-[11px] text-slate-500">
+                        <div className="text-xs font-bold text-[#f7f3e8] truncate">{event.title}</div>
+                        <div className="text-[11px] text-[#9d9b95]">
                           {toLocalTime(event.startsAt)}
                           {event.endsAt ? ` – ${toLocalTime(event.endsAt)}` : ""}
                           {event.courseTitle ? ` · ${event.courseTitle}` : ""}
@@ -284,11 +284,11 @@ export default function ScheduleCalendar({
                       </div>
                     </div>
                     {joinable ? (
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[11px] font-bold shrink-0 animate-pulse">
+                      <span className="px-3 py-1 rounded-full bg-emerald-500 text-[#050505] text-[11px] font-bold shrink-0 animate-pulse">
                         Join Live
                       </span>
                     ) : (
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold shrink-0 ${style.chip}`}>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${style.chip}`}>
                         {style.label}
                       </span>
                     )}
@@ -301,16 +301,16 @@ export default function ScheduleCalendar({
       )}
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 border-t border-slate-200 bg-slate-50/60 text-xs text-slate-500">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 border-t border-white/[0.08] bg-[#141413] text-xs text-[#9d9b95]">
         {(Object.keys(EVENT_STYLES) as (keyof typeof EVENT_STYLES)[]).map(type => (
           <div key={type} className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${EVENT_STYLES[type].dot}`} />
-            {EVENT_STYLES[type].label}
+            <span>{EVENT_STYLES[type].label}</span>
           </div>
         ))}
         <div className="flex items-center gap-1.5 sm:ml-auto">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-dot" />
-          Joinable now
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot" />
+          <span className="text-[#f7f3e8]">Joinable now</span>
         </div>
       </div>
     </div>

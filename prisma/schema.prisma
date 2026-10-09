@@ -42,10 +42,10 @@ enum NotificationType {
   COURSE_JOIN_REQUESTED
   COURSE_JOIN_APPROVED
   COURSE_JOIN_REJECTED
-  // Phase 5
+  
   EXAM_PUBLISHED
   EXAM_SUBMITTED
-  // Phase 6 — governance notices raised by the admin portal
+  
   ACCOUNT_REJECTED
   ACCOUNT_SUSPENDED
   ACCOUNT_REINSTATED
@@ -54,8 +54,7 @@ enum NotificationType {
 }
 
 /// Phase 5: an assessment is either a timed, locked-down exam or an
-/// untimed assignment. The distinction only changes how the student
-/// portal presents it — grading is identical.
+
 enum AssessmentType {
   EXAM
   ASSIGNMENT

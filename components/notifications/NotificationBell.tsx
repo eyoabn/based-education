@@ -103,14 +103,14 @@ export default function NotificationBell() {
         }}
         aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
         title={connected ? "Notifications · live" : "Notifications · reconnecting"}
-        className="relative rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-700 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className="relative rounded-xl p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center text-[#9d9b95] transition-all hover:bg-white/[0.06] hover:text-[#f7f3e8] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]"
       >
         <Bell className="h-5 w-5" />
 
         {unreadCount > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 items-center justify-center rounded-full border-2 border-white bg-red-500 text-[9px] font-bold text-white">
+          <span className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#d4af37] opacity-75" />
+            <span className="relative inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-[#111110] bg-[#d4af37] text-[8px] font-black text-black">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           </span>

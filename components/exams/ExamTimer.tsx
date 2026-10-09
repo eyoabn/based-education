@@ -23,9 +23,9 @@ interface ExamTimerProps {
 }
 
 const TONE_STYLES = {
-  calm: "bg-slate-900 text-white border-slate-700",
-  warn: "bg-amber-500 text-white border-amber-600",
-  critical: "bg-red-600 text-white border-red-700 animate-pulse",
+  calm: "bg-[#181817] text-[#f7f3e8] border border-[rgba(212,175,55,0.3)] shadow-md shadow-black/40",
+  warn: "bg-amber-500/20 text-amber-300 border border-amber-500/40",
+  critical: "bg-rose-600/25 text-rose-300 border border-rose-500 animate-pulse",
 } as const
 
 export default function ExamTimer({
@@ -86,9 +86,9 @@ export default function ExamTimer({
       </div>
 
       {/* Drain bar */}
-      <div className="w-16 h-1.5 rounded-full bg-white/25 overflow-hidden shrink-0 ml-1">
+      <div className="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden shrink-0 ml-1">
         <div
-          className="h-full bg-white/90 rounded-full transition-[width] duration-1000 ease-linear"
+          className="h-full bg-gradient-to-r from-[#d4af37] to-[#e6ca65] rounded-full transition-[width] duration-1000 ease-linear shadow-xs"
           style={{ width: `${pctLeft}%` }}
         />
       </div>

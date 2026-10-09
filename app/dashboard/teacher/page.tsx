@@ -315,31 +315,32 @@ export default function TeacherDashboardPage() {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 sm:space-y-8">
       {/* Top Banner with Humanized Greeting */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 rounded-2xl sm:rounded-3xl p-6 md:p-8 text-white shadow-xl border border-slate-800/80">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold mb-3 border border-indigo-500/30">
-            <ShieldCheck className="w-3.5 h-3.5" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-[#181817] via-[#111110] to-[#0a0a09] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-6 md:p-8 text-[#f7f3e8] shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.08),transparent_70%)] pointer-events-none" />
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.08] text-[#d4af37] text-xs font-semibold mb-3">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#d4af37]" />
             <span>{currentDateFormatted}</span>
             <span className="opacity-40">•</span>
             <span>Faculty Console</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#f7f3e8]">
             {getGreeting()}, Instructor! 👋
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+          <p className="text-[#9d9b95] text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
             Welcome to your teaching headquarters. Create new courses, review student admission requests, and broadcast interactive live classes.
           </p>
         </div>
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 relative z-10">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 sm:py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 sm:py-3 bg-gradient-to-r from-[#d4af37] to-[#e6ca65] hover:opacity-95 active:scale-95 text-black font-bold text-xs sm:text-sm rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center gap-2"
           >
-            <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Add Course
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-black" /> Add Course
           </button>
           <Link
             href="/dashboard/teacher/live/MainStudio"
-            className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 sm:py-3 bg-red-600/90 hover:bg-red-600 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all flex items-center justify-center gap-2"
           >
             <Radio className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" /> Live Studio
           </Link>
@@ -347,7 +348,7 @@ export default function TeacherDashboardPage() {
       </div>
 
       {successMsg && (
-        <div className="p-4 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex justify-between items-center">
+        <div className="p-4 rounded-xl text-sm font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex justify-between items-center">
           <span>{successMsg}</span>
           <button onClick={() => setSuccessMsg(null)} className="text-xs underline ml-4 hover:opacity-80">
             Dismiss
@@ -357,61 +358,61 @@ export default function TeacherDashboardPage() {
 
       {/* Humanized Stats Cards with Contextual Subtitles */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] p-5 sm:p-6 shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 hover:border-[rgba(212,175,55,0.3)] transition-all">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-500">My Active Courses</h3>
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-[#9d9b95]">My Active Courses</h3>
+            <div className="w-10 h-10 rounded-xl bg-[rgba(212,175,55,0.12)] border border-[rgba(212,175,55,0.25)] flex items-center justify-center text-[#d4af37]">
               <BookOpen className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900">{courses.length}</div>
-          <p className="text-xs text-slate-400 mt-1">Courses created by you</p>
+          <div className="text-3xl font-extrabold text-[#f7f3e8]">{courses.length}</div>
+          <p className="text-xs text-[#9d9b95] mt-1">Courses created by you</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] p-5 sm:p-6 shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 hover:border-[rgba(212,175,55,0.3)] transition-all">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-500">Enrolled Students</h3>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-[#9d9b95]">Enrolled Students</h3>
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900">{totalStudents}</div>
-          <p className="text-xs text-slate-400 mt-1">Total learners in your courses</p>
+          <div className="text-3xl font-extrabold text-[#f7f3e8]">{totalStudents}</div>
+          <p className="text-xs text-[#9d9b95] mt-1">Total learners in your courses</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] p-5 sm:p-6 shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 hover:border-[rgba(212,175,55,0.3)] transition-all">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-500">Pending Requests</h3>
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-[#9d9b95]">Pending Requests</h3>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Lock className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900">{pendingRequestsCount}</div>
-          <p className="text-xs text-slate-400 mt-1">Awaiting your approval</p>
+          <div className="text-3xl font-extrabold text-[#f7f3e8]">{pendingRequestsCount}</div>
+          <p className="text-xs text-[#9d9b95] mt-1">Awaiting your approval</p>
         </div>
       </div>
 
       {/* Pending Student Requests Approval Section */}
       {pendingRequestsCount > 0 && (
-        <div className="bg-amber-50/50 rounded-2xl sm:rounded-3xl border border-amber-200 p-4 sm:p-6 space-y-4">
+        <div className="bg-amber-500/5 rounded-2xl sm:rounded-3xl border border-amber-500/20 p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-2">
-            <Lock className="w-5 h-5 text-amber-600" />
-            <h2 className="text-base sm:text-lg font-bold text-amber-900">Pending Student Admission Requests</h2>
+            <Lock className="w-5 h-5 text-amber-400" />
+            <h2 className="text-base sm:text-lg font-bold text-amber-300">Pending Student Admission Requests</h2>
           </div>
-          <div className="divide-y divide-amber-200/60 bg-white rounded-2xl border border-amber-200 overflow-hidden shadow-xs">
+          <div className="divide-y divide-white/[0.06] bg-[#111110] rounded-2xl border border-white/[0.08] overflow-hidden shadow-xs">
             {Object.entries(requestsMap).map(([courseId, reqs]) => {
               const course = courses.find(c => c.id === courseId)
               if (!course || reqs.length === 0) return null
               return reqs.map(req => (
-                <div key={req.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
+                <div key={req.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#181817] transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[#181817] border border-[rgba(212,175,55,0.3)] text-[#d4af37] font-bold text-xs flex items-center justify-center shrink-0">
                       {req.student.name.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{req.student.name}</p>
-                      <p className="text-xs text-slate-500 truncate">
-                        Requesting admission to <span className="font-semibold text-indigo-600">{course.title}</span> ({course.code})
+                      <p className="text-sm font-bold text-[#f7f3e8] truncate">{req.student.name}</p>
+                      <p className="text-xs text-[#9d9b95] truncate">
+                        Requesting admission to <span className="font-semibold text-[#d4af37]">{course.title}</span> ({course.code})
                       </p>
                     </div>
                   </div>
@@ -419,7 +420,7 @@ export default function TeacherDashboardPage() {
                     <button
                       onClick={() => handleApproveOrReject(courseId, req.id, "APPROVED")}
                       disabled={processingRequestId === req.id}
-                      className="flex-1 sm:flex-initial justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed active:scale-95 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition-all min-h-[38px]"
+                      className="flex-1 sm:flex-initial justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 disabled:cursor-not-allowed active:scale-95 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition-all min-h-[38px]"
                     >
                       {processingRequestId === req.id ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -431,7 +432,7 @@ export default function TeacherDashboardPage() {
                     <button
                       onClick={() => handleApproveOrReject(courseId, req.id, "REJECTED")}
                       disabled={processingRequestId === req.id}
-                      className="flex-1 sm:flex-initial justify-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed active:scale-95 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition-all min-h-[38px]"
+                      className="flex-1 sm:flex-initial justify-center px-4 py-2 bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed active:scale-95 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition-all min-h-[38px]"
                     >
                       {processingRequestId === req.id ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -452,8 +453,8 @@ export default function TeacherDashboardPage() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">Your Courses</h2>
-            <p className="text-slate-500 text-xs sm:text-sm">Manage curriculum, enrollment policies, and student rosters.</p>
+            <h2 className="text-lg sm:text-xl font-bold text-[#f7f3e8]">Your Courses</h2>
+            <p className="text-[#9d9b95] text-xs sm:text-sm">Manage curriculum, enrollment policies, and student rosters.</p>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
@@ -462,8 +463,8 @@ export default function TeacherDashboardPage() {
               onClick={() => setCourseFilterTab("all")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
                 courseFilterTab === "all"
-                  ? "bg-slate-900 text-white shadow-xs"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  ? "bg-gradient-to-r from-[rgba(212,175,55,0.2)] to-[rgba(212,175,55,0.08)] text-[#f7f3e8] border border-[rgba(212,175,55,0.35)] shadow-[0_0_12px_rgba(212,175,55,0.15)]"
+                  : "bg-[#111110] border border-white/[0.08] text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-[#181817]"
               }`}
             >
               All ({courses.length})
@@ -472,8 +473,8 @@ export default function TeacherDashboardPage() {
               onClick={() => setCourseFilterTab("public")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
                 courseFilterTab === "public"
-                  ? "bg-emerald-600 text-white shadow-xs"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+                  : "bg-[#111110] border border-white/[0.08] text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-[#181817]"
               }`}
             >
               Public ({courses.filter(c => c.accessMode === "PUBLIC").length})
@@ -482,30 +483,30 @@ export default function TeacherDashboardPage() {
               onClick={() => setCourseFilterTab("permission")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 ${
                 courseFilterTab === "permission"
-                  ? "bg-amber-600 text-white shadow-xs"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+                  : "bg-[#111110] border border-white/[0.08] text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-[#181817]"
               }`}
             >
               Restricted ({courses.filter(c => c.accessMode === "PERMISSION_REQUIRED").length})
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition-all shrink-0"
+              className="px-3.5 py-1.5 bg-gradient-to-r from-[#d4af37] to-[#e6ca65] hover:opacity-95 active:scale-95 text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-[0_0_15px_rgba(212,175,55,0.25)] transition-all shrink-0"
             >
-              <Plus className="w-3.5 h-3.5" /> Add Course
+              <Plus className="w-3.5 h-3.5 text-black" /> Add Course
             </button>
           </div>
         </div>
 
         {loading ? (
-          <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-400">
+          <div className="bg-[#111110] p-12 rounded-2xl border border-white/[0.08] text-center text-[#9d9b95]">
             Loading your courses...
           </div>
         ) : filteredTeacherCourses.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
-            <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="font-bold text-slate-800 text-lg">No Courses Found</h3>
-            <p className="text-slate-500 text-sm max-w-md mx-auto">
+          <div className="bg-[#111110] p-12 rounded-2xl border border-white/[0.08] text-center space-y-3">
+            <BookOpen className="w-12 h-12 text-[#9d9b95]/40 mx-auto" />
+            <h3 className="font-bold text-[#f7f3e8] text-lg">No Courses Found</h3>
+            <p className="text-[#9d9b95] text-sm max-w-md mx-auto">
               {courseFilterTab === "all"
                 ? "You haven't created any courses yet. Click 'Add Course' to publish your first classroom."
                 : "No courses match the active filter."}
@@ -513,9 +514,9 @@ export default function TeacherDashboardPage() {
             {courseFilterTab === "all" && (
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-sm rounded-xl inline-flex items-center gap-2 shadow-xs transition-all"
+                className="px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#e6ca65] hover:opacity-95 active:scale-95 text-black font-bold text-sm rounded-xl inline-flex items-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.25)] transition-all"
               >
-                <Plus className="w-4 h-4" /> Create First Course
+                <Plus className="w-4 h-4 text-black" /> Create First Course
               </button>
             )}
           </div>
@@ -524,13 +525,13 @@ export default function TeacherDashboardPage() {
             {filteredTeacherCourses.map(course => (
               <div
                 key={course.id}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
+                className="bg-[#111110] rounded-2xl border border-white/[0.08] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:border-[rgba(212,175,55,0.3)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.7)] transition-all"
               >
-                <div className="h-32 bg-slate-900 relative flex items-center justify-center p-4">
+                <div className="h-32 bg-[#0a0a09] border-b border-white/[0.06] relative flex items-center justify-center p-4">
                   {course.logoUrl ? (
                     <img src={course.logoUrl} alt={course.title} className="w-full h-full object-cover opacity-80" />
                   ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-white font-extrabold text-2xl shadow-inner">
+                    <div className="w-14 h-14 rounded-2xl bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.3)] flex items-center justify-center text-[#d4af37] font-extrabold text-2xl shadow-inner">
                       {course.title.substring(0, 2).toUpperCase()}
                     </div>
                   )}
@@ -549,43 +550,43 @@ export default function TeacherDashboardPage() {
 
                 <div className="p-5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#181817] border border-white/[0.08] text-[#d4af37] rounded">
                       {course.code}
                     </span>
-                    <span className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-indigo-500" />
+                    <span className="text-xs font-semibold text-[#9d9b95] flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5 text-[#d4af37]" />
                       {course.studentCount} Students
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-slate-900 text-base leading-snug">{course.title}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                  <h3 className="font-bold text-[#f7f3e8] text-base leading-snug">{course.title}</h3>
+                  <p className="text-xs text-[#9d9b95] line-clamp-2 leading-relaxed">
                     {course.description || "No description provided."}
                   </p>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
                     <Link
                       href="/dashboard/teacher/messages"
-                      className="text-slate-600 hover:text-indigo-600 font-bold flex items-center gap-1 transition-colors"
+                      className="text-[#d4af37] hover:text-[#f7f3e8] font-bold flex items-center gap-1 transition-colors"
                     >
                       <MessageSquare className="w-3.5 h-3.5" /> Class Chat
                     </Link>
                     <div className="flex items-center gap-3">
                       <Link
                         href={`/dashboard/teacher/feed`}
-                        className="text-indigo-600 hover:text-indigo-700 font-bold"
+                        className="text-[#9d9b95] hover:text-[#f7f3e8] font-bold"
                       >
                         Feed →
                       </Link>
                       <Link
                         href={`/dashboard/teacher/courses/${course.id}/materials`}
-                        className="text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1"
+                        className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
                       >
                         <BookOpen className="w-3.5 h-3.5" /> Materials
                       </Link>
                       <Link
                         href={`/dashboard/teacher/live/${encodeURIComponent(course.title)}`}
-                        className="text-red-600 hover:text-red-700 font-bold flex items-center gap-1"
+                        className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1"
                       >
                         <Radio className="w-3.5 h-3.5" /> Start Stream
                       </Link>
@@ -593,24 +594,24 @@ export default function TeacherDashboardPage() {
                   </div>
                   
                   {/* Teacher Management Controls */}
-                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/[0.06]">
                     <button
                       onClick={() => openManageStudents(course)}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                      className="p-1.5 text-[#9d9b95] hover:text-[#d4af37] hover:bg-white/[0.06] rounded transition-colors"
                       title="Manage Students"
                     >
                       <Users className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => openEditCourse(course)}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                      className="p-1.5 text-[#9d9b95] hover:text-[#d4af37] hover:bg-white/[0.06] rounded transition-colors"
                       title="Edit Course"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteCourse(course.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      className="p-1.5 text-[#9d9b95] hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                       title="Delete Course"
                     >
                       <Trash2 className="w-4 h-4" />
