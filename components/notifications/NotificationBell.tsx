@@ -6,6 +6,8 @@ import { Bell } from "lucide-react"
 import NotificationDrawer from "./NotificationDrawer"
 import { toastFromNotification, type EduNotification } from "@/lib/e2e-triggers"
 
+import { createPortal } from "react-dom"
+
 /**
  * Phase 7 — the realtime entry point for the whole client.
  *
@@ -24,6 +26,11 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [connected, setConnected] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Read inside the SSE handler without making it a dependency — re-running
   // the effect would tear down and rebuild the stream on every alert.
@@ -117,7 +124,7 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {isOpen && (
+      {isOpen && mounted && document.body && createPortal(
         <NotificationDrawer
           onClose={() => setIsOpen(false)}
           onMarkAllRead={() => {
@@ -129,7 +136,8 @@ export default function NotificationBell() {
               body: JSON.stringify({}),
             }).catch(() => {})
           }}
-        />
+        />,
+        document.body
       )}
     </>
   )
