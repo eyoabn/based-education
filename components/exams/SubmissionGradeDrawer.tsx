@@ -188,7 +188,7 @@ export default function SubmissionGradeDrawer({
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
         aria-hidden
       />
@@ -197,13 +197,13 @@ export default function SubmissionGradeDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="grade-drawer-title"
-        className="relative w-full max-w-2xl bg-slate-50 shadow-2xl flex flex-col animate-slide-in-right"
+        className="relative w-full max-w-2xl bg-[#0c0c0b] border-l border-white/[0.08] shadow-2xl flex flex-col animate-slide-in-right z-10"
       >
         {/* Header */}
-        <header className="shrink-0 bg-white border-b border-slate-200 px-6 py-4">
+        <header className="shrink-0 bg-[#111110] border-b border-white/[0.08] px-6 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-full bg-emerald-100 border-2 border-emerald-200 overflow-hidden shrink-0">
+              <div className="w-11 h-11 rounded-full bg-[rgba(212,175,55,0.1)] border-2 border-[rgba(212,175,55,0.3)] overflow-hidden shrink-0">
                 <img
                   src={
                     submission.avatarUrl ||
@@ -214,10 +214,10 @@ export default function SubmissionGradeDrawer({
                 />
               </div>
               <div className="min-w-0">
-                <h2 id="grade-drawer-title" className="font-bold text-slate-900 truncate">
+                <h2 id="grade-drawer-title" className="font-bold text-[#f7f3e8] truncate">
                   {submission.studentName}
                 </h2>
-                <p className="text-xs text-slate-500 flex items-center gap-1 truncate">
+                <p className="text-xs text-[#9d9b95] flex items-center gap-1 truncate">
                   <Mail className="w-3 h-3 shrink-0" />
                   {submission.studentEmail}
                 </p>
@@ -227,23 +227,23 @@ export default function SubmissionGradeDrawer({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
+              className="p-1.5 rounded-xl text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] transition-colors shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-3">
-            <span className="text-sm font-semibold text-slate-700">{submission.examTitle}</span>
+            <span className="text-sm font-semibold text-[#f7f3e8]">{submission.examTitle}</span>
             {submission.courseTitle && (
-              <span className="text-xs text-slate-400">· {submission.courseTitle}</span>
+              <span className="text-xs text-[#9d9b95]">· {submission.courseTitle}</span>
             )}
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ring-1 ring-inset ${STATUS_STYLE[submission.status]}`}
             >
               {STATUS_LABEL[submission.status]}
             </span>
-            <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+            <span className="inline-flex items-center gap-1 text-xs text-[#9d9b95]">
               <Clock className="w-3 h-3" />
               {formatWhen(submission.submittedAt)}
             </span>
@@ -253,21 +253,21 @@ export default function SubmissionGradeDrawer({
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {/* Score panel */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg p-5">
             <div className="flex items-end justify-between gap-4 mb-4">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
+                <div className="text-xs font-bold uppercase tracking-wider text-[#9d9b95] mb-1">
                   Running Score
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-slate-900 tabular-nums">
+                  <span className="text-3xl font-black text-[#f7f3e8] tabular-nums">
                     {runningScore}
                   </span>
-                  <span className="text-lg text-slate-400 tabular-nums">
+                  <span className="text-lg text-[#9d9b95] tabular-nums">
                     / {submission.maxScore}
                   </span>
                   <span
-                    className={`text-sm font-bold ${willPass ? "text-emerald-600" : "text-red-600"}`}
+                    className={`text-sm font-bold ${willPass ? "text-[#d4af37]" : "text-rose-400"}`}
                   >
                     {pct}%
                   </span>
@@ -277,12 +277,12 @@ export default function SubmissionGradeDrawer({
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ring-inset ${
                   willPass
-                    ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
-                    : "bg-red-50 text-red-700 ring-red-600/20"
+                    ? "bg-[rgba(212,175,55,0.12)] text-[#f5d77f] ring-[rgba(212,175,55,0.3)]"
+                    : "bg-rose-500/10 text-rose-400 ring-rose-500/20"
                 }`}
               >
                 {willPass ? (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#d4af37]" />
                 ) : (
                   <XCircle className="w-3.5 h-3.5" />
                 )}
@@ -290,28 +290,28 @@ export default function SubmissionGradeDrawer({
               </span>
             </div>
 
-            <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-4">
+            <div className="h-2 rounded-full bg-[#181817] overflow-hidden mb-4 border border-white/[0.04]">
               <div
-                className={`h-full rounded-full transition-all ${willPass ? "bg-emerald-500" : "bg-red-500"}`}
+                className={`h-full rounded-full transition-all ${willPass ? "bg-gradient-to-r from-[#d4af37] to-[#b38f2a]" : "bg-rose-500"}`}
                 style={{ width: `${Math.min(100, pct)}%` }}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg">
-                <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+              <div className="flex items-center gap-2 px-3 py-2 bg-[#181817] border border-white/[0.06] rounded-xl">
+                <Sparkles className="w-4 h-4 text-[#d4af37] shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-xs text-indigo-700 font-semibold">Auto-graded</div>
-                  <div className="text-slate-700 tabular-nums">
+                  <div className="text-xs text-[#d4af37] font-semibold">Auto-graded</div>
+                  <div className="text-[#f7f3e8] tabular-nums text-xs">
                     {submission.autoScore} pts · {correctCount}/{autoAnswers.length} correct
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg">
-                <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+              <div className="flex items-center gap-2 px-3 py-2 bg-[#181817] border border-white/[0.06] rounded-xl">
+                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-xs text-amber-700 font-semibold">Your award</div>
-                  <div className="text-slate-700 tabular-nums">
+                  <div className="text-xs text-amber-300 font-semibold">Your award</div>
+                  <div className="text-[#f7f3e8] tabular-nums text-xs">
                     {manualTotal} pts · {manualAnswers.length} essay
                     {manualAnswers.length === 1 ? "" : "s"}
                   </div>
@@ -322,14 +322,14 @@ export default function SubmissionGradeDrawer({
 
           {/* Integrity log */}
           <div
-            className={`rounded-xl border p-4 ${
-              risk === "HIGH" ? "bg-red-50 border-red-200" : "bg-white border-slate-200"
+            className={`rounded-2xl border p-4 ${
+              risk === "HIGH" ? "bg-rose-950/20 border-rose-500/30" : "bg-[#111110] border-white/[0.08]"
             }`}
           >
             <div className="flex items-center justify-between gap-3 mb-2">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[#f7f3e8] flex items-center gap-2">
                 <ShieldAlert
-                  className={`w-4 h-4 ${risk === "HIGH" ? "text-red-600" : "text-slate-400"}`}
+                  className={`w-4 h-4 ${risk === "HIGH" ? "text-rose-400" : "text-[#9d9b95]"}`}
                 />
                 Integrity Log
               </h3>
@@ -341,8 +341,8 @@ export default function SubmissionGradeDrawer({
               </span>
             </div>
 
-            <p className="text-sm text-slate-600">
-              <span className="font-bold tabular-nums">{submission.tabSwitches}</span> tab switch
+            <p className="text-sm text-[#9d9b95]">
+              <span className="font-bold text-[#f7f3e8] tabular-nums">{submission.tabSwitches}</span> tab switch
               {submission.tabSwitches === 1 ? "" : "es"} logged, allowance{" "}
               {submission.maxTabSwitches}.
             </p>
@@ -352,19 +352,19 @@ export default function SubmissionGradeDrawer({
                 {submission.violations.map((violation, i) => (
                   <li
                     key={`${violation.at}-${i}`}
-                    className="flex items-start gap-2 text-xs text-slate-600"
+                    className="flex items-start gap-2 text-xs text-[#9d9b95]"
                   >
-                    <span className="font-mono text-slate-400 shrink-0 tabular-nums">
+                    <span className="font-mono text-white/40 shrink-0 tabular-nums">
                       {new Date(violation.at).toLocaleTimeString(undefined, {
                         hour: "2-digit",
                         minute: "2-digit",
                         second: "2-digit",
                       })}
                     </span>
-                    <span className="min-w-0">
+                    <span className="min-w-0 text-[#f7f3e8]">
                       {VIOLATION_LABEL[violation.type]}
                       {violation.detail && (
-                        <span className="text-slate-400"> — {violation.detail}</span>
+                        <span className="text-[#9d9b95]"> — {violation.detail}</span>
                       )}
                     </span>
                   </li>
@@ -376,7 +376,7 @@ export default function SubmissionGradeDrawer({
           {/* Essay review */}
           {manualAnswers.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+              <h3 className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wider">
                 Written Responses
               </h3>
 
@@ -387,21 +387,21 @@ export default function SubmissionGradeDrawer({
                 return (
                   <div
                     key={answer.questionId}
-                    className="bg-white rounded-xl border border-slate-200 shadow-sm p-4"
+                    className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg p-4 space-y-3"
                   >
-                    <p className="text-sm font-semibold text-slate-800 mb-3">
+                    <p className="text-sm font-semibold text-[#f7f3e8]">
                       {question?.prompt ?? "Question"}
                     </p>
 
                     <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4">
                       {/* Student's answer */}
-                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 min-h-[96px]">
+                      <div className="bg-[#181817] border border-white/[0.06] rounded-xl p-3.5 min-h-[96px]">
                         {answer.text ? (
-                          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                          <p className="text-sm text-[#f7f3e8] whitespace-pre-wrap leading-relaxed">
                             {answer.text}
                           </p>
                         ) : (
-                          <p className="text-sm text-slate-400 italic">No answer submitted.</p>
+                          <p className="text-sm text-[#9d9b95] italic">No answer submitted.</p>
                         )}
                       </div>
 
@@ -409,7 +409,7 @@ export default function SubmissionGradeDrawer({
                       <div className="lg:w-36 shrink-0">
                         <label
                           htmlFor={`award-${answer.questionId}`}
-                          className="block text-xs font-semibold text-slate-700 mb-1.5"
+                          className="block text-xs font-semibold text-[#9d9b95] mb-1.5"
                         >
                           Points (max {answer.maxPoints})
                         </label>
@@ -432,9 +432,9 @@ export default function SubmissionGradeDrawer({
                               },
                             }))
                           }
-                          className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-bold tabular-nums focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                          className="w-full px-3 py-2 bg-[#181817] border border-white/[0.08] rounded-xl text-sm font-bold text-[#f7f3e8] tabular-nums focus:ring-1 focus:ring-[#d4af37]/40 focus:border-[#d4af37] focus:outline-none transition-all"
                         />
-                        <div className="flex gap-1 mt-1.5">
+                        <div className="flex gap-1.5 mt-2">
                           <button
                             type="button"
                             onClick={() =>
@@ -443,7 +443,7 @@ export default function SubmissionGradeDrawer({
                                 [answer.questionId]: { ...draft, points: answer.maxPoints },
                               }))
                             }
-                            className="flex-1 px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded transition-colors"
+                            className="flex-1 px-2 py-1 text-[11px] font-bold text-[#f5d77f] bg-[rgba(212,175,55,0.12)] border border-[rgba(212,175,55,0.25)] hover:bg-[rgba(212,175,55,0.2)] rounded-lg transition-colors"
                           >
                             Full
                           </button>
@@ -455,7 +455,7 @@ export default function SubmissionGradeDrawer({
                                 [answer.questionId]: { ...draft, points: 0 },
                               }))
                             }
-                            className="flex-1 px-2 py-1 text-[11px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+                            className="flex-1 px-2 py-1 text-[11px] font-semibold text-[#9d9b95] bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors"
                           >
                             Zero
                           </button>
@@ -473,7 +473,7 @@ export default function SubmissionGradeDrawer({
                         }))
                       }
                       placeholder="Remark on this answer (optional)"
-                      className="mt-3 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                      className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 focus:ring-1 focus:ring-[#d4af37]/40 focus:border-[#d4af37] focus:outline-none transition-all"
                     />
                   </div>
                 )
@@ -483,13 +483,13 @@ export default function SubmissionGradeDrawer({
 
           {/* Auto-graded breakdown */}
           {autoAnswers.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+            <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                <h3 className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wider">
                   Auto-Graded Questions (MCQ & True/False)
                 </h3>
-                <span className="text-xs text-slate-500">
-                  Teachers can adjust student answer choices below
+                <span className="text-xs text-[#9d9b95]">
+                  Override options below
                 </span>
               </div>
               <ul className="space-y-3">
@@ -507,28 +507,28 @@ export default function SubmissionGradeDrawer({
                   return (
                     <li
                       key={answer.questionId}
-                      className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-2.5"
+                      className="p-3.5 bg-[#181817] border border-white/[0.06] rounded-xl space-y-2.5"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-2.5 min-w-0 flex-1">
                           {isCurrentCorrect ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                            <CheckCircle2 className="w-4 h-4 text-[#d4af37] shrink-0 mt-0.5" />
                           ) : (
-                            <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                            <XCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                           )}
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-800">
+                            <p className="text-sm font-semibold text-[#f7f3e8]">
                               {question?.prompt ?? "Question"}
                             </p>
-                            <span className="text-[11px] text-slate-500 font-medium">
+                            <span className="text-[11px] text-[#9d9b95] font-medium">
                               Type: {question?.type === "TRUE_FALSE" ? "True / False" : "Multiple Choice"}
                             </span>
                           </div>
                         </div>
 
                         {/* Point override */}
-                        <div className="flex items-center gap-1.5 shrink-0 bg-white border border-slate-200 px-2 py-1 rounded-lg">
-                          <label htmlFor={`override-pts-${answer.questionId}`} className="text-[11px] font-semibold text-slate-500">
+                        <div className="flex items-center gap-1.5 shrink-0 bg-[#111110] border border-white/[0.08] px-2.5 py-1 rounded-lg">
+                          <label htmlFor={`override-pts-${answer.questionId}`} className="text-[11px] font-semibold text-[#9d9b95]">
                             Pts:
                           </label>
                           <input
@@ -551,16 +551,16 @@ export default function SubmissionGradeDrawer({
                                 },
                               }))
                             }
-                            className="w-12 px-1 py-0.5 text-xs font-bold text-slate-800 tabular-nums text-center focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                            className="w-12 px-1 py-0.5 text-xs font-bold text-[#f7f3e8] tabular-nums text-center bg-transparent focus:outline-none"
                           />
-                          <span className="text-xs text-slate-400 font-medium">/{answer.maxPoints}</span>
+                          <span className="text-xs text-[#9d9b95] font-medium">/{answer.maxPoints}</span>
                         </div>
                       </div>
 
                       {/* Teacher editable student answer choice */}
-                      <div className="pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
+                      <div className="pt-2 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-600">Student Choice:</span>
+                          <span className="text-xs font-semibold text-[#9d9b95]">Student Choice:</span>
                           <select
                             value={activeOptId ?? ""}
                             onChange={e => {
@@ -576,7 +576,7 @@ export default function SubmissionGradeDrawer({
                                 },
                               }))
                             }}
-                            className="px-2.5 py-1 text-xs font-medium bg-white border border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
+                            className="px-2.5 py-1 text-xs font-medium bg-[#111110] border border-white/[0.08] rounded-lg text-[#f7f3e8] focus:border-[#d4af37] focus:outline-none cursor-pointer"
                           >
                             <option value="">— No Answer Selected —</option>
                             {question?.options.map(opt => (
@@ -587,15 +587,15 @@ export default function SubmissionGradeDrawer({
                           </select>
 
                           {isOverridden && (
-                            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                              Answer modified by teacher
+                            <span className="text-[10px] font-bold text-[#f5d77f] bg-[rgba(212,175,55,0.12)] px-2 py-0.5 rounded-full border border-[rgba(212,175,55,0.25)]">
+                              Modified by teacher
                             </span>
                           )}
                         </div>
 
                         {correct && (
-                          <span className="text-xs text-slate-500">
-                            Key: <span className="font-semibold text-emerald-700">{correct.text}</span>
+                          <span className="text-xs text-[#9d9b95]">
+                            Key: <span className="font-semibold text-[#d4af37]">{correct.text}</span>
                           </span>
                         )}
                       </div>
@@ -610,7 +610,7 @@ export default function SubmissionGradeDrawer({
           <div>
             <label
               htmlFor="overall-feedback"
-              className="block text-sm font-bold text-slate-900 uppercase tracking-wide mb-2"
+              className="block text-xs font-bold text-[#f7f3e8] uppercase tracking-wider mb-2"
             >
               Feedback to Student
             </label>
@@ -619,16 +619,16 @@ export default function SubmissionGradeDrawer({
               value={feedback}
               onChange={e => setFeedback(e.target.value)}
               rows={4}
-              placeholder="Strong grasp of the core concepts — tighten the argument in question 3 and revisit the worked example from Tuesday's class."
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+              placeholder="Strong grasp of core concepts — tighten the argument in question 3 and revisit the worked example..."
+              className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 resize-none focus:ring-1 focus:ring-[#d4af37]/40 focus:border-[#d4af37] focus:outline-none transition-all"
             />
-            <p className="text-xs text-slate-500 mt-1.5">
-              The student sees this in their gradebook once you release the grade.
+            <p className="text-xs text-[#9d9b95] mt-1.5">
+              The student sees this remark in their gradebook upon release.
             </p>
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="flex items-start gap-2 px-3.5 py-2.5 bg-rose-950/30 border border-rose-500/30 rounded-xl text-sm text-rose-300">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               {error}
             </div>
@@ -636,23 +636,22 @@ export default function SubmissionGradeDrawer({
         </div>
 
         {/* Footer */}
-        <footer className="shrink-0 bg-white border-t border-slate-200 px-6 py-4 flex items-center justify-between gap-3">
-          <div className="text-sm text-slate-600">
+        <footer className="shrink-0 bg-[#111110] border-t border-white/[0.08] px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-[#9d9b95]">
             {submission.status === "GRADED" ? (
               <>
                 Saving updates final score to{" "}
-                <span className="font-bold text-slate-900 tabular-nums">
+                <span className="font-bold text-[#f7f3e8] tabular-nums">
                   {runningScore}/{submission.maxScore}
-                </span>{" "}
-                and notifies student of revised grade.
+                </span>
               </>
             ) : (
               <>
                 Releasing sends{" "}
-                <span className="font-bold text-slate-900 tabular-nums">
+                <span className="font-bold text-[#f7f3e8] tabular-nums">
                   {runningScore}/{submission.maxScore}
                 </span>{" "}
-                and notifies the student.
+                to student gradebook.
               </>
             )}
           </div>
@@ -662,7 +661,7 @@ export default function SubmissionGradeDrawer({
               type="button"
               onClick={() => void save(false)}
               disabled={saving !== null}
-              className="px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-60"
+              className="px-4 py-2.5 text-xs font-semibold text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] rounded-xl transition-colors disabled:opacity-50 min-h-[40px]"
             >
               {saving === "draft" ? (
                 <span className="inline-flex items-center gap-2">
@@ -678,11 +677,11 @@ export default function SubmissionGradeDrawer({
               type="button"
               onClick={() => void save(true)}
               disabled={saving !== null}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 text-black text-xs font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[rgba(212,175,55,0.15)] min-h-[40px]"
             >
               {saving === "release" ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
                   {submission.status === "GRADED" ? "Updating..." : "Releasing..."}
                 </>
               ) : (

@@ -297,17 +297,18 @@ export default function TeacherExamsPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
+      {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Exams & Assignments</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Build secure, auto-graded papers with lockdown enforcement.
+          <h1 className="text-2xl font-black text-[#f7f3e8] tracking-tight">Exams & Assessments</h1>
+          <p className="text-sm text-[#9d9b95] mt-1">
+            Build secure, auto-graded papers with anti-cheat proctoring and grading suites.
           </p>
         </div>
 
         <button
           onClick={openComposer}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 text-black font-extrabold text-sm rounded-xl transition-all shadow-lg shadow-[rgba(212,175,55,0.15)] min-h-[44px]"
         >
           <FilePlus2 className="w-4 h-4" />
           Create Assessment
@@ -315,14 +316,14 @@ export default function TeacherExamsPage() {
       </div>
 
       {notice && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
+        <div className="flex items-center gap-2 px-4 py-3 bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.25)] rounded-2xl text-sm text-[#f5d77f]">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-[#d4af37]" />
           {notice}
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div className="flex items-center gap-2 px-4 py-3 bg-rose-950/25 border border-rose-500/30 rounded-2xl text-sm text-rose-300">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
@@ -332,19 +333,21 @@ export default function TeacherExamsPage() {
       {loading ? (
         <div className="space-y-3">
           {[0, 1, 2].map(i => (
-            <div key={i} className="h-28 bg-white rounded-xl border border-slate-200 animate-pulse" />
+            <div key={i} className="h-28 bg-[#111110] rounded-2xl border border-white/[0.08] animate-pulse" />
           ))}
         </div>
       ) : exams.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
-          <FileText className="w-10 h-10 text-slate-300 mx-auto mb-4" />
-          <p className="font-semibold text-slate-700">No assessments yet</p>
-          <p className="text-sm text-slate-400 mt-1 mb-5">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg p-12 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.2)] flex items-center justify-center mx-auto mb-4 text-[#d4af37]">
+            <FileText className="w-6 h-6" />
+          </div>
+          <p className="font-bold text-[#f7f3e8]">No assessments yet</p>
+          <p className="text-sm text-[#9d9b95] mt-1 mb-5">
             Create your first exam or assignment to start collecting submissions.
           </p>
           <button
             onClick={openComposer}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 text-black font-extrabold text-sm rounded-xl transition-all shadow-lg shadow-[rgba(212,175,55,0.15)] min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
             Create Assessment
@@ -355,7 +358,7 @@ export default function TeacherExamsPage() {
           {exams.map(exam => (
             <div
               key={exam.id}
-              className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-shadow"
+              className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg shadow-black/20 p-5 hover:border-[rgba(212,175,55,0.3)] transition-all"
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
@@ -363,39 +366,39 @@ export default function TeacherExamsPage() {
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ring-1 ring-inset ${
                         exam.type === "EXAM"
-                          ? "bg-red-50 text-red-700 ring-red-600/20"
-                          : "bg-amber-50 text-amber-700 ring-amber-600/20"
+                          ? "bg-rose-500/10 text-rose-400 ring-rose-500/20"
+                          : "bg-[rgba(212,175,55,0.12)] text-[#f5d77f] ring-[rgba(212,175,55,0.25)]"
                       }`}
                     >
                       {exam.type === "EXAM" ? "Exam" : "Assignment"}
                     </span>
 
                     {exam.isPublished ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
                         <CheckCircle2 className="w-3 h-3" />
                         Published
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/[0.06] text-[#9d9b95] ring-1 ring-inset ring-white/10">
                         Draft
                       </span>
                     )}
 
                     {exam.courseTitle && (
-                      <span className="text-xs text-slate-400">{exam.courseTitle}</span>
+                      <span className="text-xs text-[#9d9b95]">{exam.courseTitle}</span>
                     )}
                   </div>
 
-                  <h3 className="font-bold text-slate-900 truncate">{exam.title}</h3>
+                  <h3 className="font-bold text-[#f7f3e8] text-base truncate">{exam.title}</h3>
                   {exam.description && (
-                    <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">
+                    <p className="text-sm text-[#9d9b95] mt-0.5 line-clamp-1">
                       {exam.description}
                     </p>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 text-xs text-slate-500">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 text-xs text-[#9d9b95]">
                     <span className="flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-slate-400" />
+                      <FileText className="w-3.5 h-3.5 text-[#d4af37]" />
                       {exam.questionCount} question{exam.questionCount === 1 ? "" : "s"} ·{" "}
                       {exam.totalPoints} pts
                     </span>
@@ -405,7 +408,7 @@ export default function TeacherExamsPage() {
                     </span>
                     {exam.dueAt && (
                       <span className="flex items-center gap-1">
-                        <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
+                        <CalendarClock className="w-3.5 h-3.5 text-[#d4af37]" />
                         Due {formatWhen(exam.dueAt)}
                       </span>
                     )}
@@ -415,39 +418,39 @@ export default function TeacherExamsPage() {
                 {/* Submission stats */}
                 <div className="flex items-center gap-4 shrink-0">
                   <div className="text-center px-3">
-                    <div className="text-xl font-bold text-slate-900 tabular-nums">
+                    <div className="text-xl font-bold text-[#f7f3e8] tabular-nums">
                       {exam.submissionCount ?? 0}
                     </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9d9b95]">
                       Submitted
                     </div>
                   </div>
-                  <div className="text-center px-3 border-l border-slate-100">
-                    <div className="text-xl font-bold text-emerald-600 tabular-nums">
+                  <div className="text-center px-3 border-l border-white/[0.08]">
+                    <div className="text-xl font-bold text-[#d4af37] tabular-nums">
                       {exam.gradedCount ?? 0}
                     </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9d9b95]">
                       Graded
                     </div>
                   </div>
-                  <div className="text-center px-3 border-l border-slate-100">
+                  <div className="text-center px-3 border-l border-white/[0.08]">
                     <div
                       className={`text-xl font-bold tabular-nums ${
-                        (exam.flaggedCount ?? 0) > 0 ? "text-red-600" : "text-slate-300"
+                        (exam.flaggedCount ?? 0) > 0 ? "text-rose-400" : "text-white/20"
                       }`}
                     >
                       {exam.flaggedCount ?? 0}
                     </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9d9b95]">
                       Flagged
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pl-2 border-l border-slate-100">
+                  <div className="flex items-center gap-2 pl-2 border-l border-white/[0.08]">
                     {!exam.isPublished ? (
                       <button
                         onClick={() => void handleEditDraft(exam)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-[rgba(212,175,55,0.12)] hover:bg-[rgba(212,175,55,0.2)] text-[#f5d77f] border border-[rgba(212,175,55,0.25)] text-xs font-bold rounded-xl transition-all shadow-sm min-h-[38px]"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         Edit Draft
@@ -455,7 +458,7 @@ export default function TeacherExamsPage() {
                     ) : (
                       <Link
                         href={`/dashboard/teacher/grading?examId=${exam.id}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 text-black text-xs font-black rounded-xl transition-all min-h-[38px]"
                       >
                         <Flag className="w-3.5 h-3.5" />
                         Grade
@@ -465,7 +468,7 @@ export default function TeacherExamsPage() {
                       onClick={() => void handleDelete(exam)}
                       disabled={deletingId === exam.id}
                       aria-label={`Delete ${exam.title}`}
-                      className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                      className="p-2 rounded-xl text-[#9d9b95] hover:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-40"
                     >
                       {deletingId === exam.id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -483,9 +486,9 @@ export default function TeacherExamsPage() {
 
       {/* Composer */}
       {composerOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-4 overflow-y-auto">
           <div
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md"
             onClick={() => setComposerOpen(false)}
             aria-hidden
           />
@@ -494,16 +497,16 @@ export default function TeacherExamsPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="composer-title"
-            className="relative w-full max-w-4xl my-2 sm:my-8 bg-slate-50 rounded-2xl shadow-2xl border border-slate-200 animate-fade-up"
+            className="relative w-full max-w-4xl my-2 sm:my-8 bg-[#0c0c0b] rounded-3xl shadow-2xl border border-white/[0.08] animate-fade-up z-10"
           >
             {/* Composer header */}
-            <div className="sticky top-0 z-10 flex items-start justify-between px-4 sm:px-6 py-3.5 sm:py-5 bg-white border-b border-slate-200 rounded-t-2xl">
+            <div className="sticky top-0 z-10 flex items-start justify-between px-4 sm:px-6 py-3.5 sm:py-5 bg-[#111110] border-b border-white/[0.08] rounded-t-3xl">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] text-[#d4af37] flex items-center justify-center shrink-0">
                   <FilePlus2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 id="composer-title" className="text-base sm:text-lg font-bold text-slate-900">
+                  <h2 id="composer-title" className="text-base sm:text-lg font-bold text-[#f7f3e8]">
                     {editingExamId
                       ? draft.type === "ASSIGNMENT"
                         ? "Edit Assignment Draft"
@@ -512,7 +515,7 @@ export default function TeacherExamsPage() {
                         ? "Create Assignment"
                         : "Create Exam"}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-[#9d9b95] mt-0.5">
                     {questions.length} question{questions.length === 1 ? "" : "s"} · {draftPoints}{" "}
                     point{draftPoints === 1 ? "" : "s"}
                   </p>
@@ -522,7 +525,7 @@ export default function TeacherExamsPage() {
               <button
                 onClick={() => setComposerOpen(false)}
                 aria-label="Close"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-xl text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -530,8 +533,8 @@ export default function TeacherExamsPage() {
 
             <div className="px-3 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-6">
               {/* Meta form */}
-              <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+              <section className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg p-5 space-y-4">
+                <h3 className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wider">
                   Assessment Details
                 </h3>
 
@@ -539,9 +542,9 @@ export default function TeacherExamsPage() {
                   <div className="sm:col-span-2">
                     <label
                       htmlFor="exam-title"
-                      className="block text-xs font-semibold text-slate-700 mb-1.5"
+                      className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                     >
-                      Title <span className="text-red-500">*</span>
+                      Title <span className="text-[#d4af37]">*</span>
                     </label>
                     <input
                       id="exam-title"
@@ -549,14 +552,14 @@ export default function TeacherExamsPage() {
                       value={draft.title}
                       onChange={e => setDraft({ ...draft, title: e.target.value })}
                       placeholder="e.g. Thermodynamics — Mid-Term Assessment"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                      className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 focus:border-[#d4af37] focus:outline-none transition-all"
                     />
                   </div>
 
                   <div>
                     <label
                       htmlFor="exam-type"
-                      className="block text-xs font-semibold text-slate-700 mb-1.5"
+                      className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                     >
                       Type
                     </label>
@@ -587,7 +590,7 @@ export default function TeacherExamsPage() {
                           })
                         }
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow cursor-pointer"
+                      className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:outline-none transition-all cursor-pointer"
                     >
                       <option value="EXAM">Exam (timed & proctored)</option>
                       <option value="ASSIGNMENT">Assignment (homework / project submission)</option>
@@ -598,7 +601,7 @@ export default function TeacherExamsPage() {
                 <div>
                   <label
                     htmlFor="exam-description"
-                    className="block text-xs font-semibold text-slate-700 mb-1.5"
+                    className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                   >
                     Description & Guidelines
                   </label>
@@ -612,7 +615,7 @@ export default function TeacherExamsPage() {
                         ? "State the project objectives, deliverables, grading criteria, and instructions."
                         : "What does this paper cover? Students see this before they start."
                     }
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                    className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 resize-none focus:border-[#d4af37] focus:outline-none transition-all"
                   />
                 </div>
 
@@ -620,7 +623,7 @@ export default function TeacherExamsPage() {
                   <div>
                     <label
                       htmlFor="exam-course"
-                      className="block text-xs font-semibold text-slate-700 mb-1.5"
+                      className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                     >
                       Target Course
                     </label>
@@ -628,7 +631,7 @@ export default function TeacherExamsPage() {
                       id="exam-course"
                       value={draft.courseId}
                       onChange={e => setDraft({ ...draft, courseId: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow cursor-pointer"
+                      className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:outline-none transition-all cursor-pointer"
                     >
                       <option value="">All my students (open assessment)</option>
                       {courses.map(course => (
@@ -637,8 +640,8 @@ export default function TeacherExamsPage() {
                         </option>
                       ))}
                     </select>
-                    <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
-                      <Users className="w-3 h-3" />
+                    <p className="text-xs text-[#9d9b95] mt-1.5 flex items-center gap-1">
+                      <Users className="w-3 h-3 text-[#d4af37]" />
                       {selectedCourse
                         ? `${selectedCourse.studentCount} student${selectedCourse.studentCount === 1 ? "" : "s"} will be notified.`
                         : "Every student will be notified."}
@@ -650,7 +653,7 @@ export default function TeacherExamsPage() {
                       <div>
                         <label
                           htmlFor="exam-duration"
-                          className="block text-xs font-semibold text-slate-700 mb-1.5"
+                          className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                         >
                           Duration (min)
                         </label>
@@ -663,23 +666,23 @@ export default function TeacherExamsPage() {
                           onChange={e =>
                             setDraft({ ...draft, durationMins: Number(e.target.value) || 0 })
                           }
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm tabular-nums focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                          className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm font-bold text-[#f7f3e8] tabular-nums focus:border-[#d4af37] focus:outline-none transition-all"
                         />
                       </div>
                     ) : (
-                      <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/60 rounded-lg flex flex-col justify-center">
-                        <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">
+                      <div className="p-2.5 bg-[rgba(212,175,55,0.06)] border border-[rgba(212,175,55,0.2)] rounded-xl flex flex-col justify-center">
+                        <span className="text-[11px] font-bold text-[#f5d77f] uppercase tracking-wide">
                           Untimed Assignment
                         </span>
-                        <span className="text-xs text-emerald-600 mt-0.5">
-                          Free submission without a countdown clock.
+                        <span className="text-xs text-[#9d9b95] mt-0.5">
+                          Free submission without countdown clock.
                         </span>
                       </div>
                     )}
                     <div>
                       <label
                         htmlFor="exam-passing"
-                        className="block text-xs font-semibold text-slate-700 mb-1.5"
+                        className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                       >
                         Passing (%)
                       </label>
@@ -692,55 +695,55 @@ export default function TeacherExamsPage() {
                         onChange={e =>
                           setDraft({ ...draft, passingPct: Number(e.target.value) || 0 })
                         }
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm tabular-nums focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                        className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm font-bold text-[#f7f3e8] tabular-nums focus:border-[#d4af37] focus:outline-none transition-all"
                       />
                     </div>
                   </div>
                 </div>
 
                 {draft.type === "ASSIGNMENT" ? (
-                  <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-3">
+                  <div className="p-4 bg-[rgba(212,175,55,0.06)] border border-[rgba(212,175,55,0.2)] rounded-2xl space-y-3">
                     <div className="flex items-center gap-2">
-                      <CalendarClock className="w-4 h-4 text-emerald-600" />
-                      <span className="text-xs font-bold text-emerald-900 uppercase tracking-wide">
+                      <CalendarClock className="w-4 h-4 text-[#d4af37]" />
+                      <span className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wide">
                         Submission Deadline (Date & Time)
                       </span>
-                      <span className="ml-auto text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                      <span className="ml-auto text-[11px] font-bold text-black bg-[#d4af37] px-2 py-0.5 rounded-full">
                         Required
                       </span>
                     </div>
-                    <p className="text-xs text-emerald-800">
+                    <p className="text-xs text-[#9d9b95]">
                       Students can prepare and submit their deliverables anytime before this cutoff.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label
                           htmlFor="exam-due-date"
-                          className="block text-xs font-semibold text-slate-700 mb-1.5"
+                          className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                         >
-                          Submission Due Date <span className="text-red-500">*</span>
+                          Submission Due Date <span className="text-[#d4af37]">*</span>
                         </label>
                         <input
                           id="exam-due-date"
                           type="date"
                           value={draft.dueDate}
                           onChange={e => setDraft({ ...draft, dueDate: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                          className="w-full px-3 py-2 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:outline-none transition-all"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="exam-due-time"
-                          className="block text-xs font-semibold text-slate-700 mb-1.5"
+                          className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                         >
-                          Submission Due Time <span className="text-red-500">*</span>
+                          Submission Due Time <span className="text-[#d4af37]">*</span>
                         </label>
                         <input
                           id="exam-due-time"
                           type="time"
                           value={draft.dueTime}
                           onChange={e => setDraft({ ...draft, dueTime: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                          className="w-full px-3 py-2 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -750,7 +753,7 @@ export default function TeacherExamsPage() {
                     <div>
                       <label
                         htmlFor="exam-due-date"
-                        className="block text-xs font-semibold text-slate-700 mb-1.5"
+                        className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                       >
                         Due Date
                       </label>
@@ -759,13 +762,13 @@ export default function TeacherExamsPage() {
                         type="date"
                         value={draft.dueDate}
                         onChange={e => setDraft({ ...draft, dueDate: e.target.value })}
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                        className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:outline-none transition-all"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="exam-due-time"
-                        className="block text-xs font-semibold text-slate-700 mb-1.5"
+                        className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                       >
                         Due Time
                       </label>
@@ -774,7 +777,7 @@ export default function TeacherExamsPage() {
                         type="time"
                         value={draft.dueTime}
                         onChange={e => setDraft({ ...draft, dueTime: e.target.value })}
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                        className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -783,31 +786,31 @@ export default function TeacherExamsPage() {
 
               {/* Anti-cheat configuration */}
               {draft.type === "ASSIGNMENT" ? (
-                <section className="bg-slate-100/90 rounded-xl p-5 border border-slate-200">
+                <section className="bg-[#111110] rounded-2xl p-5 border border-white/[0.08]">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                        <CheckCircle2 className="w-4 h-4 text-[#d4af37]" />
+                        <h3 className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wider">
                           Assignment Format: Open-Book & Flexible
                         </h3>
                       </div>
-                      <p className="text-xs text-slate-600 max-w-xl">
+                      <p className="text-xs text-[#9d9b95] max-w-xl">
                         Exam lockdown guards (fullscreen enforcement, tab tracking, and copy-paste blocking) are turned off for assignments so students can research and craft their responses freely.
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowAdvancedSecurity(prev => !prev)}
-                      className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shrink-0 transition-colors"
+                      className="px-3.5 py-1.5 text-xs font-semibold text-[#f7f3e8] bg-[#181817] hover:bg-[#20201e] border border-white/[0.08] rounded-xl shrink-0 transition-colors"
                     >
                       {showAdvancedSecurity ? "Hide Lockdown Settings" : "Proctoring Options"}
                     </button>
                   </div>
 
                   {showAdvancedSecurity && (
-                    <div className="mt-4 pt-4 border-t border-slate-200">
-                      <p className="text-xs font-semibold text-slate-700 mb-3">
+                    <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                      <p className="text-xs font-semibold text-[#9d9b95] mb-3">
                         Optional Exam Proctoring Controls:
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -821,26 +824,26 @@ export default function TeacherExamsPage() {
                               type="button"
                               onClick={() => setDraft({ ...draft, [toggle.key]: !enabled })}
                               aria-pressed={enabled}
-                              className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
+                              className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
                                 enabled
-                                  ? "bg-emerald-50 border-emerald-300"
-                                  : "bg-white border-slate-200 hover:bg-slate-50"
+                                  ? "bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.35)]"
+                                  : "bg-[#181817] border-white/[0.06] hover:border-white/[0.12]"
                               }`}
                             >
                               <span
-                                className={`w-5 h-5 rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                                  enabled ? "bg-emerald-600" : "bg-slate-300"
+                                className={`w-5 h-5 rounded-md shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                                  enabled ? "bg-gradient-to-r from-[#d4af37] to-[#b38f2a] text-black" : "bg-white/10"
                                 }`}
                               >
-                                {enabled && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                {enabled && <CheckCircle2 className="w-3.5 h-3.5 text-black" />}
                               </span>
 
                               <span className="min-w-0">
-                                <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-                                  <Icon className="w-3.5 h-3.5 text-slate-500" />
+                                <span className="flex items-center gap-1.5 text-sm font-semibold text-[#f7f3e8]">
+                                  <Icon className="w-3.5 h-3.5 text-[#d4af37]" />
                                   {toggle.label}
                                 </span>
-                                <span className="block text-xs text-slate-500 mt-0.5">
+                                <span className="block text-xs text-[#9d9b95] mt-0.5">
                                   {toggle.hint}
                                 </span>
                               </span>
@@ -852,15 +855,15 @@ export default function TeacherExamsPage() {
                   )}
                 </section>
               ) : (
-                <section className="bg-slate-900 rounded-xl p-5">
+                <section className="bg-gradient-to-br from-[#141413] to-[#0e0e0d] rounded-2xl p-5 border border-[rgba(212,175,55,0.25)] shadow-lg">
                   <div className="flex items-center gap-2 mb-1">
-                    <Lock className="w-4 h-4 text-emerald-400" />
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-                      Anti-Cheating Configuration
+                    <Lock className="w-4 h-4 text-[#d4af37]" />
+                    <h3 className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wider">
+                      Anti-Cheating Proctoring Configuration
                     </h3>
                   </div>
-                  <p className="text-xs text-slate-400 mb-4">
-                    Enforced in the browser and re-verified on the server at submit time.
+                  <p className="text-xs text-[#9d9b95] mb-4">
+                    Enforced in browser and re-verified on server at submit time.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -874,26 +877,26 @@ export default function TeacherExamsPage() {
                           type="button"
                           onClick={() => setDraft({ ...draft, [toggle.key]: !enabled })}
                           aria-pressed={enabled}
-                          className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
+                          className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
                             enabled
-                              ? "bg-emerald-500/15 border-emerald-500/40"
-                              : "bg-white/5 border-white/10 hover:bg-white/10"
+                              ? "bg-[rgba(212,175,55,0.12)] border-[rgba(212,175,55,0.35)]"
+                              : "bg-[#181817] border-white/[0.06] hover:bg-white/[0.08]"
                           }`}
                         >
                           <span
-                            className={`w-5 h-5 rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                              enabled ? "bg-emerald-500" : "bg-slate-700"
+                            className={`w-5 h-5 rounded-md shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                              enabled ? "bg-gradient-to-r from-[#d4af37] to-[#b38f2a] text-black" : "bg-white/10"
                             }`}
                           >
-                            {enabled && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                            {enabled && <CheckCircle2 className="w-3.5 h-3.5 text-black" />}
                           </span>
 
                           <span className="min-w-0">
-                            <span className="flex items-center gap-1.5 text-sm font-semibold text-white">
-                              <Icon className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="flex items-center gap-1.5 text-sm font-semibold text-[#f7f3e8]">
+                              <Icon className="w-3.5 h-3.5 text-[#d4af37]" />
                               {toggle.label}
                             </span>
-                            <span className="block text-xs text-slate-400 mt-0.5">
+                            <span className="block text-xs text-[#9d9b95] mt-0.5">
                               {toggle.hint}
                             </span>
                           </span>
@@ -903,12 +906,12 @@ export default function TeacherExamsPage() {
                   </div>
 
                   {draft.trackTabSwitches && (
-                    <div className="flex items-center gap-3 mt-3 px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg">
+                    <div className="flex items-center gap-3 mt-3 px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl">
                       <label
                         htmlFor="max-switches"
-                        className="text-sm text-slate-300 font-medium"
+                        className="text-xs text-[#9d9b95] font-semibold"
                       >
-                        Flag the paper after
+                        Flag paper after
                       </label>
                       <input
                         id="max-switches"
@@ -919,9 +922,9 @@ export default function TeacherExamsPage() {
                         onChange={e =>
                           setDraft({ ...draft, maxTabSwitches: Number(e.target.value) || 0 })
                         }
-                        className="w-20 px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white font-bold tabular-nums focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className="w-20 px-2.5 py-1 bg-[#111110] border border-white/[0.1] rounded-lg text-sm text-[#f7f3e8] font-bold tabular-nums text-center focus:border-[#d4af37] focus:outline-none"
                       />
-                      <span className="text-sm text-slate-300">tab switches</span>
+                      <span className="text-xs text-[#9d9b95]">tab switches</span>
                     </div>
                   )}
                 </section>
@@ -935,7 +938,7 @@ export default function TeacherExamsPage() {
               />
 
               {formError && (
-                <div className="flex items-start gap-2 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <div className="flex items-start gap-2 px-3.5 py-2.5 bg-rose-950/30 border border-rose-500/30 rounded-xl text-sm text-rose-300">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   {formError}
                 </div>
@@ -943,11 +946,11 @@ export default function TeacherExamsPage() {
             </div>
 
             {/* Composer footer */}
-            <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2.5 px-3 sm:px-6 py-3 sm:py-4 bg-white border-t border-slate-200 rounded-b-2xl">
+            <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-[#111110] border-t border-white/[0.08] rounded-b-3xl">
               <button
                 type="button"
                 onClick={() => setComposerOpen(false)}
-                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs sm:text-sm font-semibold text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] rounded-xl transition-colors min-h-[40px]"
               >
                 Cancel
               </button>
@@ -957,9 +960,9 @@ export default function TeacherExamsPage() {
                   type="button"
                   onClick={() => void handlePublish(false)}
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg transition-colors disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm bg-[#181817] border border-white/[0.08] hover:bg-white/[0.08] text-[#f7f3e8] font-semibold rounded-xl transition-colors disabled:opacity-50 min-h-[40px]"
                 >
-                  <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d4af37]" />
                   Save Draft
                 </button>
 
@@ -967,11 +970,11 @@ export default function TeacherExamsPage() {
                   type="button"
                   onClick={() => void handlePublish(true)}
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 text-xs sm:text-sm bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 text-black font-extrabold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[rgba(212,175,55,0.15)] min-h-[40px]"
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin text-black" />
                       Publishing...
                     </>
                   ) : (

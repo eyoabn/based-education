@@ -27,18 +27,16 @@ import {
  *
  * A controlled editor: it owns no state beyond an id counter, so the parent
  * form holds one source of truth for the paper and can submit it directly.
- */
-
-interface ExamBuilderProps {
+ */interface ExamBuilderProps {
   questions: ExamQuestion[]
   onChange: (questions: ExamQuestion[]) => void
   assessmentType?: "EXAM" | "ASSIGNMENT"
 }
 
 const TYPE_META: Record<QuestionType, { icon: typeof ListChecks; tone: string }> = {
-  MCQ: { icon: ListChecks, tone: "bg-indigo-50 text-indigo-700 ring-indigo-600/20" },
-  TRUE_FALSE: { icon: ToggleLeft, tone: "bg-violet-50 text-violet-700 ring-violet-600/20" },
-  ESSAY: { icon: FileText, tone: "bg-amber-50 text-amber-700 ring-amber-600/20" },
+  MCQ: { icon: ListChecks, tone: "bg-[rgba(212,175,55,0.12)] text-[#f5d77f] border border-[rgba(212,175,55,0.25)]" },
+  TRUE_FALSE: { icon: ToggleLeft, tone: "bg-violet-500/15 text-violet-300 border border-violet-500/25" },
+  ESSAY: { icon: FileText, tone: "bg-amber-500/15 text-amber-300 border border-amber-500/25" },
 }
 
 export default function ExamBuilder({
@@ -139,10 +137,10 @@ export default function ExamBuilder({
       {/* Section header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+          <h3 className="text-xs font-bold text-[#f7f3e8] uppercase tracking-wider">
             {assessmentType === "ASSIGNMENT" ? "Assignment Tasks & Deliverables" : "Questions"}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[#9d9b95] mt-0.5">
             {questions.length} {assessmentType === "ASSIGNMENT" ? "task" : "question"}
             {questions.length === 1 ? "" : "s"} · {total} point
             {total === 1 ? "" : "s"}
@@ -156,7 +154,7 @@ export default function ExamBuilder({
               <button
                 type="button"
                 onClick={() => addQuestion("ESSAY")}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] text-black font-bold text-xs rounded-xl shadow-lg shadow-[rgba(212,175,55,0.15)] hover:brightness-110 transition-all min-h-[38px]"
               >
                 <FileText className="w-3.5 h-3.5" />
                 + Task / Written Prompt (Recommended)
@@ -164,17 +162,17 @@ export default function ExamBuilder({
               <button
                 type="button"
                 onClick={() => addQuestion("MCQ")}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#181817] border border-white/[0.08] hover:border-[rgba(212,175,55,0.35)] text-[#f7f3e8] text-xs font-semibold rounded-xl transition-all min-h-[38px]"
               >
-                <ListChecks className="w-3.5 h-3.5" />
+                <ListChecks className="w-3.5 h-3.5 text-[#d4af37]" />
                 Multiple Choice
               </button>
               <button
                 type="button"
                 onClick={() => addQuestion("TRUE_FALSE")}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#181817] border border-white/[0.08] hover:border-[rgba(212,175,55,0.35)] text-[#f7f3e8] text-xs font-semibold rounded-xl transition-all min-h-[38px]"
               >
-                <ToggleLeft className="w-3.5 h-3.5" />
+                <ToggleLeft className="w-3.5 h-3.5 text-violet-400" />
                 True / False
               </button>
             </>
@@ -186,9 +184,9 @@ export default function ExamBuilder({
                   key={type}
                   type="button"
                   onClick={() => addQuestion(type)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#181817] border border-white/[0.08] hover:border-[rgba(212,175,55,0.35)] hover:bg-[#20201e] text-[#f7f3e8] text-xs font-semibold rounded-xl transition-all shadow-sm min-h-[38px]"
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5 text-[#d4af37]" />
                   {QUESTION_TYPE_LABEL[type]}
                 </button>
               )
@@ -199,12 +197,14 @@ export default function ExamBuilder({
 
       {/* Empty state */}
       {questions.length === 0 && (
-        <div className="bg-white rounded-xl border-2 border-dashed border-slate-200 p-10 text-center">
-          <ListChecks className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-          <p className="text-sm font-semibold text-slate-600">
+        <div className="bg-[#111110] rounded-2xl border-2 border-dashed border-white/[0.08] p-10 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.2)] flex items-center justify-center mx-auto mb-3 text-[#d4af37]">
+            <ListChecks className="w-6 h-6" />
+          </div>
+          <p className="text-sm font-bold text-[#f7f3e8]">
             {assessmentType === "ASSIGNMENT" ? "No assignment tasks yet" : "No questions yet"}
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#9d9b95] mt-1 max-w-sm mx-auto">
             {assessmentType === "ASSIGNMENT"
               ? "Add a written task, essay prompt, or deliverable requirements for students to complete."
               : "Add a multiple choice, true/false or essay question to begin building the paper."}
@@ -221,29 +221,29 @@ export default function ExamBuilder({
         return (
           <div
             key={question.id}
-            className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+            className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg shadow-black/20 overflow-hidden"
           >
             {/* Card header */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border-b border-slate-100">
-              <span className="w-7 h-7 rounded-lg bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3 px-4 py-3 bg-[#181817] border-b border-white/[0.06]">
+              <span className="w-7 h-7 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#b38f2a] text-black text-xs font-black flex items-center justify-center shrink-0 shadow-sm">
                 {index + 1}
               </span>
 
               <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ring-1 ring-inset ${meta.tone}`}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${meta.tone}`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {QUESTION_TYPE_LABEL[question.type]}
               </span>
 
               {question.type === "ESSAY" && (
-                <span className="text-[11px] text-amber-600 font-semibold hidden sm:inline">
+                <span className="text-[11px] text-amber-400 font-semibold hidden sm:inline">
                   Manual review
                 </span>
               )}
               {missingKey && (
-                <span className="text-[11px] text-red-600 font-semibold">
-                  Mark the correct answer
+                <span className="text-[11px] text-red-400 font-semibold">
+                  Mark correct answer
                 </span>
               )}
 
@@ -253,7 +253,7 @@ export default function ExamBuilder({
                   onClick={() => moveQuestion(index, -1)}
                   disabled={index === 0}
                   aria-label="Move question up"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                  className="p-1.5 rounded-lg text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
                 >
                   <ChevronUp className="w-4 h-4" />
                 </button>
@@ -262,7 +262,7 @@ export default function ExamBuilder({
                   onClick={() => moveQuestion(index, 1)}
                   disabled={index === questions.length - 1}
                   aria-label="Move question down"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                  className="p-1.5 rounded-lg text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
                 >
                   <ChevronDown className="w-4 h-4" />
                 </button>
@@ -270,7 +270,7 @@ export default function ExamBuilder({
                   type="button"
                   onClick={() => duplicateQuestion(index)}
                   aria-label="Duplicate question"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                  className="p-1.5 rounded-lg text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
@@ -278,7 +278,7 @@ export default function ExamBuilder({
                   type="button"
                   onClick={() => removeQuestion(index)}
                   aria-label="Delete question"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="p-1.5 rounded-lg text-[#9d9b95] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -286,17 +286,17 @@ export default function ExamBuilder({
             </div>
 
             {/* Card body */}
-            <div className="p-4 space-y-4">
+            <div className="p-4 sm:p-5 space-y-4">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <label
                     htmlFor={`prompt-${question.id}`}
-                    className="block text-xs font-semibold text-slate-700 mb-1.5"
+                    className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                   >
                     {assessmentType === "ASSIGNMENT"
                       ? "Task Prompt / Instructions"
                       : "Question Prompt"}{" "}
-                    <span className="text-red-500">*</span>
+                    <span className="text-[#d4af37]">*</span>
                   </label>
                   <textarea
                     id={`prompt-${question.id}`}
@@ -308,14 +308,14 @@ export default function ExamBuilder({
                         ? "e.g. Write an essay analyzing the case study findings, citing at least three references..."
                         : "e.g. Which law states that energy cannot be created or destroyed?"
                     }
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                    className="w-full px-3.5 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 resize-none focus:ring-1 focus:ring-[#d4af37]/40 focus:border-[#d4af37] focus:outline-none transition-all"
                   />
                 </div>
 
                 <div className="sm:w-28 shrink-0">
                   <label
                     htmlFor={`points-${question.id}`}
-                    className="block text-xs font-semibold text-slate-700 mb-1.5"
+                    className="block text-xs font-semibold text-[#f7f3e8] mb-1.5"
                   >
                     Points
                   </label>
@@ -328,7 +328,7 @@ export default function ExamBuilder({
                     onChange={e =>
                       updateQuestion(index, { points: Number(e.target.value) || 0 })
                     }
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold tabular-nums focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+                    className="w-full px-3 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm font-bold text-[#f7f3e8] tabular-nums focus:ring-1 focus:ring-[#d4af37]/40 focus:border-[#d4af37] focus:outline-none transition-all"
                   />
                 </div>
               </div>
@@ -337,14 +337,14 @@ export default function ExamBuilder({
               {question.type !== "ESSAY" && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-700">
-                      Options — click the circle to mark the correct answer
+                    <span className="text-xs font-semibold text-[#9d9b95]">
+                      Options — select the radio icon to mark the correct answer
                     </span>
                     {question.type === "MCQ" && (
                       <button
                         type="button"
                         onClick={() => addOption(index)}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#d4af37] hover:brightness-110 transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Add option
@@ -359,10 +359,10 @@ export default function ExamBuilder({
                       return (
                         <div
                           key={option.id}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-colors ${
+                          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all ${
                             isCorrect
-                              ? "bg-emerald-50 border-emerald-300"
-                              : "bg-slate-50 border-slate-200"
+                              ? "bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.35)] shadow-sm"
+                              : "bg-[#181817] border-white/[0.06] hover:border-white/[0.12]"
                           }`}
                         >
                           <button
@@ -370,12 +370,12 @@ export default function ExamBuilder({
                             onClick={() => updateQuestion(index, { correctOptionId: option.id })}
                             aria-label={`Mark "${option.text || "this option"}" as correct`}
                             aria-pressed={isCorrect}
-                            className="shrink-0"
+                            className="shrink-0 p-0.5 rounded-full"
                           >
                             {isCorrect ? (
-                              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                              <CheckCircle2 className="w-5 h-5 text-[#d4af37]" />
                             ) : (
-                              <Circle className="w-5 h-5 text-slate-300 hover:text-emerald-400 transition-colors" />
+                              <Circle className="w-5 h-5 text-white/20 hover:text-[#d4af37] transition-colors" />
                             )}
                           </button>
 
@@ -386,13 +386,13 @@ export default function ExamBuilder({
                             onChange={e => updateOption(index, option.id, e.target.value)}
                             placeholder="Option text"
                             className={`flex-1 bg-transparent border-none text-sm focus:outline-none ${
-                              isCorrect ? "text-emerald-900 font-semibold" : "text-slate-700"
+                              isCorrect ? "text-[#f7f3e8] font-bold" : "text-[#9d9b95]"
                             } ${question.type === "TRUE_FALSE" ? "cursor-default" : ""}`}
                           />
 
                           {isCorrect && (
-                            <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 shrink-0">
-                              Correct
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#d4af37] bg-[rgba(212,175,55,0.15)] px-2 py-0.5 rounded-md border border-[rgba(212,175,55,0.25)] shrink-0">
+                              Correct Key
                             </span>
                           )}
 
@@ -401,7 +401,7 @@ export default function ExamBuilder({
                               type="button"
                               onClick={() => removeOption(index, option.id)}
                               aria-label="Remove option"
-                              className="p-1 rounded text-slate-300 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0"
+                              className="p-1 rounded-lg text-[#9d9b95] hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -414,10 +414,11 @@ export default function ExamBuilder({
               )}
 
               {question.type === "ESSAY" && (
-                <div className="flex items-start gap-2 px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-                  <FileText className="w-4 h-4 shrink-0 mt-0.5" />
-                  Students answer in a free-text box. This question skips the auto-grader and
-                  waits for you in the Grading suite.
+                <div className="flex items-start gap-2.5 px-3.5 py-3 bg-[rgba(212,175,55,0.06)] border border-[rgba(212,175,55,0.2)] rounded-xl text-xs text-[#f5d77f]">
+                  <FileText className="w-4 h-4 shrink-0 mt-0.5 text-[#d4af37]" />
+                  <span>
+                    Students answer in a rich free-text box. This question skips automatic grading and will route directly to your teacher grading suite.
+                  </span>
                 </div>
               )}
             </div>
@@ -427,11 +428,11 @@ export default function ExamBuilder({
 
       {/* Running total */}
       {questions.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-900 rounded-xl text-white">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Total Paper Value
+        <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[#181817] to-[#141413] border border-[rgba(212,175,55,0.3)] rounded-2xl text-[#f7f3e8] shadow-lg">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#9d9b95]">
+            Total Paper Assessment Value
           </span>
-          <span className="text-lg font-bold tabular-nums">
+          <span className="text-lg font-black text-[#d4af37] tabular-nums">
             {total} point{total === 1 ? "" : "s"}
           </span>
         </div>

@@ -37,26 +37,26 @@ interface BugReportItem {
 const STATUS_CONFIG = {
   OPEN: {
     label: "Open",
-    bg: "bg-amber-50 text-amber-700 border-amber-200",
+    bg: "bg-amber-500/10 text-amber-400 border-amber-500/25",
     badge: "bg-amber-500",
     icon: Clock,
   },
   IN_PROGRESS: {
     label: "In Progress",
-    bg: "bg-blue-50 text-blue-700 border-blue-200",
-    badge: "bg-blue-500",
+    bg: "bg-sky-500/10 text-sky-400 border-sky-500/25",
+    badge: "bg-sky-500",
     icon: RefreshCw,
   },
   RESOLVED: {
     label: "Resolved",
-    bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    bg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/25",
     badge: "bg-emerald-500",
     icon: CheckCircle2,
   },
   CLOSED: {
     label: "Closed",
-    bg: "bg-slate-100 text-slate-700 border-slate-200",
-    badge: "bg-slate-500",
+    bg: "bg-white/5 text-[#9d9b95] border-white/10",
+    badge: "bg-white/20",
     icon: XCircle,
   },
 }
@@ -141,13 +141,13 @@ export default function AdminFeedbackPage() {
       {/* Page Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] flex items-center justify-center text-[#d4af37] shadow-lg shadow-black/40">
               <MessageSquareWarning className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Bug Reports & Feedback</h1>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <h1 className="text-2xl font-bold text-[#f7f3e8] tracking-tight">Bug Reports & Feedback</h1>
+              <p className="text-sm text-[#9d9b95] mt-0.5">
                 Inspect and resolve issues reported directly by students and educators.
               </p>
             </div>
@@ -157,64 +157,72 @@ export default function AdminFeedbackPage() {
         <button
           onClick={() => void loadReports()}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-lg transition-colors shadow-sm disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#111110] border border-white/[0.08] hover:border-[rgba(212,175,55,0.3)] hover:text-[#f7f3e8] text-[#9d9b95] text-sm font-semibold rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-60"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#d4af37]" : ""}`} />
           Refresh
         </button>
       </div>
 
       {toast && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-xl animate-fade-in shadow-sm">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+        <div className="flex items-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm rounded-xl animate-fade-in shadow-sm">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
           {toast}
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-xl">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+        <div className="flex items-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
           {error}
         </div>
       )}
 
       {/* Overview Stat Counters */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] p-5 shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total Reports</span>
-            <Bug className="w-4 h-4 text-slate-400" />
+            <span className="text-xs font-bold text-[#9d9b95] uppercase tracking-wider">Total Reports</span>
+            <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[#d4af37]">
+              <Bug className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">{reports.length}</p>
+          <p className="text-2xl font-bold text-[#f7f3e8] mt-3 tabular-nums">{reports.length}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] p-5 shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Pending / Open</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Pending / Open</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Clock className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-2xl font-bold text-amber-600 mt-2 tabular-nums">{openCount}</p>
+          <p className="text-2xl font-bold text-amber-400 mt-3 tabular-nums">{openCount}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] p-5 shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">In Progress</span>
-            <RefreshCw className="w-4 h-4 text-blue-500" />
+            <span className="text-xs font-bold text-sky-400 uppercase tracking-wider">In Progress</span>
+            <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+              <RefreshCw className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-2xl font-bold text-blue-600 mt-2 tabular-nums">{progressCount}</p>
+          <p className="text-2xl font-bold text-sky-400 mt-3 tabular-nums">{progressCount}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+        <div className="bg-[#111110] rounded-2xl border border-white/[0.08] p-5 shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Resolved</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Resolved</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-2xl font-bold text-emerald-600 mt-2 tabular-nums">{resolvedCount}</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-3 tabular-nums">{resolvedCount}</p>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#111110] p-3 rounded-2xl border border-white/[0.08] shadow-lg">
         {/* Status Tabs */}
         <div className="flex flex-wrap items-center gap-1.5">
           {["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map(st => {
@@ -223,10 +231,10 @@ export default function AdminFeedbackPage() {
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${
                   active
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:bg-slate-100"
+                    ? "bg-[rgba(212,175,55,0.15)] text-[#d4af37] border border-[rgba(212,175,55,0.35)] shadow-sm"
+                    : "text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.04] border border-transparent"
                 }`}
               >
                 {st === "ALL" ? "All Reports" : STATUS_CONFIG[st as keyof typeof STATUS_CONFIG]?.label || st}
@@ -236,31 +244,31 @@ export default function AdminFeedbackPage() {
         </div>
 
         {/* Search Input */}
-        <div className="relative min-w-[240px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="relative min-w-[260px] flex-1 sm:flex-initial">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9d9b95]" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search by title, name, email..."
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-shadow"
+            className="w-full pl-9 pr-3 py-2 bg-[#181817] border border-white/[0.08] rounded-xl text-xs text-[#f7f3e8] placeholder-[#9d9b95]/60 focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none transition-all"
           />
         </div>
       </div>
 
       {/* Reports List */}
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400 bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+        <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#9d9b95] bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg">
+          <Loader2 className="w-6 h-6 animate-spin text-[#d4af37]" />
           <p className="text-sm font-medium">Loading reports...</p>
         </div>
       ) : filteredReports.length === 0 ? (
-        <div className="py-16 text-center bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-3 text-slate-400">
+        <div className="py-16 text-center bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg p-8">
+          <div className="w-12 h-12 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto mb-3 text-[#9d9b95]">
             <Inbox className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-slate-900">No reports found</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+          <h3 className="text-base font-bold text-[#f7f3e8]">No reports found</h3>
+          <p className="text-xs text-[#9d9b95] mt-1 max-w-sm mx-auto">
             {searchQuery
               ? "No feedback or reports match your current search query."
               : "No feedback submissions match the selected status filter."}
@@ -270,17 +278,16 @@ export default function AdminFeedbackPage() {
         <div className="space-y-3">
           {filteredReports.map(report => {
             const statusMeta = STATUS_CONFIG[report.status] || STATUS_CONFIG.OPEN
-            const StatusIcon = statusMeta.icon
 
             return (
               <div
                 key={report.id}
-                className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:border-slate-300 transition-all space-y-4"
+                className="bg-[#111110] rounded-2xl border border-white/[0.08] hover:border-[rgba(212,175,55,0.25)] shadow-lg p-5 transition-all space-y-4"
               >
                 {/* Header row: Submitter info and Status Control */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[#181817] border border-white/[0.08] flex items-center justify-center overflow-hidden shrink-0">
                       {report.user?.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -289,7 +296,7 @@ export default function AdminFeedbackPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="font-bold text-xs text-slate-600">
+                        <span className="font-bold text-xs text-[#f7f3e8]">
                           {report.user?.name?.slice(0, 2).toUpperCase() || "US"}
                         </span>
                       )}
@@ -297,25 +304,27 @@ export default function AdminFeedbackPage() {
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-900 truncate">
+                        <span className="font-bold text-sm text-[#f7f3e8] truncate">
                           {report.user?.name || "Unknown Submitter"}
                         </span>
                         <span
-                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                             report.user?.role === "TEACHER"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-emerald-100 text-emerald-700"
+                              ? "bg-purple-500/10 text-purple-300 border-purple-500/20"
+                              : report.user?.role === "ADMIN"
+                              ? "bg-[rgba(212,175,55,0.15)] text-[#d4af37] border-[rgba(212,175,55,0.3)]"
+                              : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
                           }`}
                         >
                           {report.user?.role || "USER"}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">{report.user?.email}</p>
+                      <p className="text-xs text-[#9d9b95] mt-0.5">{report.user?.email}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-[#9d9b95]">
                       Submitted {new Date(report.createdAt).toLocaleDateString()} at{" "}
                       {new Date(report.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
@@ -326,25 +335,25 @@ export default function AdminFeedbackPage() {
                         value={report.status}
                         disabled={updatingId === report.id}
                         onChange={e => void handleUpdateStatus(report.id, e.target.value)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors cursor-pointer ${statusMeta.bg}`}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border focus:ring-2 focus:ring-[#d4af37]/30 focus:outline-none transition-colors cursor-pointer bg-[#181817] text-[#f7f3e8] ${statusMeta.bg}`}
                       >
-                        <option value="OPEN">Open</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="RESOLVED">Resolved</option>
-                        <option value="CLOSED">Closed</option>
+                        <option value="OPEN" className="bg-[#181817] text-amber-400">Open</option>
+                        <option value="IN_PROGRESS" className="bg-[#181817] text-sky-400">In Progress</option>
+                        <option value="RESOLVED" className="bg-[#181817] text-emerald-400">Resolved</option>
+                        <option value="CLOSED" className="bg-[#181817] text-[#9d9b95]">Closed</option>
                       </select>
-                      {updatingId === report.id && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
+                      {updatingId === report.id && <Loader2 className="w-3.5 h-3.5 animate-spin text-[#d4af37]" />}
                     </div>
                   </div>
                 </div>
 
                 {/* Report Content */}
-                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                  <h3 className="font-bold text-sm text-slate-900 mb-1.5 flex items-center gap-2">
-                    <Bug className="w-4 h-4 text-indigo-600" />
+                <div className="bg-[#0c0c0b] border border-white/[0.06] rounded-xl p-4">
+                  <h3 className="font-bold text-sm text-[#f7f3e8] mb-1.5 flex items-center gap-2">
+                    <Bug className="w-4 h-4 text-[#d4af37]" />
                     {report.title}
                   </h3>
-                  <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
+                  <p className="text-xs text-[#9d9b95] whitespace-pre-wrap leading-relaxed">
                     {report.description}
                   </p>
                 </div>
