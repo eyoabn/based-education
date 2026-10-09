@@ -394,8 +394,8 @@ export default function TeacherGradingPage() {
     <Suspense
       fallback={
         <div className="max-w-7xl mx-auto space-y-4">
-          <div className="h-10 w-64 bg-white rounded-lg border border-slate-200 animate-pulse" />
-          <div className="h-64 bg-white rounded-xl border border-slate-200 animate-pulse" />
+          <div className="h-10 w-64 bg-[#111110] rounded-xl border border-white/[0.08] animate-pulse" />
+          <div className="h-64 bg-[#111110] rounded-2xl border border-white/[0.08] animate-pulse" />
         </div>
       }
     >

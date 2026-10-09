@@ -30,25 +30,25 @@ interface OverviewCardProps {
 }
 
 const TONES: Record<NonNullable<OverviewCardProps["tone"]>, string> = {
-  indigo: "bg-indigo-50 text-indigo-600",
-  emerald: "bg-emerald-50 text-emerald-600",
-  amber: "bg-amber-50 text-amber-600",
-  slate: "bg-slate-100 text-slate-600",
+  indigo: "bg-[rgba(212,175,55,0.1)] text-[#d4af37] border border-[rgba(212,175,55,0.25)]",
+  emerald: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  amber: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  slate: "bg-white/[0.04] text-[#9d9b95] border border-white/[0.06]",
 }
 
 function OverviewCard({ icon: Icon, label, value, sub, tone = "slate" }: OverviewCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+    <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg shadow-black/20 p-5 hover:border-[rgba(212,175,55,0.25)] transition-all">
       <div className="flex items-start justify-between mb-3">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#9d9b95]">
           {label}
         </span>
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${TONES[tone]}`}>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${TONES[tone]}`}>
           <Icon className="w-4 h-4" />
         </div>
       </div>
-      <div className="text-2xl font-bold text-slate-900 tracking-tight">{value}</div>
-      {sub && <div className="text-xs text-slate-500 mt-1">{sub}</div>}
+      <div className="text-2xl font-black text-[#f7f3e8] tracking-tight tabular-nums">{value}</div>
+      {sub && <div className="text-xs text-[#9d9b95] mt-1.5">{sub}</div>}
     </div>
   )
 }
@@ -126,10 +126,17 @@ export default function TeacherAttendancePage() {
       {/* Page header */}
       <div className="no-print flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Student Attendance</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Automated presence tracking, attention analytics and exportable reports.
-          </p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-11 h-11 rounded-2xl bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] flex items-center justify-center text-[#d4af37] shadow-lg shadow-black/40">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-[#f7f3e8] tracking-tight">Student Attendance</h1>
+              <p className="text-sm text-[#9d9b95] mt-0.5">
+                Automated presence tracking, attention analytics and exportable reports.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -137,10 +144,10 @@ export default function TeacherAttendancePage() {
             <>
               <button
                 onClick={() => void loadReport(selectedRoomId)}
-                className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#111110] border border-white/[0.08] hover:border-[rgba(212,175,55,0.3)] hover:text-[#f7f3e8] text-[#9d9b95] text-sm font-semibold rounded-xl transition-all shadow-sm cursor-pointer active:scale-95"
                 title="Refresh attendance records"
               >
-                <RefreshCw className={`w-4 h-4 ${loadingReport ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-4 h-4 ${loadingReport ? "animate-spin text-[#d4af37]" : ""}`} />
                 Refresh
               </button>
 
@@ -163,7 +170,7 @@ export default function TeacherAttendancePage() {
                     alert("Network error deleting attendance record.")
                   }
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/15 text-rose-400 text-sm font-semibold rounded-xl transition-all shadow-sm cursor-pointer active:scale-95"
                 title="Delete this session record"
               >
                 <Trash2 className="w-4 h-4" />
@@ -176,19 +183,19 @@ export default function TeacherAttendancePage() {
       </div>
 
       {/* Room selector */}
-      <div className="no-print bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+      <div className="no-print bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg p-4">
         <label
           htmlFor="room-select"
-          className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2"
+          className="block text-xs font-bold uppercase tracking-wider text-[#9d9b95] mb-2"
         >
           Live Session
         </label>
 
         {loadingRooms ? (
-          <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
+          <div className="h-10 bg-white/[0.04] rounded-xl animate-pulse" />
         ) : rooms.length === 0 ? (
-          <div className="flex items-center gap-2 text-sm text-slate-500 py-2">
-            <AlertCircle className="w-4 h-4 text-amber-500" />
+          <div className="flex items-center gap-2 text-sm text-[#9d9b95] py-2">
+            <AlertCircle className="w-4 h-4 text-amber-400" />
             No live sessions yet — schedule one from the Schedules page to start tracking
             attendance.
           </div>
@@ -198,10 +205,10 @@ export default function TeacherAttendancePage() {
               id="room-select"
               value={selectedRoomId}
               onChange={e => setSelectedRoomId(e.target.value)}
-              className="w-full appearance-none pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow cursor-pointer"
+              className="w-full appearance-none pl-4 pr-10 py-2.5 bg-[#181817] border border-white/[0.08] rounded-xl text-sm font-medium text-[#f7f3e8] focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none transition-all cursor-pointer"
             >
               {rooms.map(room => (
-                <option key={room.id} value={room.id}>
+                <option key={room.id} value={room.id} className="bg-[#181817] text-[#f7f3e8]">
                   {room.isLive ? "🔴 LIVE — " : ""}
                   {room.title}
                   {room.courseTitle ? ` (${room.courseTitle})` : ""}
@@ -216,13 +223,13 @@ export default function TeacherAttendancePage() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-[#9d9b95] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         )}
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div className="flex items-center gap-2 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-sm text-rose-400">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
@@ -231,7 +238,7 @@ export default function TeacherAttendancePage() {
       {loadingReport && !report && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[0, 1, 2, 3].map(i => (
-            <div key={i} className="h-28 bg-white rounded-xl border border-slate-200 animate-pulse" />
+            <div key={i} className="h-28 bg-[#111110] rounded-2xl border border-white/[0.08] animate-pulse" />
           ))}
         </div>
       )}
@@ -253,10 +260,10 @@ export default function TeacherAttendancePage() {
 
           {/* Session banner */}
           <div className="no-print flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <CalendarDays className="w-4 h-4 text-slate-400" />
-              <span className="font-semibold text-slate-800">{report.room.title}</span>
-              <span className="text-slate-400">·</span>
+            <div className="flex items-center gap-2 text-sm text-[#9d9b95]">
+              <CalendarDays className="w-4 h-4 text-[#d4af37]" />
+              <span className="font-bold text-[#f7f3e8]">{report.room.title}</span>
+              <span className="text-white/20">·</span>
               <span>{new Date(report.room.scheduledAt).toLocaleString()}</span>
             </div>
             {report.room.isLive && (
@@ -300,8 +307,8 @@ export default function TeacherAttendancePage() {
           </div>
 
           {/* Status breakdown */}
-          <div className="no-print flex flex-wrap items-center gap-4 px-5 py-3 bg-white rounded-xl border border-slate-200 shadow-sm text-sm">
-            <TrendingUp className="w-4 h-4 text-slate-400" />
+          <div className="no-print flex flex-wrap items-center gap-4 px-5 py-3 bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg text-sm">
+            <TrendingUp className="w-4 h-4 text-[#d4af37]" />
             {[
               { label: "Present", count: summary.presentCount, dot: "bg-emerald-500" },
               { label: "Late", count: summary.lateCount, dot: "bg-amber-500" },
@@ -310,13 +317,13 @@ export default function TeacherAttendancePage() {
             ].map(item => (
               <div key={item.label} className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${item.dot}`} />
-                <span className="text-slate-600">{item.label}</span>
-                <span className="font-bold text-slate-900 tabular-nums">{item.count}</span>
+                <span className="text-[#9d9b95]">{item.label}</span>
+                <span className="font-bold text-[#f7f3e8] tabular-nums">{item.count}</span>
               </div>
             ))}
             {report.room.isLive && (
-              <div className="flex items-center gap-1.5 ml-auto text-xs text-slate-400">
-                <Radio className="w-3 h-3 animate-pulse text-emerald-500" />
+              <div className="flex items-center gap-1.5 ml-auto text-xs text-[#9d9b95]">
+                <Radio className="w-3 h-3 animate-pulse text-emerald-400" />
                 Auto-refreshing every {LIVE_REFRESH_MS / 1000}s
               </div>
             )}

@@ -71,17 +71,25 @@ export default function TeacherCourseMaterialsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
-          <ArrowLeft className="w-5 h-5 text-slate-600" />
+        <button
+          onClick={() => router.back()}
+          className="p-2.5 bg-[#111110] hover:bg-[#181817] border border-white/[0.08] hover:border-[rgba(212,175,55,0.3)] rounded-xl transition-all text-[#9d9b95] hover:text-[#f7f3e8]"
+        >
+          <ArrowLeft className="w-5 h-5" />
         </button>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Course Materials</h1>
-          <p className="text-sm text-slate-500">Upload slides, PDFs, or links for your students.</p>
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="w-11 h-11 rounded-2xl bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] flex items-center justify-center text-[#d4af37] shadow-lg shadow-black/40 shrink-0">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-black text-[#f7f3e8] tracking-tight">Course Materials</h1>
+            <p className="text-sm text-[#9d9b95]">Upload slides, PDFs, or links for your students.</p>
+          </div>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto shrink-0">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center gap-2"
+            className="px-4 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 text-black font-extrabold text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-[rgba(212,175,55,0.15)] transition-all min-h-[44px] active:scale-95"
           >
             <Plus className="w-4 h-4" /> Add Material
           </button>
@@ -89,35 +97,49 @@ export default function TeacherCourseMaterialsPage() {
       </div>
 
       {loading ? (
-        <div className="p-12 text-center text-slate-400">Loading materials...</div>
+        <div className="p-12 text-center text-[#9d9b95]">
+          <Loader2 className="w-6 h-6 animate-spin text-[#d4af37] mx-auto mb-3" />
+          Loading materials...
+        </div>
       ) : materials.length === 0 ? (
-        <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3 shadow-sm">
-          <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="font-bold text-slate-800 text-lg">No Materials Yet</h3>
-          <p className="text-slate-500 text-sm max-w-sm mx-auto">
+        <div className="bg-[#111110] p-12 rounded-2xl border border-white/[0.08] shadow-lg text-center space-y-3">
+          <div className="w-16 h-16 rounded-2xl bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.2)] flex items-center justify-center mx-auto text-[#d4af37]">
+            <BookOpen className="w-8 h-8" />
+          </div>
+          <h3 className="font-black text-[#f7f3e8] text-lg">No Materials Yet</h3>
+          <p className="text-[#9d9b95] text-sm max-w-sm mx-auto">
             Share important documents, reading links, and slides with your enrolled students.
           </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-2 px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 text-black font-extrabold text-sm rounded-xl inline-flex items-center gap-2 shadow-lg shadow-[rgba(212,175,55,0.15)] transition-all min-h-[44px]"
+          >
+            <Plus className="w-4 h-4" /> Add First Material
+          </button>
         </div>
       ) : (
         <div className="grid gap-4">
           {materials.map(mat => (
-            <div key={mat.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow">
-              <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600 shrink-0">
-                {mat.fileType === "pdf" ? <FileText className="w-6 h-6" /> : <LinkIcon className="w-6 h-6" />}
+            <div
+              key={mat.id}
+              className="bg-[#111110] p-5 rounded-2xl border border-white/[0.08] shadow-lg flex items-start gap-4 hover:border-[rgba(212,175,55,0.25)] transition-all group"
+            >
+              <div className="p-3 bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] rounded-xl text-[#d4af37] shrink-0 shadow-sm">
+                {mat.fileType === "pdf" ? <FileText className="w-6 h-6" /> : mat.fileType === "video" ? <ExternalLink className="w-6 h-6" /> : <LinkIcon className="w-6 h-6" />}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900">{mat.title}</h3>
-                {mat.description && <p className="text-sm text-slate-500 mt-1">{mat.description}</p>}
+                <h3 className="font-black text-[#f7f3e8]">{mat.title}</h3>
+                {mat.description && <p className="text-sm text-[#9d9b95] mt-1">{mat.description}</p>}
                 <a
                   href={mat.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                  className="inline-flex items-center gap-1.5 mt-2.5 text-xs font-bold text-[#d4af37] hover:text-[#f5d77f] transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" /> Open Material
                 </a>
               </div>
-              <div className="shrink-0 text-xs text-slate-400">
+              <div className="shrink-0 text-xs text-[#9d9b95] font-mono">
                 {new Date(mat.createdAt).toLocaleDateString()}
               </div>
             </div>
@@ -126,34 +148,91 @@ export default function TeacherCourseMaterialsPage() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Add Course Material</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div
+            className="fixed inset-0"
+            onClick={() => setIsModalOpen(false)}
+            aria-hidden
+          />
+          <div className="relative bg-[#111110] rounded-3xl max-w-md w-full shadow-2xl border border-white/[0.08] animate-fade-up z-10">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#181817] via-[#141413] to-[#111110] p-6 border-b border-white/[0.08] rounded-t-3xl">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] rounded-2xl text-[#d4af37]">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-black text-[#f7f3e8]">Add Course Material</h2>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreate} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Title *</label>
-                <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#f7f3e8] mb-2">
+                  Title <span className="text-[#d4af37]">*</span>
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="e.g., Lecture 3 Slides"
+                  className="w-full px-4 py-3 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 focus:outline-none transition-all"
+                />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
-                <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none" />
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#f7f3e8] mb-2">
+                  Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Optional short description for students..."
+                  className="w-full px-4 py-3 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 focus:outline-none transition-all resize-none"
+                />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">File or Link URL *</label>
-                <input required type="url" value={fileUrl} onChange={e => setFileUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#f7f3e8] mb-2">
+                  File or Link URL <span className="text-[#d4af37]">*</span>
+                </label>
+                <input
+                  required
+                  type="url"
+                  value={fileUrl}
+                  onChange={e => setFileUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/50 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 focus:outline-none transition-all"
+                />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Type</label>
-                <select value={fileType} onChange={e => setFileType(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                  <option value="link">External Link</option>
-                  <option value="pdf">PDF Document</option>
-                  <option value="video">Video</option>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#f7f3e8] mb-2">
+                  Type
+                </label>
+                <select
+                  value={fileType}
+                  onChange={e => setFileType(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#181817] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 focus:outline-none transition-all cursor-pointer"
+                >
+                  <option value="link" className="bg-[#181817]">External Link</option>
+                  <option value="pdf" className="bg-[#181817]">PDF Document</option>
+                  <option value="video" className="bg-[#181817]">Video</option>
                 </select>
               </div>
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded-lg">Cancel</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg flex items-center gap-2">
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Upload
+              <div className="pt-4 flex justify-end gap-3 border-t border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2.5 text-[#9d9b95] hover:text-[#f7f3e8] font-semibold hover:bg-white/[0.04] rounded-xl transition-all min-h-[44px]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2.5 bg-gradient-to-r from-[#d4af37] to-[#b38f2a] hover:brightness-110 disabled:opacity-50 text-black font-extrabold text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-[rgba(212,175,55,0.15)] transition-all min-h-[44px] active:scale-95"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  Upload
                 </button>
               </div>
             </form>

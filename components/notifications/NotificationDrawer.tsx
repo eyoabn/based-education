@@ -208,39 +208,52 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
   })
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-stretch sm:justify-end">
+    <div className="fixed inset-0 z-[9999] flex">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+      <div
+        className="absolute inset-0 bg-black/75 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
-      
-      {/* Drawer / Mobile Bottom Sheet */}
-      <div className="relative w-full sm:max-w-md bg-[#111110] text-[#f7f3e8] max-h-[90vh] sm:max-h-full h-auto sm:h-full shadow-[0_25px_60px_rgba(0,0,0,0.8)] flex flex-col animate-in slide-in-from-bottom sm:slide-in-from-right duration-300 rounded-t-3xl sm:rounded-none sm:rounded-l-3xl border-t sm:border-t-0 sm:border-l border-white/[0.08] z-10">
-        
-        {/* Mobile Drag Indicator Bar */}
-        <div className="sm:hidden pt-3 pb-1 flex justify-center">
-          <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+
+      {/* Drawer panel — slides in from right on desktop, bottom on mobile */}
+      <div
+        className="absolute right-0 top-0 bottom-0 w-full sm:w-[420px] max-w-full bg-[#111110] text-[#f7f3e8] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)] border-l border-white/[0.08] z-10"
+        style={{
+          animation: "notif-slide-in 0.25s cubic-bezier(0.25,0.46,0.45,0.94) both",
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Notifications"
+      >
+        {/* Mobile Drag Handle */}
+        <div className="sm:hidden pt-3 pb-1 flex justify-center shrink-0">
+          <div className="w-10 h-1 bg-white/20 rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="px-5 sm:px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
-          <div>
-            <h2 className="text-base sm:text-lg font-bold text-[#f7f3e8] leading-tight">Notifications</h2>
-            <p className="text-[11px] text-[#9d9b95] font-medium">Activity updates &amp; alerts</p>
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#181817]/60">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-[rgba(212,175,55,0.1)] border border-[rgba(212,175,55,0.25)] flex items-center justify-center text-[#d4af37]">
+              <BellRing className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-[#f7f3e8] leading-tight">Notifications</h2>
+              <p className="text-[11px] text-[#9d9b95] font-medium">Activity updates &amp; alerts</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {notifications.some(n => !n.isRead) && (
-              <button 
+              <button
                 onClick={handleMarkAll}
-                className="text-xs font-semibold text-[#d4af37] hover:bg-[rgba(212,175,55,0.12)] active:scale-95 px-2.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 border border-[rgba(212,175,55,0.25)]"
+                className="text-xs font-bold text-[#d4af37] hover:bg-[rgba(212,175,55,0.1)] active:scale-95 px-2.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 border border-[rgba(212,175,55,0.25)] min-h-[36px]"
               >
                 <CheckCheck className="w-3.5 h-3.5" /> Mark read
               </button>
             )}
-            <button 
-              onClick={onClose} 
-              className="w-8 h-8 flex items-center justify-center text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] rounded-xl transition-colors active:scale-95"
+            <button
+              onClick={onClose}
+              className="w-9 h-9 flex items-center justify-center text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.06] rounded-xl transition-colors active:scale-95"
               aria-label="Close notifications"
             >
               <X className="w-5 h-5" />
@@ -249,20 +262,22 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
         </div>
 
         {/* Tabs */}
-        <div className="px-4 py-2.5 border-b border-white/[0.08] flex gap-1.5 overflow-x-auto scrollbar-none bg-[#0a0a09]">
+        <div className="px-4 py-2.5 border-b border-white/[0.08] flex gap-1.5 overflow-x-auto shrink-0 bg-[#0c0c0b]"
+          style={{ scrollbarWidth: "none" }}
+        >
           {[
-            { id: 'all', label: 'All Activity' },
-            { id: 'requests', label: 'Course Requests' },
-            { id: 'live', label: 'Live Sessions' },
-            { id: 'posts', label: 'Feed Posts' },
+            { id: "all", label: "All" },
+            { id: "requests", label: "Requests" },
+            { id: "live", label: "Live" },
+            { id: "posts", label: "Posts" },
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl capitalize transition-all whitespace-nowrap active:scale-95 ${
-                activeTab === tab.id 
-                  ? 'bg-gradient-to-r from-[rgba(212,175,55,0.2)] to-[rgba(212,175,55,0.08)] text-[#f7f3e8] border border-[rgba(212,175,55,0.35)] shadow-[0_0_12px_rgba(212,175,55,0.15)]' 
-                  : 'text-[#9d9b95] hover:bg-white/[0.05] hover:text-[#f7f3e8]'
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all active:scale-95 min-h-[32px] ${
+                activeTab === tab.id
+                  ? "bg-[rgba(212,175,55,0.15)] text-[#d4af37] border border-[rgba(212,175,55,0.35)]"
+                  : "text-[#9d9b95] hover:bg-white/[0.05] hover:text-[#f7f3e8] border border-transparent"
               }`}
             >
               {tab.label}
@@ -270,53 +285,101 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
           ))}
         </div>
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Notification List */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           {loading ? (
-            <div className="p-8 text-center text-[#9d9b95] text-sm">Loading activity stream...</div>
+            <div className="p-8 text-center space-y-3">
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} className="flex gap-3 items-center">
+                  <div className="w-10 h-10 rounded-2xl bg-white/[0.04] animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-white/[0.04] rounded-lg animate-pulse w-3/4" />
+                    <div className="h-2.5 bg-white/[0.03] rounded-lg animate-pulse w-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : filteredNotifications.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-[#9d9b95] flex items-center justify-center mx-auto mb-3">
-                <BellRing className="w-6 h-6 text-[#d4af37]" />
+              <div className="w-14 h-14 rounded-3xl bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.2)] text-[#d4af37] flex items-center justify-center mx-auto mb-4">
+                <BellRing className="w-7 h-7" />
               </div>
-              <p className="text-sm font-bold text-[#f7f3e8]">All caught up!</p>
-              <p className="text-xs text-[#9d9b95] mt-1 max-w-xs mx-auto">
-                There are no notifications in this category right now.
+              <p className="text-sm font-black text-[#f7f3e8]">All caught up!</p>
+              <p className="text-xs text-[#9d9b95] mt-1.5 max-w-[200px] mx-auto">
+                No notifications in this category right now.
               </p>
             </div>
           ) : (
-            filteredNotifications.map(notification => (
-              <div 
-                key={notification.id} 
-                onClick={() => handleNotificationClick(notification)}
-                className={`p-4 border-b border-white/[0.05] flex gap-3.5 hover:bg-[#181817] active:scale-[0.99] transition-all cursor-pointer ${
-                  !notification.isRead 
-                    ? 'bg-[rgba(212,175,55,0.04)] border-l-2 border-l-[#d4af37]' 
-                    : ''
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${getIconBg(notification.type)}`}>
-                  {getIcon(notification.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h4 className={`text-sm truncate ${!notification.isRead ? 'font-bold text-[#f7f3e8]' : 'font-semibold text-[#f7f3e8]/80'}`}>
-                      {notification.title}
-                    </h4>
-                    <span className="text-[10px] font-semibold text-[#9d9b95] whitespace-nowrap shrink-0">
-                      {formatRelativeTime(notification.createdAt)}
-                    </span>
+            <div className="divide-y divide-white/[0.05]">
+              {filteredNotifications.map(notification => (
+                <div
+                  key={notification.id}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`p-4 flex gap-3.5 hover:bg-[#181817] active:bg-[#1c1c1b] active:scale-[0.99] transition-all cursor-pointer relative ${
+                    !notification.isRead
+                      ? "bg-[rgba(212,175,55,0.03)]"
+                      : ""
+                  }`}
+                >
+                  {/* Unread left bar */}
+                  {!notification.isRead && (
+                    <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#d4af37] rounded-r-full" />
+                  )}
+
+                  {/* Icon */}
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${getIconBg(notification.type)}`}>
+                    {getIcon(notification.type)}
                   </div>
-                  <p className="text-xs sm:text-sm text-[#9d9b95] leading-snug line-clamp-2">{notification.message}</p>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-0.5">
+                      <h4 className={`text-sm leading-snug ${
+                        !notification.isRead
+                          ? "font-bold text-[#f7f3e8]"
+                          : "font-semibold text-[#f7f3e8]/80"
+                      }`}>
+                        {notification.title}
+                      </h4>
+                      <span className="text-[10px] font-semibold text-[#9d9b95] whitespace-nowrap shrink-0 mt-0.5">
+                        {formatRelativeTime(notification.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#9d9b95] leading-relaxed line-clamp-2">
+                      {notification.message}
+                    </p>
+                  </div>
+
+                  {/* Unread dot */}
+                  {!notification.isRead && (
+                    <div className="w-2 h-2 rounded-full bg-[#d4af37] shadow-[0_0_8px_rgba(212,175,55,0.7)] mt-2 shrink-0 animate-pulse" />
+                  )}
                 </div>
-                {!notification.isRead && (
-                  <div className="w-2 h-2 rounded-full bg-[#d4af37] shadow-[0_0_8px_rgba(212,175,55,0.8)] mt-2 shrink-0 animate-pulse" />
-                )}
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
+
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-white/[0.08] bg-[#0c0c0b] shrink-0">
+          <p className="text-[10px] text-[#9d9b95] text-center font-medium">
+            {filteredNotifications.length} notification{filteredNotifications.length !== 1 ? "s" : ""} · click to navigate
+          </p>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes notif-slide-in {
+          from { transform: translateX(100%); opacity: 0; }
+          to   { transform: translateX(0);    opacity: 1; }
+        }
+        @media (max-width: 639px) {
+          @keyframes notif-slide-in {
+            from { transform: translateY(60px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+          }
+        }
+      `}</style>
     </div>
   )
 }

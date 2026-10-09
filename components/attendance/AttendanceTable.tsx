@@ -88,38 +88,38 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
   }) => (
     <th
       scope="col"
-      className={`px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-${align}`}
+      className={`px-4 py-3 font-bold text-[#9d9b95] whitespace-nowrap text-${align}`}
     >
       <button
         onClick={() => toggleSort(sortKeyName)}
-        className={`inline-flex items-center gap-1.5 hover:text-slate-900 transition-colors ${
-          sortKey === sortKeyName ? "text-slate-900" : ""
+        className={`inline-flex items-center gap-1.5 hover:text-[#f7f3e8] transition-colors ${
+          sortKey === sortKeyName ? "text-[#f7f3e8]" : ""
         }`}
       >
         {label}
         <ArrowUpDown
-          className={`w-3 h-3 ${sortKey === sortKeyName ? "text-emerald-600" : "text-slate-300"}`}
+          className={`w-3 h-3 ${sortKey === sortKeyName ? "text-[#d4af37]" : "text-white/20"}`}
         />
       </button>
     </th>
   )
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-container">
+    <div className="bg-[#111110] rounded-2xl border border-white/[0.08] shadow-lg shadow-black/20 overflow-hidden print-container">
       {/* Toolbar — hidden when printing the report */}
-      <div className="no-print flex flex-wrap items-center gap-3 px-4 py-3 border-b border-slate-200 bg-slate-50/60">
+      <div className="no-print flex flex-wrap items-center gap-3 px-4 py-3 border-b border-white/[0.08] bg-[#181817]">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#9d9b95] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search by name or email..."
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition-shadow"
+            className="w-full pl-9 pr-4 py-2 bg-[#111110] border border-white/[0.08] rounded-xl text-sm text-[#f7f3e8] placeholder-[#9d9b95]/60 focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-1 overflow-x-auto no-scrollbar max-w-full">
+        <div className="flex items-center gap-1 bg-[#111110] border border-white/[0.08] rounded-xl p-1 overflow-x-auto no-scrollbar max-w-full">
           {STATUS_FILTERS.map(status => {
             const active = statusFilter === status
             const count =
@@ -128,14 +128,14 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-colors ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                   active
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                    ? "bg-[rgba(212,175,55,0.15)] text-[#d4af37] border border-[rgba(212,175,55,0.35)]"
+                    : "text-[#9d9b95] hover:text-[#f7f3e8] hover:bg-white/[0.04] border border-transparent"
                 }`}
               >
                 {status === "ALL" ? "All" : STATUS_LABEL[status]}
-                <span className={`ml-1.5 ${active ? "text-slate-300" : "text-slate-400"}`}>
+                <span className={`ml-1.5 tabular-nums ${active ? "text-[#d4af37]/70" : "text-[#9d9b95]"}`}>
                   {count}
                 </span>
               </button>
@@ -146,11 +146,11 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200 text-left text-xs uppercase tracking-wide">
+          <thead className="bg-[#0c0c0b] border-b border-white/[0.08] text-left text-xs uppercase tracking-wider">
             <tr>
               <SortHeader label="Student" sortKeyName="name" />
               <SortHeader label="Join Time" sortKeyName="joinedAt" />
-              <th scope="col" className="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">
+              <th scope="col" className="px-4 py-3 font-bold text-[#9d9b95] whitespace-nowrap">
                 Leave Time
               </th>
               <SortHeader label="Duration" sortKeyName="durationSec" />
@@ -159,13 +159,13 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/[0.06]">
             {visibleRows.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-16 text-center">
-                  <UserX className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 font-medium">No students match this view</p>
-                  <p className="text-slate-400 text-xs mt-1">
+                  <UserX className="w-8 h-8 text-[#9d9b95] mx-auto mb-3" />
+                  <p className="text-[#f7f3e8] font-medium">No students match this view</p>
+                  <p className="text-[#9d9b95] text-xs mt-1">
                     Try clearing the search or switching the status filter.
                   </p>
                 </td>
@@ -175,15 +175,15 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
             {visibleRows.map(row => (
               <tr
                 key={row.studentId}
-                className={`hover:bg-slate-50/70 transition-colors ${
-                  row.status === "ABSENT" ? "opacity-60" : ""
+                className={`hover:bg-white/[0.02] transition-colors ${
+                  row.status === "ABSENT" ? "opacity-50" : ""
                 }`}
               >
                 {/* Student */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+                      <div className="w-8 h-8 rounded-full bg-[#181817] border border-white/[0.08] overflow-hidden">
                         <img
                           src={
                             row.avatarUrl ||
@@ -195,48 +195,48 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
                       </div>
                       {isLive && row.isActive && (
                         <span
-                          className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse-dot"
+                          className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-[#111110] animate-pulse-dot"
                           title="In the room now"
                         />
                       )}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-semibold text-slate-800 truncate">{row.name}</div>
-                      <div className="text-xs text-slate-500 truncate">{row.email}</div>
+                      <div className="font-semibold text-[#f7f3e8] truncate">{row.name}</div>
+                      <div className="text-xs text-[#9d9b95] truncate">{row.email}</div>
                     </div>
                   </div>
                 </td>
 
                 {/* Join / Leave */}
-                <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap" title={row.joinedAt ? `Exact Joined: ${new Date(row.joinedAt).toLocaleString()}` : undefined}>
+                <td className="px-4 py-3 text-[#9d9b95] font-mono text-xs whitespace-nowrap" title={row.joinedAt ? `Exact Joined: ${new Date(row.joinedAt).toLocaleString()}` : undefined}>
                   {row.joinedAt ? (
-                    <span className="font-semibold text-slate-700">{formatClock(row.joinedAt, true)}</span>
+                    <span className="font-semibold text-[#f7f3e8]">{formatClock(row.joinedAt, true)}</span>
                   ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-white/20">—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap" title={row.leftAt ? `Last Seen / Left: ${new Date(row.leftAt).toLocaleString()}` : undefined}>
+                <td className="px-4 py-3 text-[#9d9b95] font-mono text-xs whitespace-nowrap" title={row.leftAt ? `Last Seen / Left: ${new Date(row.leftAt).toLocaleString()}` : undefined}>
                   {isLive && row.isActive ? (
-                    <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80">
+                    <span className="inline-flex items-center gap-1.5 text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                       In Room Now
                     </span>
                   ) : row.leftAt ? (
-                    <span className="text-slate-600">{formatClock(row.leftAt, true)}</span>
+                    <span className="text-[#9d9b95]">{formatClock(row.leftAt, true)}</span>
                   ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-white/20">—</span>
                   )}
                 </td>
 
                 {/* Duration */}
                 <td className="px-4 py-3 font-medium whitespace-nowrap">
                   {row.joinedAt ? (
-                    <span className="inline-flex items-center gap-1 text-slate-800 font-mono text-xs font-bold bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
-                      <Clock className="w-3 h-3 text-slate-500" />
+                    <span className="inline-flex items-center gap-1 text-[#f7f3e8] font-mono text-xs font-bold bg-[#181817] px-2.5 py-1 rounded-lg border border-white/[0.08]">
+                      <Clock className="w-3 h-3 text-[#d4af37]" />
                       {formatDuration(row.durationSec)}
                     </span>
                   ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-white/20">—</span>
                   )}
                 </td>
 
@@ -244,18 +244,18 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
                 <td className="px-4 py-3 min-w-[150px]">
                   {row.joinedAt ? (
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[90px]">
+                      <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden max-w-[90px]">
                         <div
                           className={`h-full rounded-full transition-all ${attentionBarColor(row.attentionPct)}`}
                           style={{ width: `${row.attentionPct}%` }}
                         />
                       </div>
-                      <span className="text-xs font-semibold text-slate-600 tabular-nums w-9">
+                      <span className="text-xs font-semibold text-[#f7f3e8] tabular-nums w-9">
                         {row.attentionPct}%
                       </span>
                     </div>
                   ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-white/20">—</span>
                   )}
                 </td>
 
@@ -274,7 +274,7 @@ export default function AttendanceTable({ rows, isLive = false }: AttendanceTabl
       </div>
 
       {visibleRows.length > 0 && (
-        <div className="px-4 py-2.5 border-t border-slate-200 bg-slate-50/60 text-xs text-slate-500">
+        <div className="px-4 py-2.5 border-t border-white/[0.08] bg-[#181817] text-xs text-[#9d9b95]">
           Showing {visibleRows.length} of {rows.length} students
         </div>
       )}
