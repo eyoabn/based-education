@@ -208,7 +208,7 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
   })
 
   return (
-    <div className="fixed inset-0 z-[9999] flex">
+    <div className="fixed inset-0 z-[9999] flex flex-col sm:flex-row sm:justify-end">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
@@ -218,7 +218,7 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
 
       {/* Drawer panel — slides in from right on desktop, bottom on mobile */}
       <div
-        className="absolute right-0 top-0 bottom-0 w-full sm:w-[420px] max-w-full bg-[#111110] text-[#f7f3e8] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)] border-l border-white/[0.08] z-10"
+        className="relative w-full sm:w-[420px] max-w-full h-[90vh] sm:h-full mt-auto sm:mt-0 bg-[#111110] text-[#f7f3e8] flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)] sm:border-l border-t sm:border-t-0 rounded-t-3xl sm:rounded-none border-white/[0.08] z-10"
         style={{
           animation: "notif-slide-in 0.25s cubic-bezier(0.25,0.46,0.45,0.94) both",
         }}
@@ -228,7 +228,7 @@ export default function NotificationDrawer({ onClose, onMarkAllRead }: { onClose
       >
         {/* Mobile Drag Handle */}
         <div className="sm:hidden pt-3 pb-1 flex justify-center shrink-0">
-          <div className="w-10 h-1 bg-white/20 rounded-full" />
+          <div className="w-10 h-1.5 bg-white/20 rounded-full" />
         </div>
 
         {/* Header */}
