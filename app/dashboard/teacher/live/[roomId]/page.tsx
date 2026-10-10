@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback, use } from "react"
+import { useState, useEffect, useCallback, use, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { LiveKitRoom, useLocalParticipant, RoomAudioRenderer, useRoomInfo, useRoomContext, useConnectionState } from "@livekit/components-react"
+import { LiveKitRoom, useLocalParticipant, RoomAudioRenderer, useRoomInfo, useRoomContext, useConnectionState, useChat } from "@livekit/components-react"
 import { ConnectionState, DataPacket_Kind } from "livekit-client"
 import "@livekit/components-styles"
 import LiveGrid from "@/components/live/LiveGrid"
@@ -53,6 +53,22 @@ function TeacherRoom({ roomId }: { roomId: string }) {
   const [showRecordingsModal, setShowRecordingsModal] = useState(false)
   const [representatives, setRepresentatives] = useState<string[]>([])
   const [mediaState, setMediaState] = useState<MediaState | null>(null)
+
+  const { chatMessages } = useChat()
+  const [unreadChatCount, setUnreadChatCount] = useState(0)
+  const lastReadRef = useRef(0)
+
+  useEffect(() => {
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches
+    const isVisible = activeTab === "chat" && (isPanelOpen || isDesktop)
+
+    if (isVisible) {
+      lastReadRef.current = chatMessages.length
+      setUnreadChatCount(0)
+    } else {
+      setUnreadChatCount(chatMessages.length - lastReadRef.current)
+    }
+  }, [chatMessages.length, activeTab, isPanelOpen])
 
   const handleLowerHand = useCallback(async (identity: string) => {
     setRaisedHands(prev => {
@@ -530,7 +546,7 @@ function TeacherRoom({ roomId }: { roomId: string }) {
             <div className="flex items-center justify-between border-b border-white/10 px-2">
               <div className="flex flex-1">
                 {[
-                  { id: "chat", label: "Chat", icon: MessageSquare },
+                  { id: "chat", label: "Chat", icon: MessageSquare, unread: unreadChatCount },
                   { id: "participants", label: `People (${raisedHands.size ? `✋ ${raisedHands.size}` : ""})`, icon: Users },
                 ].map(tab => (
                   <button
@@ -544,6 +560,11 @@ function TeacherRoom({ roomId }: { roomId: string }) {
                   >
                     <tab.icon className="w-3.5 h-3.5" />
                     {tab.label}
+                    {(tab.unread ?? 0) > 0 && (
+                      <span className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-black leading-none ml-1">
+                        {tab.unread}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -738,9 +759,9 @@ export default function TeacherLivePage({ params }: TeacherLivePageProps) {
         adaptiveStream: true, 
         dynacast: true,
         audioCaptureDefaults: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
         }
       }}
     >

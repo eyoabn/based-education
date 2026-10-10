@@ -115,9 +115,9 @@ export default function NotificationBell() {
         <Bell className="h-5 w-5" />
 
         {unreadCount > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5">
+          <span className="absolute -right-1 -top-1 flex h-5 w-5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#d4af37] opacity-75" />
-            <span className="relative inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-[#111110] bg-[#d4af37] text-[8px] font-black text-black">
+            <span className="relative inline-flex h-5 w-5 items-center justify-center rounded-full border-[2px] border-[#111110] bg-[#d4af37] text-[10px] font-black text-black">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           </span>
