@@ -15,19 +15,6 @@ import {
   type UserSortKey,
 } from '@/lib/admin';
 
-/**
- * Phase 6 — user governance.
- *
- * GET   /api/admin/users?q=&role=&status=&page=&sort=  -> paginated directory
- * PATCH /api/admin/users                               -> ban, reinstate,
- *                                                         change role, or mint
- *                                                         a password-reset link
- *
- * Two invariants protect the platform from an admin's own mistake, and both
- * are enforced here rather than in the UI: **you cannot act on yourself**, and
- * **the last active admin cannot be removed** — no ban, no demotion. A portal
- * that can lock every administrator out of it is a broken portal.
- */
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -109,8 +96,7 @@ export async function GET(request: NextRequest) {
         : {}),
     };
 
-    // A search term and an ACTIVE filter both want the `OR` key. Nest them
-    // under AND so neither silently overwrites the other.
+
     const finalWhere: Prisma.UserWhereInput =
       q && status === 'ACTIVE' && !isResetRequestedFilter
         ? {
